@@ -1,0 +1,58 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "calendar": "Calendar",
+    "subjects": "Subjects",
+    "grades": "Grades",
+    "tasks": "Tasks",
+    "planner": "Weekly Planner",
+    "notes": "Notes",
+    "settings": "Settings"
+  },
+  "topbar": {
+    "search": "Search",
+    "toggleTheme": "Toggle theme",
+    "language": "Language"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Today's agenda, weekly stats, and upcoming items will live here.",
+    "dbStatus": {
+      "title": "Database connection",
+      "checking": "Checking connection...",
+      "connected": "Connected",
+      "failed": "Connection failed",
+      "gradingScale": "Grading scale",
+      "minPassing": "min passing",
+      "sessionTypes": "Session types seeded"
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Monthly, weekly, and daily views will live here."
+  },
+  "subjects": {
+    "title": "Subjects",
+    "subtitle": "Your subjects for the current semester will live here."
+  },
+  "grades": {
+    "title": "Grades",
+    "subtitle": "Grade breakdowns and semester GPA will live here."
+  },
+  "tasks": {
+    "title": "Tasks",
+    "subtitle": "Filterable task list will live here."
+  },
+  "planner": {
+    "title": "Weekly Planner",
+    "subtitle": "Sunday planning ritual will live here."
+  },
+  "notes": {
+    "title": "Notes",
+    "subtitle": "Searchable notes library will live here."
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Lookup tables, locations, grading, and theming config will live here."
+  }
+}

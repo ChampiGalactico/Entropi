@@ -10,3 +10,4 @@ export * from "./weeklyPlans";
 export * from "./notes";
 export * from "./grades";
 export * from "./config";
+export * from "./appSettings";

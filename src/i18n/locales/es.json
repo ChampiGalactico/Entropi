@@ -1,0 +1,58 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "calendar": "Calendario",
+    "subjects": "Materias",
+    "grades": "Calificaciones",
+    "tasks": "Tareas",
+    "planner": "Planificador Semanal",
+    "notes": "Notas",
+    "settings": "Configuración"
+  },
+  "topbar": {
+    "search": "Buscar",
+    "toggleTheme": "Cambiar tema",
+    "language": "Idioma"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "subtitle": "La agenda de hoy, estadísticas semanales y próximos eventos aparecerán aquí.",
+    "dbStatus": {
+      "title": "Conexión a la base de datos",
+      "checking": "Comprobando conexión...",
+      "connected": "Conectado",
+      "failed": "Conexión fallida",
+      "gradingScale": "Escala de calificación",
+      "minPassing": "mínimo para aprobar",
+      "sessionTypes": "Tipos de sesión sembrados"
+    }
+  },
+  "calendar": {
+    "title": "Calendario",
+    "subtitle": "Las vistas mensual, semanal y diaria aparecerán aquí."
+  },
+  "subjects": {
+    "title": "Materias",
+    "subtitle": "Tus materias del semestre actual aparecerán aquí."
+  },
+  "grades": {
+    "title": "Calificaciones",
+    "subtitle": "El desglose de notas y el promedio semestral aparecerán aquí."
+  },
+  "tasks": {
+    "title": "Tareas",
+    "subtitle": "La lista de tareas filtrable aparecerá aquí."
+  },
+  "planner": {
+    "title": "Planificador Semanal",
+    "subtitle": "El ritual de planificación dominical aparecerá aquí."
+  },
+  "notes": {
+    "title": "Notas",
+    "subtitle": "La biblioteca de notas con búsqueda aparecerá aquí."
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Las tablas de referencia, ubicaciones, calificación y temas aparecerán aquí."
+  }
+}
