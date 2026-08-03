@@ -1,0 +1,11 @@
+import type { LinkedEntityType } from "./common";
+
+export interface Note {
+  id: number;
+  title: string;
+  content: string | null;
+  linked_entity_type: LinkedEntityType | null;
+  linked_entity_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
