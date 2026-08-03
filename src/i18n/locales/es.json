@@ -53,6 +53,73 @@
   },
   "settings": {
     "title": "Configuración",
-    "subtitle": "Las tablas de referencia, ubicaciones, calificación y temas aparecerán aquí."
+    "subtitle": "Las tablas de referencia, ubicaciones, calificación y temas aparecerán aquí.",
+    "tabs": {
+      "general": "General",
+      "lookups": "Tablas de Referencia",
+      "locations": "Ubicaciones",
+      "semesters": "Semestres"
+    },
+    "general": {
+      "appearance": "Apariencia",
+      "darkMode": "Modo oscuro",
+      "accentPrimary": "Color de acento primario",
+      "accentPrimaryHint": "Se usa en botones, estados activos y enlaces.",
+      "accentSecondary": "Color de acento secundario",
+      "accentSecondaryHint": "Se usa en chips y resaltados secundarios."
+    },
+    "lookup": {
+      "sessionTypes": "Tipos de Sesión",
+      "assessmentTypes": "Tipos de Evaluación",
+      "taskTypes": "Tipos de Tarea",
+      "eventTypes": "Tipos de Evento",
+      "add": "Agregar",
+      "addTitle": "Agregar entrada",
+      "editTitle": "Editar entrada",
+      "empty": "Aún no hay entradas.",
+      "name": "Nombre",
+      "color": "Color",
+      "icon": "Ícono (opcional)",
+      "actions": "Acciones",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "locations": {
+      "title": "Ubicaciones",
+      "add": "Agregar ubicación",
+      "addTitle": "Agregar ubicación",
+      "editTitle": "Editar ubicación",
+      "empty": "Aún no hay ubicaciones.",
+      "name": "Nombre",
+      "type": "Tipo",
+      "physical": "Física",
+      "virtual": "Virtual",
+      "details": "Detalles",
+      "building": "Edificio",
+      "room": "Salón",
+      "link": "Enlace (URL)",
+      "notes": "Notas"
+    },
+    "semesters": {
+      "title": "Semestres",
+      "add": "Agregar semestre",
+      "addTitle": "Agregar semestre",
+      "editTitle": "Editar semestre",
+      "empty": "Aún no hay semestres.",
+      "name": "Nombre",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin"
+    },
+    "grading": {
+      "title": "Configuración de calificación",
+      "scaleMin": "Escala mínima",
+      "scaleMax": "Escala máxima",
+      "minPassing": "Nota mínima para aprobar",
+      "decimalPlaces": "Decimales a mostrar",
+      "decimalPlacesHint": "Esto solo controla el formato de visualización — las notas nunca se redondean internamente.",
+      "saved": "Guardado"
+    }
   }
 }

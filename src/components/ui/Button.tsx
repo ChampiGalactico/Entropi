@@ -23,7 +23,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none ${variantClasses[variant]} ${className}`}
+      className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none ${variantClasses[variant]} ${className}`}
       {...rest}
     >
       {children}

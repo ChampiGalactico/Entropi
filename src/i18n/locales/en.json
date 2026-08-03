@@ -53,6 +53,73 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Lookup tables, locations, grading, and theming config will live here."
+    "subtitle": "Lookup tables, locations, grading, and theming config will live here.",
+    "tabs": {
+      "general": "General",
+      "lookups": "Reference Tables",
+      "locations": "Locations",
+      "semesters": "Semesters"
+    },
+    "general": {
+      "appearance": "Appearance",
+      "darkMode": "Dark mode",
+      "accentPrimary": "Primary accent color",
+      "accentPrimaryHint": "Used for buttons, active states, and links.",
+      "accentSecondary": "Secondary accent color",
+      "accentSecondaryHint": "Used for badges and secondary highlights."
+    },
+    "lookup": {
+      "sessionTypes": "Session Types",
+      "assessmentTypes": "Assessment Types",
+      "taskTypes": "Task Types",
+      "eventTypes": "Event Types",
+      "add": "Add",
+      "addTitle": "Add entry",
+      "editTitle": "Edit entry",
+      "empty": "No entries yet.",
+      "name": "Name",
+      "color": "Color",
+      "icon": "Icon (optional)",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "locations": {
+      "title": "Locations",
+      "add": "Add location",
+      "addTitle": "Add location",
+      "editTitle": "Edit location",
+      "empty": "No locations yet.",
+      "name": "Name",
+      "type": "Type",
+      "physical": "Physical",
+      "virtual": "Virtual",
+      "details": "Details",
+      "building": "Building",
+      "room": "Room",
+      "link": "Link (URL)",
+      "notes": "Notes"
+    },
+    "semesters": {
+      "title": "Semesters",
+      "add": "Add semester",
+      "addTitle": "Add semester",
+      "editTitle": "Edit semester",
+      "empty": "No semesters yet.",
+      "name": "Name",
+      "startDate": "Start date",
+      "endDate": "End date"
+    },
+    "grading": {
+      "title": "Grading configuration",
+      "scaleMin": "Scale min",
+      "scaleMax": "Scale max",
+      "minPassing": "Min passing grade",
+      "decimalPlaces": "Decimal places to display",
+      "decimalPlacesHint": "This only controls display formatting — grades are never rounded internally.",
+      "saved": "Saved"
+    }
   }
 }

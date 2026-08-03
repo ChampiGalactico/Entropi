@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const { t } = useTranslation();
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-full w-16 flex-col items-center gap-2 border-r border-border bg-surface py-4 backdrop-blur-xl">
+    <aside className="fixed left-0 top-0 z-40 flex h-full w-16 flex-col items-center gap-2 border-r border-border bg-surface py-4 backdrop-blur-2xl">
       <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-white">
         V
       </div>

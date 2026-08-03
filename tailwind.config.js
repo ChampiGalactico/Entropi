@@ -16,6 +16,7 @@ export default {
         "text-muted": "var(--text-muted)",
         border: "var(--border-subtle)",
         accent: "var(--accent)",
+        "accent-secondary": "var(--accent-secondary)",
         success: "var(--success)",
         warning: "var(--warning)",
         danger: "var(--danger)",
