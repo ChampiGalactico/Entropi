@@ -145,6 +145,7 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
 
   function start(event: ReactPointerEvent<HTMLCanvasElement>) {
     event.preventDefault();
+    event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     drawingRef.current = true;
     const point = pointFrom(event);
@@ -156,6 +157,7 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
   function move(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (!drawingRef.current) return;
     event.preventDefault();
+    event.stopPropagation();
     const current = strokesRef.current[strokesRef.current.length - 1];
     if (!current) return;
     if ((current.tool ?? "pen") === "pen") current.points.push(pointFrom(event));
@@ -204,7 +206,7 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
           <button type="button" onClick={() => commit(strokesRef.current.slice(0, -1))} className="rounded-full px-3 py-1.5 text-xs text-text-secondary hover:bg-elevated hover:text-text-primary">{t("notes.drawing.undo")}</button><button type="button" onClick={() => commit([])} className="rounded-full px-3 py-1.5 text-xs text-text-secondary hover:bg-elevated hover:text-danger">{t("notes.drawing.clear")}</button>
         </div>
     </div>
-    <canvas ref={canvasRef} style={{ display: "block", width: "100%", maxWidth: "100%", height: Number(block.props.height) }} className="min-w-0 touch-none cursor-crosshair rounded-b-[1.5rem] bg-elevated/40" onPointerDown={start} onPointerMove={move} onPointerUp={finish} onPointerCancel={finish} />
+    <canvas ref={canvasRef} draggable={false} onDragStart={(event) => event.preventDefault()} style={{ display: "block", width: "100%", maxWidth: "100%", height: Number(block.props.height) }} className="min-w-0 touch-none cursor-crosshair select-none rounded-b-[1.5rem] bg-elevated/40" onPointerDown={start} onPointerMove={move} onPointerUp={finish} onPointerCancel={finish} />
   </div>;
 }
 

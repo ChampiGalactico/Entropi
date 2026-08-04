@@ -212,16 +212,18 @@ export function LatexPreview({ latex, display = false }: { latex: string; displa
     const element = ref.current;
     if (!element) return;
     let active = true;
-    const source = latex.trim() || "x";
-    const wrapped = display
-      ? source.startsWith("$$") ? source : `$$${source}$$`
-      : `$${source.replace(/^\$|\$$/g, "")}$`;
-    element.textContent = wrapped;
+    let source = latex.trim() || "x";
+    if (source.startsWith("$$") && source.endsWith("$$")) source = source.slice(2, -2).trim();
+    else if (source.startsWith("$") && source.endsWith("$")) source = source.slice(1, -1).trim();
+    element.textContent = source;
     void ensureMathJax().then(async () => {
       if (!active || !ref.current) return;
-      window.MathJax?.typesetClear?.([ref.current]);
-      ref.current.textContent = wrapped;
-      await window.MathJax?.typesetPromise?.([ref.current]);
+      const output = await window.MathJax?.tex2svgPromise?.(source, { display });
+      if (!active || !ref.current || !output) return;
+      ref.current.replaceChildren(output);
+    }).catch(() => {
+      // Preserve the source as a readable fallback if the renderer cannot load.
+      if (active && ref.current) ref.current.textContent = source;
     });
     return () => { active = false; };
   }, [display, latex]);
@@ -253,7 +255,12 @@ export const MathBlock = createReactBlockSpec(
         if (next !== block.props.latex) editor.updateBlock(block, { props: { latex: next } });
         setEditing(false);
       }
-      if (editing) return <textarea contentEditable={false} autoFocus value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} spellCheck={false} rows={Math.max(3, Math.min(16, draft.split("\n").length + 1))} className="my-1 w-full resize-y bg-transparent px-1 py-2 font-mono text-sm leading-6 text-text-primary outline-none" />;
+      function exitFormula() {
+        commit();
+        const inserted = (editor as any).insertBlocks([{ type: "paragraph" }], block, "after");
+        queueMicrotask(() => (editor as any).setTextCursorPosition(inserted[0], "start"));
+      }
+      if (editing) return <textarea contentEditable={false} autoFocus value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter" && event.shiftKey) { event.preventDefault(); exitFormula(); } }} spellCheck={false} rows={Math.max(3, Math.min(16, draft.split("\n").length + 1))} className="my-1 w-full resize-y bg-transparent px-1 py-2 font-mono text-sm leading-6 text-text-primary outline-none" />;
       return <button type="button" contentEditable={false} onClick={() => setEditing(true)} className="my-1 block min-h-10 w-full cursor-text bg-transparent px-1 py-2 text-center text-text-primary"><LatexPreview latex={block.props.latex} display /></button>;
     }
     return <ObsidianFormula />;

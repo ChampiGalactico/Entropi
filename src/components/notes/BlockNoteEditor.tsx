@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import { en, es } from "@blocknote/core/locales";
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from "@blocknote/core/extensions";
@@ -57,7 +57,12 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const editor = useCreateBlockNote({ schema: noteSchema, initialContent: initialContent as any, dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en }, []);
   const activeBlockId = useRef<string | null>(null);
 
-  function serialize() { onChange(JSON.stringify(editor.document)); }
+  function serialize() {
+    if (activeBlockId.current === null) {
+      try { activeBlockId.current = editor.getTextCursorPosition().block.id; } catch { /* The editor may not have a text cursor yet. */ }
+    }
+    onChange(JSON.stringify(editor.document));
+  }
 
   function revealInlineMath(block: any) {
     if (!Array.isArray(block?.content) || !block.content.some((item: any) => item.type === "inlineMath")) return;
@@ -128,6 +133,25 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     activeBlockId.current = current.id;
     revealInlineMath(current);
   }
+
+  function handleFocus() {
+    if (activeBlockId.current !== null) return;
+    try {
+      const current = editor.getTextCursorPosition().block as any;
+      activeBlockId.current = current.id;
+      revealInlineMath(current);
+    } catch { /* Custom blocks do not always expose a text cursor. */ }
+  }
+
+  useEffect(() => {
+    const before = JSON.stringify(editor.document);
+    const ids = (editor.document as any[]).map((block) => block.id);
+    ids.forEach((id) => renderMathInBlock(id));
+    const after = JSON.stringify(editor.document);
+    if (after !== before) onChange(after);
+    // Existing notes are normalized once when the editor opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const slashMenuItems = useMemo(() => [
     ...getDefaultReactSlashMenuItems(editor),
     {
@@ -149,7 +173,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   ], [editor, t]);
   return (
     <div className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}>
-      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onSelectionChange={handleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); serialize(); }} slashMenu={false} formattingToolbar={false}>
+      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={handleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
         <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
         <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
       </BlockNoteView>

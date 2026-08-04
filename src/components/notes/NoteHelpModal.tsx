@@ -5,7 +5,7 @@ import { Modal } from "../ui/Modal";
 
 function Example({ latex, preview = true }: { latex: string; preview?: boolean }) {
   return <div className="overflow-hidden rounded-xl border border-border bg-surface-hover/70">
-    {preview && <div className="min-h-12 overflow-x-auto border-b border-border px-3 py-2 text-center"><LatexPreview latex={latex} /></div>}
+    {preview && <div className="min-h-12 overflow-x-auto border-b border-border px-3 py-2 text-center"><LatexPreview latex={latex} display={latex.includes("\\begin") || latex.includes("\n")} /></div>}
     <code className="block overflow-x-auto whitespace-pre px-3 py-2 font-mono text-[11px] leading-relaxed text-text-secondary">{latex}</code>
   </div>;
 }

@@ -194,10 +194,11 @@ body {
 }
 
 .entropi-note-page .bn-formatting-toolbar,
-.vida-blocknote .bn-formatting-toolbar {
+.vida-blocknote .bn-formatting-toolbar,
+.bn-formatting-toolbar {
   border: 1px solid var(--border-subtle) !important;
   border-radius: 1rem !important;
-  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent) !important;
+  background: var(--bg-elevated) !important;
   box-shadow: var(--shadow-modal) !important;
   backdrop-filter: blur(20px);
   padding: 0.28rem !important;
