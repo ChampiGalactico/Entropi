@@ -1,6 +1,8 @@
 import { getDb } from "../connection";
 import type { LinkedEntityType, Note, NoteLink } from "../../types";
 
+export interface EntityNoteReference { entity_id: number; note_id: number; title: string }
+
 export async function listNotes(): Promise<Note[]> {
   const db = await getDb();
   return db.select<Note[]>("SELECT * FROM notes ORDER BY updated_at DESC");
@@ -15,6 +17,16 @@ export async function listNotesForEntity(
     `SELECT DISTINCT n.* FROM notes n JOIN note_links nl ON nl.note_id = n.id
      WHERE nl.entity_type = $1 AND nl.entity_id = $2 ORDER BY n.updated_at DESC`,
     [entityType, entityId],
+  );
+}
+
+export async function listNoteReferencesForEntityType(entityType: "task" | "assessment"): Promise<EntityNoteReference[]> {
+  const db = await getDb();
+  return db.select<EntityNoteReference[]>(
+    `SELECT nl.entity_id, n.id AS note_id, n.title
+     FROM note_links nl JOIN notes n ON n.id = nl.note_id
+     WHERE nl.entity_type = $1 ORDER BY n.updated_at DESC`,
+    [entityType],
   );
 }
 

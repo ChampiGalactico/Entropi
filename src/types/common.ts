@@ -1,7 +1,7 @@
 export type LocationType = "physical" | "virtual";
 export type AssessmentStatus = "upcoming" | "completed" | "cancelled";
 export type TaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
-export type LearningTopicStatus = "backlog" | "in_progress" | "completed";
+export type LearningTopicStatus = "backlog" | "started" | "in_progress" | "completed";
 export type LinkedEntityType = "subject" | "task" | "event" | "assessment" | "note";
 
 /** 0 = Monday ... 6 = Sunday */

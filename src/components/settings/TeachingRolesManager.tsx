@@ -9,6 +9,7 @@ import { IconPicker } from "../ui/IconPicker";
 import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { SolarIcon } from "../ui/SolarIcon";
+import { notify } from "../ui/Toast";
 import {
   createTeachingRole,
   deleteTeachingRole,
@@ -47,6 +48,7 @@ export function TeachingRolesManager() {
     const values = { ...form, name: form.name.trim() };
     if (editingId === null) await createTeachingRole(values);
     else await updateTeachingRole(editingId, values);
+    notify.success(t("settings.savedToast"));
     setOpen(false);
     await reload();
   }
@@ -99,7 +101,7 @@ export function TeachingRolesManager() {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editingId === null ? t("settings.professors.roles.addTitle") : t("settings.professors.roles.editTitle")}>
+      <Modal open={open} onClose={() => setOpen(false)} onSave={() => void save()} title={editingId === null ? t("settings.professors.roles.addTitle") : t("settings.professors.roles.editTitle")}>
         <div className="flex flex-col gap-4">
           <div className="flex items-end gap-3">
             <label className="min-w-0 flex-1 text-xs font-medium text-text-secondary">{t("settings.lookup.name")}<Input className="mt-1" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} autoFocus /></label>

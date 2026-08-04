@@ -59,9 +59,9 @@ export async function listGradeEntriesForSubject(subjectId: number): Promise<Gra
 export async function createGradeEntry(values: Omit<GradeEntry, "id">): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO grade_entries (grade_component_id, grade, date, assessment_id, notes)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [values.grade_component_id, values.grade, values.date, values.assessment_id, values.notes],
+    `INSERT INTO grade_entries (grade_component_id, name, grade, weight, date, assessment_id, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [values.grade_component_id, values.name, values.grade, values.weight, values.date, values.assessment_id, values.notes],
   );
   return result.lastInsertId as number;
 }
@@ -69,9 +69,9 @@ export async function createGradeEntry(values: Omit<GradeEntry, "id">): Promise<
 export async function updateGradeEntry(id: number, values: Omit<GradeEntry, "id">): Promise<void> {
   const db = await getDb();
   await db.execute(
-    `UPDATE grade_entries SET grade_component_id = $1, grade = $2, date = $3, assessment_id = $4, notes = $5
-     WHERE id = $6`,
-    [values.grade_component_id, values.grade, values.date, values.assessment_id, values.notes, id],
+    `UPDATE grade_entries SET grade_component_id = $1, name = $2, grade = $3, weight = $4, date = $5, assessment_id = $6, notes = $7
+     WHERE id = $8`,
+    [values.grade_component_id, values.name, values.grade, values.weight, values.date, values.assessment_id, values.notes, id],
   );
 }
 

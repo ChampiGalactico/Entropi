@@ -7,6 +7,7 @@ import { IconButton } from "../ui/IconButton";
 import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { Textarea } from "../ui/Textarea";
+import { notify } from "../ui/Toast";
 import { createProfessor, deleteProfessor, listProfessors, updateProfessor } from "../../db/queries/professors";
 import type { Professor } from "../../types";
 
@@ -58,6 +59,7 @@ export function ProfessorsManager() {
     const values = { ...form, name: form.name.trim() };
     if (editingId === null) await createProfessor(values);
     else await updateProfessor(editingId, values);
+    notify.success(t("settings.savedToast"));
     setOpen(false);
     await reload();
   }
@@ -94,7 +96,7 @@ export function ProfessorsManager() {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editingId === null ? t("settings.professors.addTitle") : t("settings.professors.editTitle")}>
+      <Modal open={open} onClose={() => setOpen(false)} onSave={() => void save()} title={editingId === null ? t("settings.professors.addTitle") : t("settings.professors.editTitle")}>
         <div className="grid grid-cols-2 gap-4">
           <label className="col-span-2 text-xs text-text-secondary">{t("settings.professors.name")}<Input className="mt-1" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} autoFocus /></label>
           <label className="text-xs text-text-secondary">{t("settings.professors.email")}<Input className="mt-1" type="email" value={form.email ?? ""} onChange={(event) => setField("email", event.target.value)} /></label>

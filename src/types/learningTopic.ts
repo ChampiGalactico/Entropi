@@ -7,5 +7,6 @@ export interface LearningTopic {
   priority: number;
   status: LearningTopicStatus;
   notes_content: string | null;
+  archived: number;
   created_at: string;
 }

@@ -19,6 +19,11 @@ import { createLocation, listLocations } from "../../db/queries/locations";
 import { createLookupRow, listLookupRows } from "../../db/queries/lookups";
 import { ACCENT_PRESETS } from "../../lib/accentColors";
 import type { Assessment, AssessmentStatus, AssessmentType, Location } from "../../types";
+import { listNoteReferencesForEntityType, type EntityNoteReference } from "../../db/queries/notes";
+import { useNavigate } from "react-router-dom";
+import { notify } from "../ui/Toast";
+import { listClassSessions } from "../../db/queries/subjects";
+import type { ClassSession } from "../../types";
 
 interface AssessmentForm {
   assessment_type_id: number | null;
@@ -51,26 +56,51 @@ const EMPTY_FORM: AssessmentForm = {
   grade: "",
 };
 
-export function AssessmentsTab({ subjectId }: { subjectId: number }) {
+export function AssessmentsTab({ subjectId, initialDraftTitle = "" }: { subjectId: number; initialDraftTitle?: string }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [types, setTypes] = useState<AssessmentType[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<AssessmentForm>(EMPTY_FORM);
+  const [noteReferences, setNoteReferences] = useState<EntityNoteReference[]>([]);
+  const [sessions, setSessions] = useState<ClassSession[]>([]);
 
   async function reloadAssessments() { setAssessments(await listAssessmentsBySubject(subjectId)); }
-  async function reloadTypes() { const data = await listLookupRows<AssessmentType>("assessment_types"); setTypes(data); return data; }
+  async function reloadTypes() { const data = await listLookupRows<AssessmentType>("assessment_types"); setTypes(data); setForm((current) => ({ ...current, assessment_type_id: current.assessment_type_id ?? data[0]?.id ?? null })); return data; }
   async function reloadLocations() { const data = await listLocations(); setLocations(data); return data; }
 
   useEffect(() => {
-    void Promise.all([reloadAssessments(), reloadTypes(), reloadLocations()]);
+    void Promise.all([reloadAssessments(), reloadTypes(), reloadLocations(), listClassSessions(subjectId).then(setSessions), listNoteReferencesForEntityType("assessment").then(setNoteReferences)]);
   }, [subjectId]);
+
+  useEffect(() => {
+    if (!initialDraftTitle) return;
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM, title: initialDraftTitle, date: todayIso(), assessment_type_id: types[0]?.id ?? null });
+    setOpen(true);
+    // Opening the command draft must not reset when lookup types finish loading.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDraftTitle]);
+
+  function timeForDate(date: string) {
+    const localDate = new Date(`${date}T12:00:00`);
+    const dayOfWeek = (localDate.getDay() + 6) % 7;
+    return sessions.find((session) => session.day_of_week === dayOfWeek) ?? null;
+  }
+
+  function applyDate(date: string, current: AssessmentForm) {
+    const session = timeForDate(date);
+    if (!session) return { ...current, date };
+    return { ...current, date, has_time: true, start_time: session.start_time, end_time: session.end_time };
+  }
 
   function openCreate() {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM, date: todayIso(), assessment_type_id: types[0]?.id ?? null });
+    const date = todayIso();
+    setForm(applyDate(date, { ...EMPTY_FORM, date, assessment_type_id: types[0]?.id ?? null }));
     setOpen(true);
   }
 
@@ -107,6 +137,7 @@ export function AssessmentsTab({ subjectId }: { subjectId: number }) {
     };
     if (editingId === null) await createAssessment(values);
     else await updateAssessment(editingId, values);
+    notify.success(t(editingId === null ? "feedback.created" : "feedback.saved"));
     setOpen(false);
     await reloadAssessments();
   }
@@ -143,12 +174,13 @@ export function AssessmentsTab({ subjectId }: { subjectId: number }) {
               <article key={assessment.id} className="group rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0"><Badge color={type?.color} icon={type?.icon ? <SolarIcon name={type.icon} size={14} color={type.color} /> : undefined}>{type?.name ?? "—"}</Badge><h4 className="mt-3 truncate font-semibold text-text-primary">{assessment.title}</h4></div>
-                  <div className="flex opacity-60 transition-opacity group-hover:opacity-100"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={15} />} onClick={() => openEdit(assessment)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={() => void deleteAssessment(assessment.id).then(reloadAssessments)} /></div>
+                  <div className="flex opacity-60 transition-opacity group-hover:opacity-100"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={15} />} onClick={() => openEdit(assessment)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={() => void deleteAssessment(assessment.id).then(() => { notify.success(t("feedback.deleted")); return reloadAssessments(); })} /></div>
                 </div>
                 <div className="mt-4 space-y-1.5 text-xs text-text-secondary">
                   <p>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(`${assessment.date}T12:00:00`))}{assessment.start_time ? ` · ${assessment.start_time}${assessment.end_time ? `–${assessment.end_time}` : ""}` : ""}</p>
                   {location && <p>{location.name}</p>}
                 </div>
+                {noteReferences.some((reference) => reference.entity_id === assessment.id) && <div className="mt-3 flex flex-wrap items-center gap-1 text-[10px] text-text-muted"><span>{t("notes.references.details")}</span>{noteReferences.filter((reference) => reference.entity_id === assessment.id).map((reference) => <button key={reference.note_id} type="button" onClick={() => navigate(`/notes/${reference.note_id}`)} className="rounded-full bg-surface-hover px-2 py-1 font-medium text-accent hover:bg-elevated">{reference.title}</button>)}</div>}
                 <div className="mt-4 flex items-center justify-between"><Badge color={assessment.status === "completed" ? "var(--success)" : assessment.status === "cancelled" ? "var(--danger)" : "var(--accent)"} dot>{t(`subjects.assessments.statuses.${assessment.status}`)}</Badge>{assessment.grade !== null && <span className="text-sm font-semibold text-text-primary">{assessment.grade}</span>}</div>
               </article>
             );
@@ -156,11 +188,11 @@ export function AssessmentsTab({ subjectId }: { subjectId: number }) {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editingId === null ? t("subjects.assessments.addTitle") : t("subjects.assessments.editTitle")}>
+      <Modal open={open} onClose={() => setOpen(false)} onSave={() => void save()} title={editingId === null ? t("subjects.assessments.addTitle") : t("subjects.assessments.editTitle")}>
         <div className="flex flex-col gap-4">
           <label className="text-xs text-text-secondary">{t("subjects.assessments.name")}<Input className="mt-1" value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} autoFocus /></label>
           <label className="text-xs text-text-secondary">{t("subjects.assessments.type")}<div className="mt-1"><Combobox value={form.assessment_type_id === null ? null : String(form.assessment_type_id)} onChange={(value) => setForm((current) => ({ ...current, assessment_type_id: Number(value) }))} options={types.map((type) => ({ value: String(type.id), label: type.name, color: type.icon ? undefined : type.color, icon: type.icon ? <SolarIcon name={type.icon} size={14} color={type.color} /> : undefined }))} searchable creatable onCreate={(name) => void createType(name)} createLabel={(name) => t("subjects.assessments.createType", { name })} /></div></label>
-          <DatePicker value={form.date} onChange={(date) => setForm((current) => ({ ...current, date }))} label={t("subjects.assessments.date")} />
+          <DatePicker value={form.date} onChange={(date) => setForm((current) => applyDate(date, current))} label={t("subjects.assessments.date")} />
           <div className="flex items-center justify-between"><span className="text-sm text-text-primary">{t("subjects.assessments.hasTime")}</span><Switch checked={form.has_time} onChange={(checked) => setForm((current) => ({ ...current, has_time: checked }))} /></div>
           {form.has_time && <div className="grid grid-cols-2 gap-3"><label className="text-xs text-text-secondary">{t("subjects.assessments.startTime")}<div className="mt-1"><TimePicker value={form.start_time} onChange={(value) => setForm((current) => ({ ...current, start_time: value }))} /></div></label><label className="text-xs text-text-secondary">{t("subjects.assessments.endTime")}<div className="mt-1"><TimePicker value={form.end_time} onChange={(value) => setForm((current) => ({ ...current, end_time: value }))} /></div></label></div>}
           <label className="text-xs text-text-secondary">{t("subjects.assessments.location")}<div className="mt-1"><Combobox value={form.location_id === null ? "" : String(form.location_id)} onChange={(value) => setForm((current) => ({ ...current, location_id: value ? Number(value) : null }))} options={[{ value: "", label: t("subjects.schedule.noLocation") }, ...locations.map((location) => ({ value: String(location.id), label: location.name }))]} searchable creatable onCreate={(name) => void createNewLocation(name)} /></div></label>

@@ -44,6 +44,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0007_teaching_roles.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 8,
+            description: "learning_topic_workflow",
+            sql: include_str!("../../src/db/migrations/0008_learning_topic_workflow.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 9,
+            description: "flat_grade_entries",
+            sql: include_str!("../../src/db/migrations/0009_flat_grade_entries.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

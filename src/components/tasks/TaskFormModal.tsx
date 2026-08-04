@@ -13,6 +13,7 @@ import { createLookupRow, listLookupRows } from "../../db/queries/lookups";
 import { createTask, updateTask } from "../../db/queries/tasks";
 import { ACCENT_PRESETS } from "../../lib/accentColors";
 import type { Subject, Task, TaskStatus, TaskType } from "../../types";
+import { notify } from "../ui/Toast";
 
 interface TaskFormModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface TaskFormModalProps {
   subjects: Subject[];
   task?: Task | null;
   lockedSubjectId?: number;
+  draft?: { title: string; subjectId: number | null } | null;
 }
 
 interface FormState {
@@ -45,12 +47,12 @@ function emptyForm(lockedSubjectId?: number): FormState {
   return { title: "", description: "", subject_id: lockedSubjectId ?? null, task_type_id: null, has_due_date: true, due_date: todayIso(), has_due_time: false, due_time: "18:00", priority: 3, status: "pending" };
 }
 
-export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, lockedSubjectId }: TaskFormModalProps) {
+export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, lockedSubjectId, draft = null }: TaskFormModalProps) {
   const { t } = useTranslation();
   const [types, setTypes] = useState<TaskType[]>([]);
   const [form, setForm] = useState<FormState>(() => emptyForm(lockedSubjectId));
 
-  async function reloadTypes() { const data = await listLookupRows<TaskType>("task_types"); setTypes(data); return data; }
+  async function reloadTypes() { const data = await listLookupRows<TaskType>("task_types"); setTypes(data); setForm((current) => ({ ...current, task_type_id: current.task_type_id ?? data[0]?.id ?? null })); return data; }
 
   useEffect(() => { void reloadTypes(); }, []);
   useEffect(() => {
@@ -66,14 +68,20 @@ export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, l
       due_time: task.due_time ?? "18:00",
       priority: task.priority,
       status: task.status,
-    } : { ...emptyForm(lockedSubjectId), task_type_id: types[0]?.id ?? null });
+    } : {
+      ...emptyForm(lockedSubjectId),
+      title: draft?.title ?? "",
+      subject_id: lockedSubjectId ?? draft?.subjectId ?? null,
+      task_type_id: types[0]?.id ?? null,
+    });
     // Types are intentionally excluded so creating a type does not reset the rest of the form.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, task, lockedSubjectId]);
+  }, [open, task, lockedSubjectId, draft]);
 
   async function createType(name: string) {
     const color = ACCENT_PRESETS[Math.floor(Math.random() * ACCENT_PRESETS.length)].hex;
     const id = await createLookupRow("task_types", { name, color, icon: null });
+    notify.success(t("feedback.created"));
     await reloadTypes();
     setForm((current) => ({ ...current, task_type_id: id }));
   }
@@ -92,12 +100,13 @@ export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, l
     };
     if (task) await updateTask(task.id, values);
     else await createTask(values);
+    notify.success(t(task ? "feedback.saved" : "feedback.created"));
     onClose();
     onSaved();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={task ? t("tasks.form.editTitle") : t("tasks.form.addTitle")}>
+    <Modal open={open} onClose={onClose} onSave={() => void save()} title={task ? t("tasks.form.editTitle") : t("tasks.form.addTitle")}>
       <div className="flex flex-col gap-4">
         <label className="text-xs text-text-secondary">{t("tasks.form.title")}<Input className="mt-1" value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} autoFocus /></label>
         <label className="text-xs text-text-secondary">{t("tasks.form.type")}<div className="mt-1"><Combobox value={form.task_type_id === null ? null : String(form.task_type_id)} onChange={(value) => setForm((current) => ({ ...current, task_type_id: Number(value) }))} options={types.map((type) => ({ value: String(type.id), label: type.name, color: type.icon ? undefined : type.color, icon: type.icon ? <SolarIcon name={type.icon} size={14} color={type.color} /> : undefined }))} searchable creatable onCreate={(name) => void createType(name)} createLabel={(name) => t("tasks.form.createType", { name })} /></div></label>

@@ -270,6 +270,7 @@ export function ScheduleTab({ subjectId }: ScheduleTabProps) {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSave={() => void handleSave()}
         title={editingId === null ? t("subjects.schedule.addTitle") : t("subjects.schedule.editTitle")}
       >
         <div className="flex flex-col gap-4">

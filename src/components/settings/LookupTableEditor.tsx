@@ -9,8 +9,10 @@ import { EmptyState } from "../ui/EmptyState";
 import { ColorPickerPopover } from "../ui/ColorPickerPopover";
 import { IconPicker } from "../ui/IconPicker";
 import { SolarIcon } from "../ui/SolarIcon";
+import { notify } from "../ui/Toast";
 import {
   createLookupRow,
+  countLookupRowUsage,
   deleteLookupRow,
   listLookupRows,
   updateLookupRow,
@@ -78,19 +80,34 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
 
   async function handleSave() {
     if (!form.name.trim()) return;
-    const values = { name: form.name.trim(), color: form.color, icon: form.icon };
-    if (editingId === null) {
-      await createLookupRow(table, values);
-    } else {
-      await updateLookupRow(table, editingId, values);
+    try {
+      const values = { name: form.name.trim(), color: form.color, icon: form.icon };
+      if (editingId === null) {
+        await createLookupRow(table, values);
+      } else {
+        await updateLookupRow(table, editingId, values);
+      }
+      notify.success(t("settings.savedToast"));
+      setModalOpen(false);
+      await reload();
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : t("feedback.error"));
     }
-    setModalOpen(false);
-    await reload();
   }
 
   async function handleDelete(id: number) {
-    await deleteLookupRow(table, id);
-    await reload();
+    try {
+      const usage = await countLookupRowUsage(table, id);
+      if (usage > 0) {
+        notify.error(t("settings.lookup.inUse", { count: usage }));
+        return;
+      }
+      await deleteLookupRow(table, id);
+      notify.success(t("feedback.deleted"));
+      await reload();
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : t("feedback.error"));
+    }
   }
 
   return (
@@ -160,6 +177,7 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSave={() => void handleSave()}
         title={editingId === null ? t("settings.lookup.addTitle") : t("settings.lookup.editTitle")}
       >
         <div className="flex flex-col gap-4">

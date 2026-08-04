@@ -19,6 +19,7 @@ export interface ComboboxProps {
   creatable?: boolean;
   onCreate?: (label: string) => void;
   createLabel?: (input: string) => string;
+  compact?: boolean;
 }
 
 export function Combobox({
@@ -30,6 +31,7 @@ export function Combobox({
   creatable = false,
   onCreate,
   createLabel = (input) => `Create "${input}"`,
+  compact = false,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -93,7 +95,7 @@ export function Combobox({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-control px-4 py-2.5 text-sm text-text-primary outline-none transition-all duration-200 hover:bg-elevated focus:bg-elevated focus:ring-2 focus:ring-accent"
+        className={`flex w-full items-center justify-between gap-1.5 border border-border bg-control text-text-primary outline-none transition-all duration-200 hover:bg-elevated focus:bg-elevated focus:ring-2 focus:ring-accent ${compact ? "rounded-full px-2.5 py-1 text-[10px]" : "rounded-xl px-4 py-2.5 text-sm"}`}
       >
         <span className="flex items-center gap-2 truncate">
           {selected?.color && (
@@ -137,7 +139,7 @@ export function Combobox({
                 key={opt.value}
                 type="button"
                 onClick={() => select(opt.value)}
-                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors duration-100 hover:bg-surface-hover ${
+              className={`flex w-full items-center gap-2 rounded-xl px-3 ${compact ? "py-1.5 text-xs" : "py-2 text-sm"} text-left transition-colors duration-100 hover:bg-surface-hover ${
                   opt.value === value ? "text-accent" : "text-text-primary"
                 }`}
               >

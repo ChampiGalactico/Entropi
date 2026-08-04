@@ -7,6 +7,7 @@ import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { EmptyState } from "../ui/EmptyState";
 import { DateRangePicker } from "../ui/DateRangePicker";
+import { notify } from "../ui/Toast";
 import {
   createSemester,
   deleteSemester,
@@ -23,7 +24,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { name: "", start_date: "", end_date: "" };
 
-export function SemestersManager() {
+export function SemestersManager({ initialDraftName = "" }: { initialDraftName?: string }) {
   const { t } = useTranslation();
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,13 @@ export function SemestersManager() {
   useEffect(() => {
     void reload();
   }, []);
+
+  useEffect(() => {
+    if (!initialDraftName) return;
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM, name: initialDraftName });
+    setModalOpen(true);
+  }, [initialDraftName]);
 
   function openCreate() {
     setEditingId(null);
@@ -66,6 +74,7 @@ export function SemestersManager() {
     } else {
       await updateSemester(editingId, values);
     }
+    notify.success(t("settings.savedToast"));
     setModalOpen(false);
     await reload();
   }
@@ -135,6 +144,7 @@ export function SemestersManager() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSave={() => void handleSave()}
         title={
           editingId === null ? t("settings.semesters.addTitle") : t("settings.semesters.editTitle")
         }

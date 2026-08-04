@@ -11,6 +11,7 @@ import {
   NotesPage,
   NoteEditorPage,
   SettingsPage,
+  LearningTopicsPage,
 } from "./pages";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="subjects/:id" element={<SubjectDetailPage />} />
           <Route path="grades" element={<GradesPage />} />
           <Route path="tasks" element={<TasksPage />} />
+          <Route path="learning-topics" element={<LearningTopicsPage />} />
           <Route path="planner" element={<PlannerPage />} />
           <Route path="notes" element={<NotesPage />} />
           <Route path="notes/:id" element={<NoteEditorPage />} />

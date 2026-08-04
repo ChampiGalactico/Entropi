@@ -20,6 +20,7 @@ export interface SubjectFormModalProps {
   onSaved: () => void;
   semester: Semester;
   subject?: Subject | null;
+  draft?: { name: string; professorId: number | null } | null;
 }
 
 interface FormState {
@@ -74,6 +75,7 @@ export function SubjectFormModal({
   onSaved,
   semester,
   subject = null,
+  draft = null,
 }: SubjectFormModalProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(() =>
@@ -105,10 +107,14 @@ export function SubjectFormModal({
 
   useEffect(() => {
     if (open) {
-      setForm(subject ? formFromSubject(subject) : emptyForm(semester));
+      setForm(subject ? formFromSubject(subject) : {
+        ...emptyForm(semester),
+        name: draft?.name ?? "",
+        professor_id: draft?.professorId ?? null,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, subject]);
+  }, [open, subject, draft]);
 
   async function handleSave() {
     if (!form.name.trim()) return;
@@ -140,6 +146,7 @@ export function SubjectFormModal({
     <Modal
       open={open}
       onClose={onClose}
+      onSave={() => void handleSave()}
       title={subject ? t("subjects.form.editTitle") : t("subjects.form.addTitle")}
     >
       <div className="flex flex-col gap-4">

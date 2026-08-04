@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { TuningLinear, Widget2Linear, MapPointLinear, CalendarLinear, UserIdLinear } from "../components/ui/appIcons";
 import { SettingsNav, type SettingsNavItem } from "../components/settings/SettingsNav";
 import {
@@ -15,7 +16,14 @@ type SectionId = "general" | "lookups" | "locations" | "professors" | "semesters
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const [section, setSection] = useState<SectionId>("general");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [commandState] = useState(() => location.state as { section?: SectionId; semesterDraftName?: string } | null);
+  const [section, setSection] = useState<SectionId>(commandState?.section ?? "general");
+
+  useEffect(() => {
+    if (commandState) navigate(location.pathname, { replace: true, state: null });
+  }, [commandState, location.pathname, navigate]);
 
   const items: SettingsNavItem[] = [
     { id: "general", label: t("settings.tabs.general"), icon: <TuningLinear size={18} /> },
@@ -48,7 +56,7 @@ export function SettingsPage() {
 
           {section === "locations" && <LocationsManager />}
           {section === "professors" && <div className="flex flex-col gap-8"><TeachingRolesManager /><div className="border-t border-border pt-8"><ProfessorsManager /></div></div>}
-          {section === "semesters" && <SemestersManager />}
+          {section === "semesters" && <SemestersManager initialDraftName={commandState?.semesterDraftName} />}
         </div>
       </div>
     </div>

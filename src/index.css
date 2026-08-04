@@ -179,9 +179,55 @@ body {
   animation: vida-tooltip-enter 150ms ease-out;
 }
 
+@keyframes vida-toast-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); filter: blur(3px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.vida-toast-enter {
+  animation: vida-toast-enter 180ms ease-out;
+}
+
 .entropi-note-page .bn-container,
 .entropi-note-page .bn-editor {
   background: transparent !important;
+}
+
+.entropi-note-page .bn-formatting-toolbar,
+.vida-blocknote .bn-formatting-toolbar {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 1rem !important;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent) !important;
+  box-shadow: var(--shadow-modal) !important;
+  backdrop-filter: blur(20px);
+  padding: 0.28rem !important;
+}
+
+.bn-formatting-toolbar,
+.bn-menu-dropdown {
+  z-index: 150 !important;
+  overflow: visible !important;
+}
+
+.entropi-note-page .bn-inline-content code,
+.vida-blocknote .bn-inline-content code {
+  border: 1px solid color-mix(in srgb, var(--accent-secondary) 24%, var(--border-subtle));
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--accent-secondary) 11%, var(--bg-control));
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.12em 0.38em;
+  color: color-mix(in srgb, var(--accent-secondary) 76%, var(--text-primary));
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.88em;
+  font-weight: 550;
+}
+
+.entropi-note-page .bn-inline-content u,
+.vida-blocknote .bn-inline-content u {
+  text-decoration-color: color-mix(in srgb, var(--accent) 72%, currentColor);
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.16em;
 }
 
 .entropi-note-page .bn-editor {
@@ -224,6 +270,40 @@ body {
 .math-frac > span:last-child { padding: 0.08em 0.18em 0; }
 .math-sqrt > span { border-top: 1px solid currentColor; padding: 0.05em 0.12em 0; }
 .math-function { font-style: normal; margin-right: 0.1em; }
+.math-operator, .math-text, .math-roman { font-style: normal; }
+.math-bold { font-weight: 700; }
+.math-italic { font-style: italic; }
+.math-vec, .math-hat, .math-bar, .math-underline { position: relative; display: inline-block; }
+.math-vec::before { content: "→"; position: absolute; inset: -0.72em 0 auto; text-align: center; font-size: 0.72em; line-height: 1; }
+.math-hat::before { content: "^"; position: absolute; inset: -0.62em 0 auto; text-align: center; font-size: 0.72em; line-height: 1; }
+.math-bar { border-top: 1px solid currentColor; }
+.math-underline { border-bottom: 1px solid currentColor; }
+.math-boxed { display: inline-block; border: 1px solid currentColor; padding: 0.12em 0.28em; }
+.math-cancel { display: inline-block; text-decoration: line-through; }
+.math-line-break { display: block; height: 0.3em; }
+.math-space-thin { display: inline-block; width: 0.16em; }
+.math-space-medium { display: inline-block; width: 0.22em; }
+.math-space-thick { display: inline-block; width: 0.28em; }
+.math-space-negative { display: inline-block; margin-left: -0.16em; }
+.math-space-normal { display: inline-block; width: 0.34em; }
+.math-space-quad { display: inline-block; width: 1em; }
+.math-space-qquad { display: inline-block; width: 2em; }
+.math-matrix-wrap, .math-align-wrap, .math-delimited { display: inline-flex; align-items: stretch; vertical-align: middle; margin-inline: 0.18em; }
+.math-delimited-content { display: inline-flex; align-items: center; min-height: 1.5em; }
+.math-matrix { display: inline-grid; gap: 0.28em 0.7em; padding: 0.12em 0.3em; }
+.math-matrix-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0.7em; }
+.math-matrix-cell { display: inline-block; min-width: 1em; text-align: center; }
+.math-matrix-separator { border-left: 1px solid currentColor; padding-left: 0.7em; }
+.math-matrix-delimiter { align-self: stretch; display: inline-flex; width: 0.48em; min-height: 1.65em; color: currentColor; }
+.math-delimiter-none { width: 0; }
+.math-delimiter-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.math-delimiter-svg path { fill: none; stroke: currentColor; stroke-width: 1.55; stroke-linecap: square; stroke-linejoin: miter; vector-effect: non-scaling-stroke; }
+.math-cases-brace { align-self: stretch; display: inline-flex; align-items: center; font-size: 2em; font-weight: 300; transform: scaleY(1.08); }
+.math-binomial, .math-align { display: inline-flex; flex-direction: column; gap: 0.2em; padding-inline: 0.2em; }
+.math-align-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: baseline; column-gap: 0.2em; }
+.math-align-cell { display: inline-block; min-width: 0; }
+.math-align-right { text-align: right; }
+.math-align-left { text-align: left; }
 .entropi-math sup, .entropi-math sub { font-size: 0.68em; }
 
 [data-content-type="codeBlock"] {

@@ -11,8 +11,10 @@ import { deleteTask, listTasks, setTaskStatus } from "../../db/queries/tasks";
 import type { Subject, Task, TaskStatus, TaskType } from "../../types";
 import { TaskCard } from "./TaskCard";
 import { TaskFormModal } from "./TaskFormModal";
+import { notify } from "../ui/Toast";
+import { listNoteReferencesForEntityType, type EntityNoteReference } from "../../db/queries/notes";
 
-export function TaskList({ subjectId }: { subjectId?: number }) {
+export function TaskList({ subjectId, initialDraft = null }: { subjectId?: number; initialDraft?: { title: string; subjectId: number | null } | null }) {
   const { t } = useTranslation();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [types, setTypes] = useState<TaskType[]>([]);
@@ -24,9 +26,18 @@ export function TaskList({ subjectId }: { subjectId?: number }) {
   const [subjectFilter, setSubjectFilter] = useState<number | "personal" | null>(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
+  const [noteReferences, setNoteReferences] = useState<EntityNoteReference[]>([]);
+  const [commandDraft, setCommandDraft] = useState(initialDraft);
+
+  useEffect(() => {
+    if (!initialDraft) return;
+    setCommandDraft(initialDraft);
+    setEditing(null);
+    setOpen(true);
+  }, [initialDraft]);
 
   async function reload() { setTasks(await listTasks(subjectId === undefined ? {} : { subjectId })); }
-  useEffect(() => { void Promise.all([reload(), listLookupRows<TaskType>("task_types").then(setTypes), listAllSubjects().then(setSubjects)]); }, [subjectId]);
+  useEffect(() => { void Promise.all([reload(), listLookupRows<TaskType>("task_types").then(setTypes), listAllSubjects().then(setSubjects), listNoteReferencesForEntityType("task").then(setNoteReferences)]); }, [subjectId]);
 
   const visible = useMemo(() => tasks.filter((task) => {
     const matchesQuery = !query.trim() || `${task.title} ${task.description ?? ""}`.toLowerCase().includes(query.toLowerCase());
@@ -44,8 +55,8 @@ export function TaskList({ subjectId }: { subjectId?: number }) {
         <Combobox value={priority === null ? "" : String(priority)} onChange={(value) => setPriority(value ? Number(value) : null)} options={[{ value: "", label: t("tasks.filters.allPriorities") }, ...[1,2,3,4,5].map((item) => ({ value: String(item), label: t(`tasks.priorities.${item}`) }))]} />
         {subjectId === undefined && <Combobox value={subjectFilter === null ? "" : String(subjectFilter)} onChange={(value) => setSubjectFilter(value === "personal" ? "personal" : value ? Number(value) : null)} options={[{ value: "", label: t("tasks.filters.allSubjects") }, { value: "personal", label: t("tasks.form.personal") }, ...subjects.map((subject) => ({ value: String(subject.id), label: subject.name, color: subject.color }))]} searchable />}
       </div>
-      {visible.length === 0 ? <EmptyState title={t("tasks.empty")} /> : <div className="grid gap-3 lg:grid-cols-2">{visible.map((task) => <TaskCard key={task.id} task={task} type={types.find((type) => type.id === task.task_type_id) ?? null} subject={subjects.find((subject) => subject.id === task.subject_id) ?? null} onToggle={() => void setTaskStatus(task.id, task.status === "completed" ? "pending" : "completed").then(reload)} onEdit={() => { setEditing(task); setOpen(true); }} onDelete={() => void deleteTask(task.id).then(reload)} />)}</div>}
-      <TaskFormModal open={open} onClose={() => setOpen(false)} onSaved={() => void Promise.all([reload(), listLookupRows<TaskType>("task_types").then(setTypes)])} subjects={subjects} task={editing} lockedSubjectId={subjectId} />
+      {visible.length === 0 ? <EmptyState title={t("tasks.empty")} /> : <div className="grid gap-3 lg:grid-cols-2">{visible.map((task) => <TaskCard key={task.id} task={task} type={types.find((type) => type.id === task.task_type_id) ?? null} subject={subjects.find((subject) => subject.id === task.subject_id) ?? null} noteReferences={noteReferences.filter((reference) => reference.entity_id === task.id)} onToggle={() => void setTaskStatus(task.id, task.status === "completed" ? "pending" : "completed").then(reload)} onEdit={() => { setEditing(task); setOpen(true); }} onDelete={() => void deleteTask(task.id).then(() => { notify.success(t("feedback.deleted")); return reload(); })} />)}</div>}
+      <TaskFormModal open={open} onClose={() => { setOpen(false); setCommandDraft(null); }} onSaved={() => void Promise.all([reload(), listLookupRows<TaskType>("task_types").then(setTypes)])} subjects={subjects} task={editing} lockedSubjectId={subjectId} draft={editing ? null : commandDraft} />
     </div>
   );
 }

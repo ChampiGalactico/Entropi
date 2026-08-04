@@ -18,7 +18,9 @@ export interface GradeComponent {
 export interface GradeEntry {
   id: number;
   grade_component_id: number;
+  name: string;
   grade: number;
+  weight: number;
   date: string;
   assessment_id: number | null;
   notes: string | null;

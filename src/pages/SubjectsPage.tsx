@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AddCircleLinear } from "../components/ui/appIcons";
 import { Button } from "../components/ui/Button";
 import { Combobox } from "../components/ui/Combobox";
@@ -12,6 +12,9 @@ import type { Semester, Subject } from "../types";
 
 export function SubjectsPage() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [commandDraft, setCommandDraft] = useState(() => (location.state as { commandDraft?: { name: string; semesterId: number; professorId: number | null } } | null)?.commandDraft ?? null);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [semesterId, setSemesterId] = useState<number | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -25,6 +28,17 @@ export function SubjectsPage() {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (!commandDraft || semesters.length === 0) return;
+    setSemesterId(commandDraft.semesterId);
+  }, [commandDraft, semesters.length]);
+
+  useEffect(() => {
+    if (!commandDraft || semesterId !== commandDraft.semesterId) return;
+    setFormOpen(true);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [commandDraft, semesterId, location.pathname, navigate]);
 
   async function reloadSubjects() {
     if (semesterId === null) return;
@@ -91,9 +105,10 @@ export function SubjectsPage() {
       {activeSemester && (
         <SubjectFormModal
           open={formOpen}
-          onClose={() => setFormOpen(false)}
+          onClose={() => { setFormOpen(false); setCommandDraft(null); }}
           onSaved={() => void reloadSubjects()}
           semester={activeSemester}
+          draft={commandDraft ? { name: commandDraft.name, professorId: commandDraft.professorId } : null}
         />
       )}
     </div>

@@ -22,6 +22,13 @@ function assertValidTable(table: LookupTableName) {
 
 type LookupRow = SessionType | AssessmentType | EventType | TaskType;
 
+const LOOKUP_USAGE: Record<LookupTableName, { table: string; foreignKey: string }> = {
+  session_types: { table: "class_sessions", foreignKey: "session_type_id" },
+  assessment_types: { table: "assessments", foreignKey: "assessment_type_id" },
+  task_types: { table: "tasks", foreignKey: "task_type_id" },
+  event_types: { table: "events", foreignKey: "event_type_id" },
+};
+
 export async function listLookupRows<T extends LookupRow>(table: LookupTableName): Promise<T[]> {
   assertValidTable(table);
   const db = await getDb();
@@ -60,4 +67,15 @@ export async function deleteLookupRow(table: LookupTableName, id: number): Promi
   assertValidTable(table);
   const db = await getDb();
   await db.execute(`DELETE FROM ${table} WHERE id = $1`, [id]);
+}
+
+export async function countLookupRowUsage(table: LookupTableName, id: number): Promise<number> {
+  assertValidTable(table);
+  const db = await getDb();
+  const relation = LOOKUP_USAGE[table];
+  const rows = await db.select<Array<{ count: number }>>(
+    `SELECT COUNT(*) AS count FROM ${relation.table} WHERE ${relation.foreignKey} = $1`,
+    [id],
+  );
+  return Number(rows[0]?.count ?? 0);
 }

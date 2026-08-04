@@ -45,6 +45,7 @@
     "subjects": "Subjects",
     "grades": "Grades",
     "tasks": "Tasks",
+    "learningTopics": "Learning topics",
     "planner": "Weekly Planner",
     "notes": "Notes",
     "settings": "Settings"
@@ -57,6 +58,26 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Today's agenda, weekly stats, and upcoming items will live here.",
+    "planWeek": "Plan week",
+    "stats": { "completed": "Completed", "total": "Total this week", "incomplete": "Overdue", "inProgress": "In progress" },
+    "weekAtGlance": "Week at a glance",
+    "weekAtGlanceHint": "Classes, deadlines, and events distributed by day.",
+    "todayAgenda": "Today's agenda",
+    "todayAgendaHint": "Everything that needs your attention today.",
+    "noAgenda": "Nothing scheduled for today.",
+    "upcoming": "Next 7 days",
+    "upcomingHint": "Assessments, tasks, and personal events.",
+    "noUpcoming": "No upcoming deadlines.",
+    "learningTopics": "Learning topics",
+    "learningTopicsHint": "Ideas to explore when you have time, without pressure.",
+    "newTopic": "New topic...",
+    "eventsRange": "Events in this period",
+    "previousSevenDays": "Previous seven days",
+    "nextSevenDays": "Next seven days",
+    "weekSchedule": "Week schedule",
+    "weekScheduleHint": "Your classes distributed by day.",
+    "openCalendar": "Open calendar",
+    "viewAll": "View all",
     "dbStatus": {
       "title": "Database connection",
       "checking": "Checking connection...",
@@ -66,6 +87,22 @@
       "minPassing": "min passing",
       "sessionTypes": "Session types seeded"
     }
+  },
+  "learningTopics": {
+    "title": "Learning topics",
+    "subtitle": "Organize ideas, concepts, and skills you want to master.",
+    "add": "Add topic",
+    "edit": "Edit topic",
+    "active": "Active",
+    "archived": "Archived",
+    "archive": "Archive",
+    "restore": "Restore",
+    "empty": "There are no active learning topics.",
+    "noArchived": "There are no archived topics.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "fields": { "title": "Topic", "description": "Description", "status": "Status", "priority": "Priority" },
+    "status": { "backlog": "Not started", "started": "Started", "in_progress": "In progress", "completed": "Completed" }
   },
   "calendar": {
     "title": "Calendar",
@@ -79,7 +116,9 @@
     "weekView": "Week",
     "allDay": "All day",
     "views": { "month": "Monthly", "week": "Weekly", "day": "Daily" },
-    "kinds": { "session": "Class", "assessment": "Assessment", "task": "Task", "event": "Event" }
+    "kinds": { "session": "Class", "assessment": "Assessment", "task": "Task", "event": "Event" },
+    "more": "more",
+    "noItemsForDay": "There are no items scheduled for this day."
   },
   "subjects": {
     "title": "Subjects",
@@ -225,6 +264,8 @@
     "editEntry": "Edit received grade",
     "editReceivedGrade": "Edit received grade",
     "grade": "Grade received",
+    "entryName": "Grade name",
+    "entryWeight": "This grade's weight (%)",
     "date": "Date",
     "assessment": "Related assessment",
     "noAssessment": "No related assessment",
@@ -276,7 +317,38 @@
   },
   "planner": {
     "title": "Weekly Planner",
-    "subtitle": "Sunday planning ritual will live here."
+    "subtitle": "Sunday planning ritual will live here.",
+    "description": "Prepare classes, set goals, and review how the week ended.",
+    "selectWeek": "Select week",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "weekSchedule": "Classes this week",
+    "weekScheduleHint": "Create preparation tasks before each session.",
+    "noClasses": "No classes are scheduled this week.",
+    "createPrep": "Prepare",
+    "prepared": "Prepared",
+    "prepTitle": "Prepare {{subject}} · {{session}}",
+    "prepDescription": "Task created from the weekly planner.",
+    "noTaskType": "Create a task type first to generate preparation tasks.",
+    "assessments": "Known assessments",
+    "assessmentsHint": "Deadlines and assessments to consider when distributing effort.",
+    "noAssessments": "No assessments are registered this week.",
+    "goals": "Weekly goals",
+    "goalsHint": "What concrete outcomes would make this week worthwhile?",
+    "reflection": "Closing reflection",
+    "reflectionHint": "What worked, what remains, and what you will change next week.",
+    "save": "Save plan",
+    "saved": "Planning saved",
+    "unsaved": "Unsaved changes",
+    "prepareSession": "Plan class",
+    "prepareSessionHint": "Anything you add will inherit this class date and time.",
+    "addPrepTask": "Add class-prep task",
+    "addAssessment": "Add assessment",
+    "assessmentName": "Assessment name",
+    "assessmentType": "Assessment type",
+    "markPrepared": "Mark prepared",
+    "prepTaskCreated": "Preparation task created",
+    "assessmentCreated": "Assessment created"
   },
   "notes": {
     "title": "Notes",
@@ -292,6 +364,7 @@
     "back": "Back",
     "saved": "Saved",
     "unsaved": "Unsaved changes",
+    "savedToast": "Note saved",
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",
@@ -300,8 +373,11 @@
       "subjects": "Subjects",
       "tasks": "Tasks",
       "assessments": "Assessments",
-      "notes": "Other notes"
+      "notes": "Other notes",
+      "showMore": "Show {{count}} more",
+      "showLess": "Show less"
     },
+    "references": { "details": "More details in" },
     "slashGroup": "Engineering and physics",
     "drawing": {
       "add": "Add canvas",
@@ -310,16 +386,84 @@
       "undo": "Undo",
       "clear": "Clear",
       "height": "Height",
+      "thickness": "Thickness",
+      "paletteSlot": "Quick color {{number}}",
       "makeShorter": "Reduce height",
       "makeTaller": "Increase height",
       "colors": { "accent": "Primary color", "secondary": "Secondary color", "text": "Text color" },
       "tools": { "pen": "Pen", "line": "Line", "circle": "Circle", "rectangle": "Rectangle", "triangle": "Triangle", "axes2d": "2D plane", "axes3d": "3D axes" }
     },
-    "math": { "add": "Add formula", "slashTitle": "Math formula", "slashDescription": "Write a LaTeX equation." }
+    "math": { "add": "Add formula", "slashTitle": "Math formula", "slashDescription": "Write a LaTeX equation." },
+    "help": {
+      "title": "Writing notes help",
+      "tooltip": "Commands and LaTeX help",
+      "intro": "A quick guide to the blocks, formulas, and shortcuts available in the editor.",
+      "blockHint": "Use /formula for large formulas. You do not need to type $$, although Entropi also accepts $$…$$, \\[...\\], and the equation environment when pasting existing content.",
+      "formattingTitle": "Text formatting",
+      "formattingDescription": "Select any text to open the floating toolbar. You can combine styles, colors, highlights, alignment, and links.",
+      "emphasisTitle": "Emphasis",
+      "colorTitle": "Color and highlighting",
+      "colorDescription": "The colors button can change the text color or apply a highlighted background.",
+      "inlineCodeTitle": "Inline code",
+      "inlineCodeDescription": "Use the code button for variable names, functions, commands, or short snippets inside a sentence.",
+      "startTitle": "Getting started",
+      "startDescription": "Inline formulas live inside a sentence. Display formulas occupy their own line and support larger structures.",
+      "inlineLabel": "Inside a sentence",
+      "blockLabel": "Display formula",
+      "structureTitle": "Basic structure",
+      "structureDescription": "Use braces to group expressions. Superscripts and subscripts apply to the group that follows them.",
+      "calculusTitle": "Calculus",
+      "calculusDescription": "Ordinary and partial derivatives, single or multiple integrals, limits, and sums.",
+      "linearAlgebraTitle": "Vectors and matrices",
+      "linearAlgebraDescription": "Separate columns with & and rows with \\\\. Fractions and symbols can be nested inside each cell.",
+      "matrixTypes": "Available environments: matrix, pmatrix (parentheses), bmatrix (brackets), Bmatrix (braces), vmatrix (determinant), and Vmatrix (norm). You can also wrap matrix with \\left and \\right to combine custom delimiters such as \\langle, \\rangle, |, \\Vert, \\lfloor, or \\lceil.",
+      "alignmentTitle": "Alignment and piecewise systems",
+      "alignmentDescription": "Use aligned to develop an equation over several lines and cases for piecewise functions.",
+      "alignmentMarkers": "The & symbol marks the alignment point—usually before =—and \\\\ starts a new row.",
+      "systemHint": "For a system, combine a left brace with aligned; an augmented matrix uses a vertical separator between coefficients and results.",
+      "textSpacingTitle": "Text, units, and spacing",
+      "textSpacingDescription": "Math mode ignores many normal spaces. Use spacing commands and \\text{...} for words.",
+      "symbolsTitle": "Symbols and Greek letters",
+      "symbolsDescription": "Type the symbol name after a backslash. Uppercase Greek letters start with a capital letter, for example \\Delta.",
+      "slashTitle": "Slash commands",
+      "slashDescription": "Type / on an empty line to open the block library and filter it by name.",
+      "formulaCommand": "Insert a display math formula.",
+      "canvasCommand": "Insert a canvas for drawing, shapes, and axes.",
+      "libraryCommand": "Show every available block in the library.",
+      "inlineTitle": "LaTeX inside a sentence",
+      "inlineDescription": "Wrap the expression in $ signs and continue typing. Double-click the formula to edit it.",
+      "latexTitle": "LaTeX examples",
+      "latexSupported": "You can also use Greek letters, integrals, sums, products, infinity, vectors, and relations such as ≤, ≥, and ≈.",
+      "shortcutsTitle": "Useful shortcuts",
+      "saveShortcut": "Save the note immediately.",
+      "doubleClick": "Double-click",
+      "editInline": "Edit an existing inline formula."
+    }
+  },
+  "search": {
+    "empty": "No results found.",
+    "guide": {
+      "subject": "Create or open a subject",
+      "task": "Prepare a task",
+      "exam": "Prepare an assessment",
+      "note": "Create a note",
+      "search": "Search Entropi",
+      "searchHint": "Type to search subjects, professors, tasks, assessments, and notes."
+    },
+    "types": { "subject": "Subject", "task": "Task", "assessment": "Assessment", "note": "Note" }
+  },
+  "feedback": {
+    "created": "Created successfully",
+    "saved": "Changes saved",
+    "deleted": "Deleted successfully",
+    "archived": "Archived successfully",
+    "restored": "Restored successfully",
+    "error": "The action could not be completed"
   },
   "settings": {
     "title": "Settings",
     "subtitle": "Lookup tables, locations, grading, and theming config will live here.",
+    "savedToast": "Settings saved",
     "tabs": {
       "general": "General",
       "lookups": "Reference Tables",
@@ -345,6 +489,12 @@
       "format12": "12-hour (6:30 PM)",
       "invalidRange": "The end time must be later than the start time."
     },
+    "notes": {
+      "title": "Notes",
+      "autosaveDelay": "Autosave interval",
+      "autosaveDelayHint": "Saves after this amount of idle time; every change restarts the timer.",
+      "seconds": "seconds"
+    },
     "lookup": {
       "sessionTypes": "Session Types",
       "assessmentTypes": "Assessment Types",
@@ -361,7 +511,9 @@
       "edit": "Edit",
       "delete": "Delete",
       "cancel": "Cancel",
-      "save": "Save"
+      "save": "Save",
+      "inUse_one": "It cannot be deleted: {{count}} item uses it.",
+      "inUse_other": "It cannot be deleted: {{count}} items use it."
     },
     "locations": {
       "title": "Locations",

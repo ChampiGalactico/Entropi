@@ -48,7 +48,7 @@ export function CalendarPage() {
         {folders.map((folder) => { const active = view === folder.id; return <button key={folder.id} type="button" onClick={() => setView(folder.id)} className={`entropi-calendar-folder-tab relative min-w-40 rounded-t-[1.4rem] px-6 text-center transition-all duration-300 ${active ? "is-active z-10 h-16 pb-2 pt-2 text-accent" : "h-11 bg-control/55 pb-2 pt-2 text-text-secondary hover:bg-control/80 hover:text-text-primary"}`}><span className="block text-sm font-semibold">{folder.label}</span>{active && folder.subtitle && <span className="mt-0.5 block text-[10px] capitalize text-text-muted">{folder.subtitle}</span>}</button>; })}
       </div>
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[2rem] bg-surface p-3 shadow-card backdrop-blur-2xl">
-        {view === "month" && <MonthView month={anchor} />}
+        {view === "month" && <MonthView month={anchor} preferences={preferences} />}
         {view === "week" && <WeekView weekStart={week} preferences={preferences} />}
         {view === "day" && <DayView date={anchor} preferences={preferences} />}
       </div>

@@ -16,28 +16,15 @@ export function calculateGrades(components: GradeComponent[], entries: GradeEntr
     children.set(component.parent_id, group);
   }
 
-  function valueFor(component: GradeComponent, visiting = new Set<number>()): number | null {
+  function valueFor(component: GradeComponent): number | null {
     if (values.has(component.id)) return values.get(component.id) ?? null;
-    if (visiting.has(component.id)) return null;
-    const nextVisiting = new Set(visiting).add(component.id);
-    const nested = children.get(component.id) ?? [];
+    const componentEntries = entries.filter((entry) => entry.grade_component_id === component.id);
+    const weightedEntries = componentEntries.filter((entry) => entry.weight > 0);
     let value: number | null;
-    if (nested.length) {
-      const available = nested
-        .map((child) => ({ child, value: valueFor(child, nextVisiting) }))
-        .filter((item): item is { child: GradeComponent; value: number } => item.value !== null);
-      const weighted = available.filter((item) => item.child.weight !== null);
-      if (!available.length) value = null;
-      else if (weighted.length) {
-        const weightSum = weighted.reduce((sum, item) => sum + (item.child.weight ?? 0), 0);
-        value = weightSum > 0
-          ? weighted.reduce((sum, item) => sum + item.value * (item.child.weight ?? 0), 0) / weightSum
-          : null;
-      } else value = available.reduce((sum, item) => sum + item.value, 0) / available.length;
-    } else {
-      const grades = entries.filter((entry) => entry.grade_component_id === component.id).map((entry) => entry.grade);
-      value = grades.length ? grades.reduce((sum, grade) => sum + grade, 0) / grades.length : null;
-    }
+    if (weightedEntries.length) {
+      const weight = weightedEntries.reduce((sum, entry) => sum + entry.weight, 0);
+      value = weightedEntries.reduce((sum, entry) => sum + entry.grade * entry.weight, 0) / weight;
+    } else value = componentEntries.length ? componentEntries.reduce((sum, entry) => sum + entry.grade, 0) / componentEntries.length : null;
     values.set(component.id, value);
     return value;
   }

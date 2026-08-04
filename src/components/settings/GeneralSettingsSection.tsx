@@ -7,6 +7,7 @@ import { GradingConfigSection } from "./GradingConfigSection";
 import { useTheme } from "../../hooks/useTheme";
 import { useLanguage } from "../../hooks/useLanguage";
 import { CalendarSettingsSection } from "./CalendarSettingsSection";
+import { NotesSettingsSection } from "./NotesSettingsSection";
 
 export function GeneralSettingsSection() {
   const { t } = useTranslation();
@@ -55,6 +56,7 @@ export function GeneralSettingsSection() {
       </div>
 
       <CalendarSettingsSection />
+      <NotesSettingsSection />
       <GradingConfigSection />
     </div>
   );

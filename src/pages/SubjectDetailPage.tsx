@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PenLinear, TrashBinTrashLinear, AltArrowLeftLinear } from "../components/ui/appIcons";
 import { IconButton } from "../components/ui/IconButton";
@@ -21,6 +21,7 @@ type TabId = "schedule" | "staff" | "assessments" | "tasks" | "grades" | "notes"
 export function SubjectDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const subjectId = Number(id);
 
@@ -28,6 +29,13 @@ export function SubjectDetailPage() {
   const [semester, setSemester] = useState<Semester | null>(null);
   const [tab, setTab] = useState<TabId>("schedule");
   const [editOpen, setEditOpen] = useState(false);
+  const [commandState] = useState(() => location.state as { tab?: TabId; assessmentDraftTitle?: string } | null);
+
+  useEffect(() => {
+    if (!commandState?.tab) return;
+    setTab(commandState.tab);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [commandState?.tab, location.pathname, navigate]);
 
   async function reload() {
     const data = await getSubject(subjectId);
@@ -107,7 +115,7 @@ export function SubjectDetailPage() {
 
       {tab === "schedule" && <ScheduleTab subjectId={subject.id} />}
       {tab === "staff" && <StaffTab subjectId={subject.id} />}
-      {tab === "assessments" && <AssessmentsTab subjectId={subject.id} />}
+      {tab === "assessments" && <AssessmentsTab subjectId={subject.id} initialDraftTitle={commandState?.assessmentDraftTitle} />}
       {tab === "tasks" && <TaskList subjectId={subject.id} />}
       {tab === "grades" && <GradesTab subject={subject} />}
       {tab === "notes" && <NotesPanel subjectId={subject.id} />}

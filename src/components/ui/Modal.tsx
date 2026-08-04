@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 
@@ -7,22 +7,31 @@ export interface ModalProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  maxWidthClass?: string;
+  onSave?: () => void;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, maxWidthClass = "max-w-lg", onSave }: ModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      if (dialogs[dialogs.length - 1] !== dialogRef.current) return;
       if (e.key === "Escape") onClose();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && onSave) {
+        e.preventDefault();
+        onSave();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, onClose]);
+  }, [open, onClose, onSave]);
 
   if (!open) return null;
 
@@ -32,10 +41,11 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "modal-title" : undefined}
-        className="my-auto max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-x-hidden overflow-y-auto rounded-[2rem] border border-border bg-elevated p-6 shadow-modal backdrop-blur-3xl"
+        className={`my-auto max-h-[calc(100vh-2rem)] w-full ${maxWidthClass} overflow-x-hidden overflow-y-auto rounded-[2rem] border border-border bg-elevated p-6 shadow-modal backdrop-blur-3xl`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && <h2 id="modal-title" className="mb-4 text-lg font-semibold text-text-primary">{title}</h2>}

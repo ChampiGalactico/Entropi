@@ -5,9 +5,12 @@ import { Checkbox } from "../ui/Checkbox";
 import { IconButton } from "../ui/IconButton";
 import { SolarIcon } from "../ui/SolarIcon";
 import type { Subject, Task, TaskType } from "../../types";
+import type { EntityNoteReference } from "../../db/queries/notes";
+import { useNavigate } from "react-router-dom";
 
-export function TaskCard({ task, type, subject, onToggle, onEdit, onDelete }: { task: Task; type: TaskType | null; subject: Subject | null; onToggle: () => void; onEdit: () => void; onDelete: () => void }) {
+export function TaskCard({ task, type, subject, noteReferences, onToggle, onEdit, onDelete }: { task: Task; type: TaskType | null; subject: Subject | null; noteReferences: EntityNoteReference[]; onToggle: () => void; onEdit: () => void; onDelete: () => void }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const completed = task.status === "completed";
   const overdue = !completed && task.status !== "cancelled" && task.due_date !== null &&
     new Date(`${task.due_date}T${task.due_time ?? "23:59:59"}`).getTime() < Date.now();
@@ -18,6 +21,7 @@ export function TaskCard({ task, type, subject, onToggle, onEdit, onDelete }: { 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2"><div><h4 className={`font-medium text-text-primary ${completed ? "line-through" : ""}`}>{task.title}</h4><div className="mt-2 flex flex-wrap gap-1.5"><Badge color={type?.color} icon={type?.icon ? <SolarIcon name={type.icon} size={13} color={type.color} /> : undefined}>{type?.name ?? "—"}</Badge>{subject && <Badge color={subject.color}>{subject.name}</Badge>}<Badge color={task.priority <= 2 ? "var(--danger)" : task.priority === 3 ? "var(--warning)" : "var(--text-muted)"}>{t(`tasks.priorities.${task.priority}`)}</Badge></div></div><div className="flex opacity-50 transition-opacity group-hover:opacity-100"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={15} />} onClick={onEdit} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={onDelete} /></div></div>
           {task.description && <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-text-muted">{task.description}</p>}
+          {noteReferences.length > 0 && <div className="mt-3 flex flex-wrap items-center gap-1 text-[10px] text-text-muted"><span>{t("notes.references.details")}</span>{noteReferences.map((reference) => <button key={reference.note_id} type="button" onClick={() => navigate(`/notes/${reference.note_id}`)} className="rounded-full bg-surface-hover px-2 py-1 font-medium text-accent hover:bg-elevated">{reference.title}</button>)}</div>}
           <div className="mt-3 flex items-center justify-between gap-2 text-xs text-text-secondary"><span>{task.due_date ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(`${task.due_date}T12:00:00`)) : t("tasks.noDueDate")}{task.due_time ? ` · ${task.due_time}` : ""}</span><Badge color={overdue ? "var(--danger)" : task.status === "completed" ? "var(--success)" : task.status === "cancelled" ? "var(--text-muted)" : "var(--accent)"} dot>{overdue ? t("tasks.statuses.overdue") : t(`tasks.statuses.${task.status}`)}</Badge></div>
         </div>
       </div>

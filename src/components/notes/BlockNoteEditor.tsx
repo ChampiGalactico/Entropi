@@ -1,16 +1,43 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { PartialBlock } from "@blocknote/core";
+import { en, es } from "@blocknote/core/locales";
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from "@blocknote/core/extensions";
-import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from "@blocknote/react";
+import {
+  BasicTextStyleButton,
+  BlockTypeSelect,
+  ColorStyleButton,
+  CreateLinkButton,
+  FormattingToolbar,
+  FormattingToolbarController,
+  SuggestionMenuController,
+  TextAlignButton,
+  getDefaultReactSlashMenuItems,
+  useCreateBlockNote,
+} from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { AddCircleLinear, PenLinear } from "../ui/appIcons";
-import { Button } from "../ui/Button";
+import { PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
+
+function EntropiFormattingToolbar() {
+  return <FormattingToolbar>
+    <BlockTypeSelect />
+    <BasicTextStyleButton basicTextStyle="bold" />
+    <BasicTextStyleButton basicTextStyle="italic" />
+    <BasicTextStyleButton basicTextStyle="underline" />
+    <BasicTextStyleButton basicTextStyle="strike" />
+    <BasicTextStyleButton basicTextStyle="code" />
+    <TextAlignButton textAlignment="left" />
+    <TextAlignButton textAlignment="center" />
+    <TextAlignButton textAlignment="right" />
+    <ColorStyleButton />
+    <CreateLinkButton />
+  </FormattingToolbar>;
+}
 
 function parseBlocks(value: string | null): PartialBlock[] | undefined {
   if (!value) return undefined;
@@ -25,37 +52,81 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
 
 export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean }) {
   const { mode } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
-  const editor = useCreateBlockNote({ schema: noteSchema, initialContent: initialContent as any }, []);
-  function insertionAnchor() {
-    try { return editor.getTextCursorPosition().block; }
-    catch { return editor.document[editor.document.length - 1]; }
+  const editor = useCreateBlockNote({ schema: noteSchema, initialContent: initialContent as any, dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en }, []);
+  const activeBlockId = useRef<string | null>(null);
+
+  function serialize() { onChange(JSON.stringify(editor.document)); }
+
+  function revealInlineMath(block: any) {
+    if (!Array.isArray(block?.content) || !block.content.some((item: any) => item.type === "inlineMath")) return;
+    const content = block.content.map((item: any) => item.type === "inlineMath"
+      ? { type: "text", text: `$${item.props.latex}$`, styles: {} }
+      : item);
+    editor.updateBlock(block, { content } as any);
   }
-  function addDrawing() {
-    const anchor = insertionAnchor(); if (!anchor) return;
-    editor.insertBlocks([{ type: "drawing" }], anchor, "after");
-  }
-  function addFormula() {
-    const anchor = insertionAnchor(); if (!anchor) return;
-    editor.insertBlocks([{ type: "math" }], anchor, "after");
-  }
-  function serializeWithInlineMath() {
-    let converted = false;
-    for (const block of editor.document as any[]) {
-      if (!Array.isArray(block.content)) continue;
-      const next: any[] = [];
-      let blockConverted = false;
-      for (const item of block.content) {
-        if (item.type !== "text" || !item.text.includes("$")) { next.push(item); continue; }
-        const parts = item.text.split(/(\$[^$\n]+\$)/g).filter(Boolean);
-        if (parts.length === 1) { next.push(item); continue; }
-        converted = true; blockConverted = true;
-        for (const part of parts) next.push(part.startsWith("$") && part.endsWith("$") ? { type: "inlineMath", props: { latex: part.slice(1, -1) } } : { ...item, text: part });
-      }
-      if (blockConverted) editor.updateBlock(block, { content: next } as any);
+
+  function renderMathInBlock(blockId: string | null) {
+    if (!blockId) return;
+    const block = editor.getBlock(blockId) as any;
+    if (!block || !Array.isArray(block.content)) return;
+    const textOnly = block.content.every((item: any) => item.type === "text");
+    const raw = textOnly ? block.content.map((item: any) => item.text).join("").trim() : "";
+    if (raw.startsWith("$$") && raw.endsWith("$$") && raw.length > 4) {
+      editor.updateBlock(block, { type: "math", props: { latex: raw } } as any);
+      return;
     }
-    if (!converted) onChange(JSON.stringify(editor.document));
+    const document = editor.document as any[];
+    const blockIndex = document.findIndex((item) => item.id === blockId);
+    const plainText = (item: any) => Array.isArray(item?.content) && item.content.every((part: any) => part.type === "text")
+      ? item.content.map((part: any) => part.text).join("")
+      : null;
+    let displayStart = -1;
+    for (let index = blockIndex; index >= 0; index -= 1) {
+      const text = plainText(document[index]);
+      if (text === null) break;
+      if (index === blockIndex && text.trim() === "$$") continue;
+      if (text.trimStart().startsWith("$$")) { displayStart = index; break; }
+    }
+    if (displayStart >= 0) {
+      let displayEnd = -1;
+      for (let index = displayStart; index < document.length; index += 1) {
+        const text = plainText(document[index]);
+        if (text === null) break;
+        if (text.trimEnd().endsWith("$$") && (index > displayStart || text.trim().length > 4)) { displayEnd = index; break; }
+      }
+      if (displayEnd >= blockIndex && displayEnd >= displayStart) {
+        const latex = document.slice(displayStart, displayEnd + 1).map((item) => plainText(item) ?? "").join("\n").trim();
+        const anchor = document[displayStart];
+        editor.updateBlock(anchor, { type: "math", props: { latex } } as any);
+        const redundant = document.slice(displayStart + 1, displayEnd + 1).map((item) => item.id);
+        if (redundant.length) editor.removeBlocks(redundant);
+        return;
+      }
+    }
+    let changed = false;
+    const content: any[] = [];
+    for (const item of block.content) {
+      if (item.type !== "text" || !item.text.includes("$")) { content.push(item); continue; }
+      const parts = item.text.split(/(\$\$[^$]*\$\$|\$[^$\n]+\$)/g).filter(Boolean);
+      if (parts.length === 1) { content.push(item); continue; }
+      for (const part of parts) {
+        if (part.startsWith("$$")) content.push({ ...item, text: part });
+        else if (part.startsWith("$") && part.endsWith("$")) { content.push({ type: "inlineMath", props: { latex: part.slice(1, -1) } }); changed = true; }
+        else content.push({ ...item, text: part });
+      }
+    }
+    if (changed) editor.updateBlock(block, { content } as any);
+  }
+
+  function handleSelectionChange() {
+    let current: any;
+    try { current = editor.getTextCursorPosition().block; } catch { return; }
+    if (activeBlockId.current === current.id) return;
+    renderMathInBlock(activeBlockId.current);
+    activeBlockId.current = current.id;
+    revealInlineMath(current);
   }
   const slashMenuItems = useMemo(() => [
     ...getDefaultReactSlashMenuItems(editor),
@@ -78,8 +149,8 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   ], [editor, t]);
   return (
     <div className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}>
-      {fullPage && <div className="mb-3 flex justify-end gap-2"><Button variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5 text-xs" onClick={addFormula}><AddCircleLinear size={14} />{t("notes.math.add")}</Button><Button variant="secondary" className="flex items-center gap-1.5 px-3 py-1.5 text-xs" onClick={addDrawing}><AddCircleLinear size={14} />{t("notes.drawing.add")}</Button></div>}
-      <BlockNoteView editor={editor} theme={mode} onChange={serializeWithInlineMath} slashMenu={false}>
+      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onSelectionChange={handleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); serialize(); }} slashMenu={false} formattingToolbar={false}>
+        <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
         <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
       </BlockNoteView>
     </div>

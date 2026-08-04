@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { NumberInput } from "../ui/NumberInput";
 import { Button } from "../ui/Button";
 import { SettingsRow } from "./SettingsRow";
+import { notify } from "../ui/Toast";
 import { getGradingConfig, updateGradingConfig } from "../../db/queries/config";
 import type { GradingConfig } from "../../types";
 
@@ -11,7 +12,6 @@ type FormState = Omit<GradingConfig, "id">;
 export function GradingConfigSection() {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState | null>(null);
-  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     void getGradingConfig().then((config) => {
@@ -23,14 +23,13 @@ export function GradingConfigSection() {
   async function handleSave() {
     if (!form) return;
     await updateGradingConfig(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    notify.success(t("settings.savedToast"));
   }
 
   if (!form) return null;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); void handleSave(); } }}>
       <h3 className="pb-1 text-sm font-semibold text-text-primary">{t("settings.grading.title")}</h3>
 
       <SettingsRow label={t("settings.grading.scaleMin")}>
@@ -78,7 +77,6 @@ export function GradingConfigSection() {
 
       <div className="flex items-center gap-3 pt-4">
         <Button onClick={() => void handleSave()}>{t("settings.lookup.save")}</Button>
-        {saved && <span className="text-sm text-success">{t("settings.grading.saved")}</span>}
       </div>
     </div>
   );

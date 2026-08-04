@@ -88,14 +88,14 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
           ))}
         </div>
       )}
-      <Modal open={open} onClose={() => { setOpen(false); setEditingMember(null); }} title={editingMember ? t("subjects.staff.editMember") : t("subjects.staff.addTitle")}>
+      <Modal open={open} onClose={() => { setOpen(false); setEditingMember(null); }} onSave={() => void save()} title={editingMember ? t("subjects.staff.editMember") : t("subjects.staff.addTitle")}>
         <div className="flex flex-col gap-4">
           <label className="text-xs text-text-secondary">{t("subjects.staff.person")}<div className="mt-1"><Combobox value={professorId === null ? null : String(professorId)} onChange={(value) => setProfessorId(Number(value))} options={professors.map((professor) => ({ value: String(professor.id), label: professor.name }))} searchable creatable onCreate={(name) => void createAndSelectProfessor(name)} createLabel={(name) => t("subjects.form.createProfessor", { name })} /></div></label>
           <label className="text-xs text-text-secondary">{t("subjects.staff.role")}<div className="mt-1 flex items-center gap-2"><div className="min-w-0 flex-1"><Combobox value={roleId === null ? null : String(roleId)} onChange={(value) => setRoleId(Number(value))} options={roles.map((role) => ({ value: String(role.id), label: role.name, color: role.color, icon: <SolarIcon name={role.icon} size={16} color={role.color} /> }))} searchable creatable onCreate={(name) => void createAndSelectRole(name)} createLabel={(name) => t("subjects.staff.createRole", { name })} /></div><IconButton label={t("subjects.staff.editRole")} icon={<PenLinear size={16} />} disabled={roleId === null} onClick={editSelectedRole} /></div></label>
           <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setOpen(false)}>{t("settings.lookup.cancel")}</Button><Button onClick={() => void save()}>{t("settings.lookup.save")}</Button></div>
         </div>
       </Modal>
-      <Modal open={roleEditorOpen} onClose={() => setRoleEditorOpen(false)} title={t("subjects.staff.editRole")}>
+      <Modal open={roleEditorOpen} onClose={() => setRoleEditorOpen(false)} onSave={() => void saveSelectedRole()} title={t("subjects.staff.editRole")}>
         <div className="flex flex-col gap-4"><div className="flex items-end gap-3"><label className="min-w-0 flex-1 text-xs text-text-secondary">{t("settings.lookup.name")}<Input className="mt-1" value={roleForm.name} onChange={(event) => setRoleForm((current) => ({ ...current, name: event.target.value }))} autoFocus /></label><ColorPickerPopover value={roleForm.color} onChange={(color) => setRoleForm((current) => ({ ...current, color }))} /><IconPicker value={roleForm.icon} color={roleForm.color} onChange={(icon) => setRoleForm((current) => ({ ...current, icon }))} /></div><div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setRoleEditorOpen(false)}>{t("settings.lookup.cancel")}</Button><Button onClick={() => void saveSelectedRole()}>{t("settings.lookup.save")}</Button></div></div>
       </Modal>
     </div>

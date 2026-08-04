@@ -8,3 +8,4 @@ export * from "./SettingsRow";
 export * from "./ProfessorsManager";
 export * from "./TeachingRolesManager";
 export * from "./CalendarSettingsSection";
+export * from "./NotesSettingsSection";

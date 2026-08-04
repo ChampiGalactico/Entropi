@@ -45,6 +45,7 @@
     "subjects": "Materias",
     "grades": "Calificaciones",
     "tasks": "Tareas",
+    "learningTopics": "Temas por aprender",
     "planner": "Planificador Semanal",
     "notes": "Notas",
     "settings": "Configuración"
@@ -57,6 +58,26 @@
   "dashboard": {
     "title": "Panel",
     "subtitle": "La agenda de hoy, estadísticas semanales y próximos eventos aparecerán aquí.",
+    "planWeek": "Planificar semana",
+    "stats": { "completed": "Completadas", "total": "Total esta semana", "incomplete": "Vencidas", "inProgress": "En progreso" },
+    "weekAtGlance": "Vista rápida de la semana",
+    "weekAtGlanceHint": "Clases, entregas y eventos distribuidos por día.",
+    "todayAgenda": "Agenda de hoy",
+    "todayAgendaHint": "Todo lo que requiere tu atención hoy.",
+    "noAgenda": "No hay compromisos para hoy.",
+    "upcoming": "Próximos 7 días",
+    "upcomingHint": "Evaluaciones, tareas y eventos personales.",
+    "noUpcoming": "No hay vencimientos próximos.",
+    "learningTopics": "Temas por aprender",
+    "learningTopicsHint": "Ideas para explorar cuando tengas tiempo, sin presión.",
+    "newTopic": "Nuevo tema...",
+    "eventsRange": "Eventos del periodo",
+    "previousSevenDays": "Siete días anteriores",
+    "nextSevenDays": "Siete días siguientes",
+    "weekSchedule": "Horario de la semana",
+    "weekScheduleHint": "Tus clases distribuidas por día.",
+    "openCalendar": "Abrir calendario",
+    "viewAll": "Ver todos",
     "dbStatus": {
       "title": "Conexión a la base de datos",
       "checking": "Comprobando conexión...",
@@ -66,6 +87,22 @@
       "minPassing": "mínimo para aprobar",
       "sessionTypes": "Tipos de sesión sembrados"
     }
+  },
+  "learningTopics": {
+    "title": "Temas por aprender",
+    "subtitle": "Organiza ideas, conceptos y habilidades que quieres dominar.",
+    "add": "Agregar tema",
+    "edit": "Editar tema",
+    "active": "Activos",
+    "archived": "Archivados",
+    "archive": "Archivar",
+    "restore": "Restaurar",
+    "empty": "No hay temas activos por aprender.",
+    "noArchived": "No hay temas archivados.",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "fields": { "title": "Tema", "description": "Descripción", "status": "Estado", "priority": "Prioridad" },
+    "status": { "backlog": "Por iniciar", "started": "Iniciado", "in_progress": "En proceso", "completed": "Terminado" }
   },
   "calendar": {
     "title": "Calendario",
@@ -79,7 +116,9 @@
     "weekView": "Semana",
     "allDay": "Todo el día",
     "views": { "month": "Mensual", "week": "Semanal", "day": "Diaria" },
-    "kinds": { "session": "Clase", "assessment": "Evaluación", "task": "Tarea", "event": "Evento" }
+    "kinds": { "session": "Clase", "assessment": "Evaluación", "task": "Tarea", "event": "Evento" },
+    "more": "más",
+    "noItemsForDay": "No hay elementos programados para este día."
   },
   "subjects": {
     "title": "Materias",
@@ -225,6 +264,8 @@
     "editEntry": "Editar calificación obtenida",
     "editReceivedGrade": "Editar calificación obtenida",
     "grade": "Calificación obtenida",
+    "entryName": "Nombre de la nota",
+    "entryWeight": "Porcentaje de esta nota (%)",
     "date": "Fecha",
     "assessment": "Evaluación relacionada",
     "noAssessment": "Sin evaluación relacionada",
@@ -276,7 +317,38 @@
   },
   "planner": {
     "title": "Planificador Semanal",
-    "subtitle": "El ritual de planificación dominical aparecerá aquí."
+    "subtitle": "El ritual de planificación dominical aparecerá aquí.",
+    "description": "Prepara las clases, define tus objetivos y revisa cómo terminó la semana.",
+    "selectWeek": "Seleccionar semana",
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "weekSchedule": "Clases de la semana",
+    "weekScheduleHint": "Crea tareas de preparación antes de cada sesión.",
+    "noClasses": "No hay clases programadas esta semana.",
+    "createPrep": "Preparar",
+    "prepared": "Preparada",
+    "prepTitle": "Preparar {{subject}} · {{session}}",
+    "prepDescription": "Tarea creada desde el planificador semanal.",
+    "noTaskType": "Crea primero un tipo de tarea para poder generar preparaciones.",
+    "assessments": "Evaluaciones conocidas",
+    "assessmentsHint": "Entregas y evaluaciones que conviene considerar al distribuir el esfuerzo.",
+    "noAssessments": "No hay evaluaciones registradas esta semana.",
+    "goals": "Objetivos de esta semana",
+    "goalsHint": "¿Qué resultados concretos harían que esta semana valiera la pena?",
+    "reflection": "Reflexión de cierre",
+    "reflectionHint": "Qué funcionó, qué quedó pendiente y qué cambiarás la próxima semana.",
+    "save": "Guardar planificación",
+    "saved": "Planificación guardada",
+    "unsaved": "Cambios no guardados",
+    "prepareSession": "Planificar clase",
+    "prepareSessionHint": "Todo lo que agregues heredará la fecha y la hora de esta clase.",
+    "addPrepTask": "Añadir tarea de preparación",
+    "addAssessment": "Añadir evaluación",
+    "assessmentName": "Nombre de la evaluación",
+    "assessmentType": "Tipo de evaluación",
+    "markPrepared": "Marcar preparada",
+    "prepTaskCreated": "Tarea de preparación creada",
+    "assessmentCreated": "Evaluación creada"
   },
   "notes": {
     "title": "Notas",
@@ -292,6 +364,7 @@
     "back": "Volver",
     "saved": "Guardado",
     "unsaved": "Cambios sin guardar",
+    "savedToast": "Nota guardada",
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",
@@ -300,8 +373,11 @@
       "subjects": "Materias",
       "tasks": "Tareas",
       "assessments": "Evaluaciones",
-      "notes": "Otras notas"
+      "notes": "Otras notas",
+      "showMore": "Ver {{count}} más",
+      "showLess": "Ver menos"
     },
+    "references": { "details": "Más detalles en" },
     "slashGroup": "Ingeniería y física",
     "drawing": {
       "add": "Añadir lienzo",
@@ -310,16 +386,84 @@
       "undo": "Deshacer",
       "clear": "Limpiar",
       "height": "Altura",
+      "thickness": "Grosor",
+      "paletteSlot": "Color rápido {{number}}",
       "makeShorter": "Reducir altura",
       "makeTaller": "Aumentar altura",
       "colors": { "accent": "Color principal", "secondary": "Color secundario", "text": "Color de texto" },
       "tools": { "pen": "Lápiz", "line": "Línea", "circle": "Círculo", "rectangle": "Rectángulo", "triangle": "Triángulo", "axes2d": "Plano 2D", "axes3d": "Ejes 3D" }
     },
-    "math": { "add": "Añadir fórmula", "slashTitle": "Fórmula matemática", "slashDescription": "Escribe una ecuación en LaTeX." }
+    "math": { "add": "Añadir fórmula", "slashTitle": "Fórmula matemática", "slashDescription": "Escribe una ecuación en LaTeX." },
+    "help": {
+      "title": "Ayuda para escribir notas",
+      "tooltip": "Comandos y ayuda de LaTeX",
+      "intro": "Una guía rápida de los bloques, fórmulas y atajos disponibles en el editor.",
+      "blockHint": "Para una fórmula grande usa /formula. No necesitas escribir $$, aunque Entropi también acepta $$…$$, \\[...\\] y el entorno equation cuando pegas contenido existente.",
+      "formattingTitle": "Formato de texto",
+      "formattingDescription": "Selecciona cualquier texto para abrir la barra flotante. Allí puedes combinar estilos, colores, resaltados, alineación y enlaces.",
+      "emphasisTitle": "Énfasis",
+      "colorTitle": "Color y resaltado",
+      "colorDescription": "El botón de colores permite cambiar el color de las letras o aplicar un fondo resaltado.",
+      "inlineCodeTitle": "Código inline",
+      "inlineCodeDescription": "Usa el botón de código para nombres de variables, funciones, comandos o fragmentos cortos dentro de una frase.",
+      "startTitle": "Cómo empezar",
+      "startDescription": "Las fórmulas inline viven dentro de una frase. Las fórmulas en bloque ocupan su propia línea y permiten estructuras grandes.",
+      "inlineLabel": "Dentro de una frase",
+      "blockLabel": "Fórmula en bloque",
+      "structureTitle": "Estructura básica",
+      "structureDescription": "Usa llaves para agrupar expresiones. Los exponentes y subíndices afectan al grupo que los sigue.",
+      "calculusTitle": "Cálculo",
+      "calculusDescription": "Derivadas ordinarias y parciales, integrales simples o múltiples, límites y sumatorias.",
+      "linearAlgebraTitle": "Vectores y matrices",
+      "linearAlgebraDescription": "Separa columnas con & y filas con \\\\. Puedes anidar fracciones y símbolos dentro de cada celda.",
+      "matrixTypes": "Entornos disponibles: matrix, pmatrix (paréntesis), bmatrix (corchetes), Bmatrix (llaves), vmatrix (determinante) y Vmatrix (norma). También puedes envolver matrix con \\left y \\right para combinar delimitadores personalizados como \\langle, \\rangle, |, \\Vert, \\lfloor o \\lceil.",
+      "alignmentTitle": "Alineación y sistemas por casos",
+      "alignmentDescription": "Usa aligned para desarrollar una ecuación en varias líneas y cases para funciones definidas por partes.",
+      "alignmentMarkers": "El símbolo & marca el punto de alineación —normalmente antes de =— y \\\\ inicia una fila nueva.",
+      "systemHint": "Para un sistema usa una llave izquierda con aligned; una matriz aumentada usa una barra vertical entre las columnas de coeficientes y resultados.",
+      "textSpacingTitle": "Texto, unidades y espacios",
+      "textSpacingDescription": "El modo matemático ignora muchos espacios normales. Usa comandos de espaciado y \\text{...} para palabras.",
+      "symbolsTitle": "Símbolos y letras griegas",
+      "symbolsDescription": "Escribe el nombre del símbolo después de una barra invertida. Las mayúsculas griegas empiezan con mayúscula, por ejemplo \\Delta.",
+      "slashTitle": "Comandos con /",
+      "slashDescription": "Escribe / en una línea vacía para abrir la biblioteca de bloques y filtrar por nombre.",
+      "formulaCommand": "Inserta una fórmula matemática en bloque.",
+      "canvasCommand": "Inserta un lienzo para dibujar, crear figuras y ejes.",
+      "libraryCommand": "Muestra todos los bloques disponibles de la biblioteca.",
+      "inlineTitle": "LaTeX dentro de una frase",
+      "inlineDescription": "Encierra la expresión entre signos $ y continúa escribiendo. Haz doble clic en la fórmula para editarla.",
+      "latexTitle": "Ejemplos de LaTeX",
+      "latexSupported": "También puedes usar letras griegas, integrales, sumatorias, productos, infinito, vectores y relaciones como ≤, ≥ y ≈.",
+      "shortcutsTitle": "Atajos útiles",
+      "saveShortcut": "Guardar la nota inmediatamente.",
+      "doubleClick": "Doble clic",
+      "editInline": "Editar una fórmula inline existente."
+    }
+  },
+  "search": {
+    "empty": "No se encontraron resultados.",
+    "guide": {
+      "subject": "Crear o abrir una materia",
+      "task": "Preparar una tarea",
+      "exam": "Preparar una evaluación",
+      "note": "Crear una nota",
+      "search": "Buscar en Entropi",
+      "searchHint": "Escribe para buscar materias, profesores, tareas, evaluaciones y notas."
+    },
+    "types": { "subject": "Materia", "task": "Tarea", "assessment": "Evaluación", "note": "Nota" }
+  },
+  "feedback": {
+    "created": "Creado correctamente",
+    "saved": "Cambios guardados",
+    "deleted": "Eliminado correctamente",
+    "archived": "Archivado correctamente",
+    "restored": "Restaurado correctamente",
+    "error": "No se pudo completar la acción"
   },
   "settings": {
     "title": "Configuración",
     "subtitle": "Las tablas de referencia, ubicaciones, calificación y temas aparecerán aquí.",
+    "savedToast": "Configuración guardada",
     "tabs": {
       "general": "General",
       "lookups": "Tablas de Referencia",
@@ -345,6 +489,12 @@
       "format12": "12 horas (6:30 p. m.)",
       "invalidRange": "La hora final debe ser posterior a la hora inicial."
     },
+    "notes": {
+      "title": "Notas",
+      "autosaveDelay": "Intervalo de autoguardado",
+      "autosaveDelayHint": "Guarda después de este tiempo sin escribir; cada cambio reinicia el temporizador.",
+      "seconds": "segundos"
+    },
     "lookup": {
       "sessionTypes": "Tipos de Sesión",
       "assessmentTypes": "Tipos de Evaluación",
@@ -361,7 +511,9 @@
       "edit": "Editar",
       "delete": "Eliminar",
       "cancel": "Cancelar",
-      "save": "Guardar"
+      "save": "Guardar",
+      "inUse_one": "No se puede eliminar: lo utiliza {{count}} elemento.",
+      "inUse_other": "No se puede eliminar: lo utilizan {{count}} elementos."
     },
     "locations": {
       "title": "Ubicaciones",

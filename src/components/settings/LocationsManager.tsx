@@ -9,6 +9,7 @@ import { Combobox } from "../ui/Combobox";
 import { Textarea } from "../ui/Textarea";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
+import { notify } from "../ui/Toast";
 import {
   createLocation,
   deleteLocation,
@@ -92,6 +93,7 @@ export function LocationsManager() {
     } else {
       await updateLocation(editingId, values);
     }
+    notify.success(t("settings.savedToast"));
     setModalOpen(false);
     await reload();
   }
@@ -169,6 +171,7 @@ export function LocationsManager() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        onSave={() => void handleSave()}
         title={
           editingId === null ? t("settings.locations.addTitle") : t("settings.locations.editTitle")
         }
