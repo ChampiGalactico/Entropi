@@ -1,0 +1,2 @@
+src/db/schema.sql text eol=lf
+src/db/migrations/*.sql text eol=lf
