@@ -166,6 +166,9 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
   function start(event: ReactPointerEvent<HTMLCanvasElement>) {
     event.preventDefault();
     event.stopPropagation();
+    setPenMenuOpen(false);
+    setShapeMenuOpen(false);
+    setEraserMenuOpen(false);
     event.currentTarget.setPointerCapture(event.pointerId);
     drawingRef.current = true;
     const point = pointFrom(event);
