@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircleLinear, CloseCircleLinear } from "solar-icon-set";
+import { CheckCircleLinear, CloseCircleLinear } from "../ui/appIcons";
 import { Card } from "../ui/Card";
 import { getGradingConfig, listLookupRows } from "../../db/queries";
 import type { SessionType } from "../../types";

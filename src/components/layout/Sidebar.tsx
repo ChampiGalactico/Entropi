@@ -9,7 +9,7 @@ import {
   SettingsLinear,
   Widget5Linear,
   BookLinear,
-} from "solar-icon-set";
+} from "../ui/appIcons";
 import type { ReactNode } from "react";
 
 interface NavItem {
@@ -32,8 +32,8 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const { t } = useTranslation();
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-full w-16 flex-col items-center gap-2 border-r border-border bg-surface py-4 backdrop-blur-2xl">
-      <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-2xl bg-accent text-sm font-bold text-white">
+    <aside className="fixed left-0 top-0 z-40 flex h-full w-[76px] flex-col items-center gap-2 py-5">
+      <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-2xl bg-text-primary text-sm font-bold text-base shadow-card">
         V
       </div>
       <nav className="flex flex-1 flex-col gap-1">
@@ -42,16 +42,18 @@ export function Sidebar() {
             key={item.to}
             to={item.to}
             end={item.to === "/"}
-            title={t(item.labelKey)}
             className={({ isActive }) =>
-              `flex h-11 w-11 items-center justify-center rounded-2xl transition-colors duration-150 ${
+              `group relative flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-accent text-white"
-                  : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  ? "bg-accent text-white shadow-card"
+                  : "bg-control text-text-secondary hover:-translate-y-0.5 hover:bg-elevated hover:text-text-primary"
               }`
             }
           >
             {item.icon}
+            <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 translate-x-[-4px] whitespace-nowrap rounded-xl border border-border bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary opacity-0 shadow-card backdrop-blur-2xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+              {t(item.labelKey)}
+            </span>
           </NavLink>
         ))}
       </nav>

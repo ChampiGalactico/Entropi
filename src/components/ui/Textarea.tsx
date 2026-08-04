@@ -5,7 +5,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 export function Textarea({ className = "", ...rest }: TextareaProps) {
   return (
     <textarea
-      className={`w-full rounded-xl border border-border bg-surface px-4 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none focus:ring-2 focus:ring-accent ${className}`}
+      className={`w-full resize-none rounded-xl border border-border bg-control px-4 py-2 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:bg-elevated focus:ring-2 focus:ring-accent ${className}`}
       {...rest}
     />
   );

@@ -4,6 +4,7 @@ import {
   DashboardPage,
   CalendarPage,
   SubjectsPage,
+  SubjectDetailPage,
   GradesPage,
   TasksPage,
   PlannerPage,
@@ -19,6 +20,7 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="subjects" element={<SubjectsPage />} />
+          <Route path="subjects/:id" element={<SubjectDetailPage />} />
           <Route path="grades" element={<GradesPage />} />
           <Route path="tasks" element={<TasksPage />} />
           <Route path="planner" element={<PlannerPage />} />

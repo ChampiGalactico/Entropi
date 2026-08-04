@@ -34,16 +34,10 @@ export async function createLookupRow(
 ): Promise<number> {
   assertValidTable(table);
   const db = await getDb();
-  const hasIcon = table === "session_types" || table === "assessment_types";
-  const result = hasIcon
-    ? await db.execute(
+  const result = await db.execute(
         `INSERT INTO ${table} (name, color, icon) VALUES ($1, $2, $3)`,
         [values.name, values.color, values.icon ?? null],
-      )
-    : await db.execute(`INSERT INTO ${table} (name, color) VALUES ($1, $2)`, [
-        values.name,
-        values.color,
-      ]);
+      );
   return result.lastInsertId as number;
 }
 
@@ -54,21 +48,12 @@ export async function updateLookupRow(
 ): Promise<void> {
   assertValidTable(table);
   const db = await getDb();
-  const hasIcon = table === "session_types" || table === "assessment_types";
-  if (hasIcon) {
-    await db.execute(`UPDATE ${table} SET name = $1, color = $2, icon = $3 WHERE id = $4`, [
-      values.name,
-      values.color,
-      values.icon ?? null,
-      id,
-    ]);
-  } else {
-    await db.execute(`UPDATE ${table} SET name = $1, color = $2 WHERE id = $3`, [
-      values.name,
-      values.color,
-      id,
-    ]);
-  }
+  await db.execute(`UPDATE ${table} SET name = $1, color = $2, icon = $3 WHERE id = $4`, [
+    values.name,
+    values.color,
+    values.icon ?? null,
+    id,
+  ]);
 }
 
 export async function deleteLookupRow(table: LookupTableName, id: number): Promise<void> {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "solar-icon-set";
+import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "../ui/appIcons";
 import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import { Input } from "../ui/Input";

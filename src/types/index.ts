@@ -3,6 +3,7 @@ export * from "./lookups";
 export * from "./location";
 export * from "./semester";
 export * from "./subject";
+export * from "./professor";
 export * from "./assessment";
 export * from "./task";
 export * from "./event";

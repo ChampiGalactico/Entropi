@@ -4,7 +4,8 @@ import type { Assessment } from "../../types";
 export async function listAssessmentsBySubject(subjectId: number): Promise<Assessment[]> {
   const db = await getDb();
   return db.select<Assessment[]>(
-    "SELECT * FROM assessments WHERE subject_id = $1 ORDER BY date ASC",
+    `SELECT * FROM assessments WHERE subject_id = $1
+     ORDER BY CASE status WHEN 'upcoming' THEN 0 WHEN 'completed' THEN 1 ELSE 2 END, date ASC`,
     [subjectId],
   );
 }

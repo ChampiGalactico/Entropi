@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { AltArrowDownLinear, MagniferLinear } from "solar-icon-set";
+import { AltArrowDownLinear, MagniferLinear } from "./appIcons";
 
 export interface ComboboxOption {
   value: string;
@@ -73,7 +73,7 @@ export function Combobox({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm text-text-primary outline-none transition-colors duration-150 hover:bg-surface-hover focus:ring-2 focus:ring-accent"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-control px-4 py-2.5 text-sm text-text-primary outline-none transition-all duration-200 hover:bg-elevated focus:bg-elevated focus:ring-2 focus:ring-accent"
       >
         <span className="flex items-center gap-2 truncate">
           {selected?.color && (
@@ -94,7 +94,7 @@ export function Combobox({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full origin-top scale-100 rounded-2xl border border-border bg-surface p-1.5 opacity-100 shadow-xl backdrop-blur-2xl transition-all duration-150">
+        <div className="vida-popover-enter absolute z-50 mt-2 w-full origin-top rounded-2xl border border-border bg-elevated p-1.5 shadow-modal backdrop-blur-3xl">
           {searchable && (
             <div className="mb-1 flex items-center gap-2 rounded-xl border border-border bg-surface-hover px-3 py-1.5">
               <MagniferLinear size={14} className="text-text-muted" />

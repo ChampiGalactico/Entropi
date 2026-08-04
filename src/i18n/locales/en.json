@@ -1,4 +1,38 @@
 {
+  "iconPicker": {
+    "search": "Search icons...",
+    "noResults": "No icons found",
+    "clear": "Remove icon",
+    "loadMore": "Show more ({{remaining}} remaining)"
+    ,"allCategories": "All categories"
+    ,"icons": "icons"
+  },
+  "common": {
+    "days": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "daysShort": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
+  },
+  "timePicker": {
+    "title": "Time",
+    "hours": "Hour",
+    "minutes": "Minutes",
+    "done": "Done"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "calendar": "Calendar",
@@ -33,7 +67,120 @@
   },
   "subjects": {
     "title": "Subjects",
-    "subtitle": "Your subjects for the current semester will live here."
+    "subtitle": "Your subjects for the current semester will live here.",
+    "add": "Add subject",
+    "empty": "No subjects yet for this semester.",
+    "noSemesters": {
+      "title": "No semesters yet",
+      "description": "Create a semester in Settings before adding subjects.",
+      "goToSettings": "Go to Settings"
+    },
+    "card": {
+      "nonGradable": "Non-gradable",
+      "credits_one": "{{count}} credit",
+      "credits_other": "{{count}} credits"
+    },
+    "form": {
+      "addTitle": "Add subject",
+      "editTitle": "Edit subject",
+      "name": "Name",
+      "code": "Code",
+      "professor": "Professor",
+      "selectProfessor": "Select a professor...",
+      "createProfessor": "Create professor “{{name}}”",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "isGradable": "Gradable",
+      "credits": "Credits",
+      "scaleMaxOverride": "Scale max override",
+      "minPassingOverride": "Min passing override"
+    },
+    "tabs": {
+      "schedule": "Schedule",
+      "staff": "Teaching team",
+      "assessments": "Assessments",
+      "tasks": "Tasks",
+      "grades": "Grades",
+      "notes": "Notes"
+    },
+    "detail": {
+      "back": "Back to subjects",
+      "comingSoon": {
+        "assessments": {
+          "title": "Assessments coming soon",
+          "description": "This tab will list quizzes and exams once the Assessments step is built."
+        },
+        "tasks": {
+          "title": "Tasks coming soon",
+          "description": "This tab will show tasks linked to this subject once the Tasks step is built."
+        },
+        "grades": {
+          "title": "Grades coming soon",
+          "description": "This tab will show the grade breakdown once the Grades step is built."
+        },
+        "notes": {
+          "title": "Notes coming soon",
+          "description": "This tab will hold subject notes once the Notes step is built."
+        }
+      }
+    },
+    "schedule": {
+      "title": "Class sessions",
+      "add": "Add session",
+      "addTitle": "Add class session",
+      "editTitle": "Edit class session",
+      "empty": "No class sessions yet.",
+      "day": "Day",
+      "type": "Session type",
+      "selectType": "Select or type to create...",
+      "time": "Time",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "location": "Location",
+      "selectLocation": "Select or type to create...",
+      "noLocation": "No location",
+      "professor": "Session professor",
+      "selectProfessor": "Select a professor...",
+      "noProfessor": "No professor assigned"
+      ,"multiDayHint": "Select every day that shares the same professor, room, and time."
+    },
+    "staff": {
+      "title": "Teaching team",
+      "description": "Course-wide teaching assistants and complementary professors.",
+      "add": "Add person",
+      "addTitle": "Add to teaching team",
+      "empty": "No teaching assistants or complementary professors yet.",
+      "person": "Person",
+      "role": "Role",
+      "roles": {
+        "complementary": "Complementary professor",
+        "monitor": "Teaching assistant"
+      }
+    },
+    "assessments": {
+      "title": "Assessments",
+      "description": "Quizzes, workshops, midterms, finals, and other graded work.",
+      "add": "Add assessment",
+      "addTitle": "Add assessment",
+      "editTitle": "Edit assessment",
+      "empty": "There are no assessments for this subject yet.",
+      "name": "Assessment name",
+      "type": "Type",
+      "createType": "Create type “{{name}}”",
+      "date": "Date",
+      "hasTime": "Has a specific time",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "location": "Location",
+      "status": "Status",
+      "grade": "Grade received",
+      "notes": "Notes",
+      "statuses": {
+        "upcoming": "Upcoming",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
+    }
   },
   "grades": {
     "title": "Grades",
@@ -58,6 +205,7 @@
       "general": "General",
       "lookups": "Reference Tables",
       "locations": "Locations",
+      "professors": "Professors",
       "semesters": "Semesters"
     },
     "general": {
@@ -101,6 +249,22 @@
       "room": "Room",
       "link": "Link (URL)",
       "notes": "Notes"
+    },
+    "professors": {
+      "title": "Professor directory",
+      "description": "Contact details, office hours, and personal notes.",
+      "add": "Add professor",
+      "addTitle": "Add professor",
+      "editTitle": "Edit professor",
+      "empty": "No professors have been added yet.",
+      "name": "Name",
+      "contact": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "department": "Department or faculty",
+      "office": "Office",
+      "officeHours": "Office hours",
+      "notes": "Notes about the professor"
     },
     "semesters": {
       "title": "Semesters",

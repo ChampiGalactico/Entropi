@@ -20,6 +20,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0003_app_settings.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "lookup_icons",
+            sql: include_str!("../../src/db/migrations/0004_lookup_icons.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 5,
+            description: "professors",
+            sql: include_str!("../../src/db/migrations/0005_professors.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

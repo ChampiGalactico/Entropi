@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { GlobalLinear } from "solar-icon-set";
+import { GlobalLinear } from "../ui/appIcons";
 import { IconButton } from "../ui/IconButton";
 import { useLanguage } from "../../hooks/useLanguage";
 

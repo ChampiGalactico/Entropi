@@ -11,6 +11,8 @@ export default {
         base: "var(--bg-base)",
         surface: "var(--bg-surface)",
         "surface-hover": "var(--bg-surface-hover)",
+        elevated: "var(--bg-elevated)",
+        control: "var(--bg-control)",
         "text-primary": "var(--text-primary)",
         "text-secondary": "var(--text-secondary)",
         "text-muted": "var(--text-muted)",
@@ -24,6 +26,7 @@ export default {
       },
       boxShadow: {
         card: "var(--shadow-card)",
+        modal: "var(--shadow-modal)",
       },
       backdropBlur: {
         xs: "2px",

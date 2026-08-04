@@ -16,10 +16,12 @@ export interface EventType {
   id: number;
   name: string;
   color: string;
+  icon: string | null;
 }
 
 export interface TaskType {
   id: number;
   name: string;
   color: string;
+  icon: string | null;
 }

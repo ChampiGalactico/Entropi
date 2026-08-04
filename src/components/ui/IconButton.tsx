@@ -12,7 +12,7 @@ export function IconButton({ icon, label, active = false, className = "", ...res
       aria-label={label}
       title={label}
       className={`flex items-center justify-center rounded-full p-2 transition-all duration-150 active:scale-[0.92] ${
-        active ? "bg-accent text-white" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+        active ? "bg-accent text-white" : "bg-control text-text-secondary backdrop-blur-xl hover:bg-elevated hover:text-text-primary"
       } ${className}`}
       {...rest}
     >

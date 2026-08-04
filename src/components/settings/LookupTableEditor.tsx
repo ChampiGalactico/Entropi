@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "solar-icon-set";
+import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "../ui/appIcons";
 import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { EmptyState } from "../ui/EmptyState";
+import { ColorPickerPopover } from "../ui/ColorPickerPopover";
+import { IconPicker } from "../ui/IconPicker";
+import { SolarIcon } from "../ui/SolarIcon";
 import {
   createLookupRow,
   deleteLookupRow,
@@ -22,20 +25,16 @@ export interface LookupTableEditorProps {
   title: string;
 }
 
-const TABLES_WITH_ICON: LookupTableName[] = ["session_types", "assessment_types"];
-
 interface FormState {
   name: string;
   color: string;
-  icon: string;
+  icon: string | null;
 }
 
-const EMPTY_FORM: FormState = { name: "", color: "#6366f1", icon: "" };
+const EMPTY_FORM: FormState = { name: "", color: "#6366f1", icon: null };
 
 export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
   const { t } = useTranslation();
-  const hasIcon = TABLES_WITH_ICON.includes(table);
-
   const [rows, setRows] = useState<LookupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,14 +71,14 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
     setForm({
       name: row.name,
       color: row.color,
-      icon: "icon" in row && row.icon ? row.icon : "",
+      icon: "icon" in row ? row.icon : null,
     });
     setModalOpen(true);
   }
 
   async function handleSave() {
     if (!form.name.trim()) return;
-    const values = { name: form.name.trim(), color: form.color, icon: form.icon || null };
+    const values = { name: form.name.trim(), color: form.color, icon: form.icon };
     if (editingId === null) {
       await createLookupRow(table, values);
     } else {
@@ -115,7 +114,7 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
               <tr className="border-b border-border bg-surface-hover text-left text-xs font-medium text-text-secondary">
                 <th className="px-4 py-2.5 font-medium">{t("settings.lookup.color")}</th>
                 <th className="px-4 py-2.5 font-medium">{t("settings.lookup.name")}</th>
-                {hasIcon && <th className="px-4 py-2.5 font-medium">{t("settings.lookup.icon")}</th>}
+                <th className="px-4 py-2.5 font-medium">{t("settings.lookup.icon")}</th>
                 <th className="px-4 py-2.5 text-right font-medium">{t("settings.lookup.actions")}</th>
               </tr>
             </thead>
@@ -134,11 +133,9 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
                     />
                   </td>
                   <td className="px-4 py-2.5 text-text-primary">{row.name}</td>
-                  {hasIcon && (
-                    <td className="px-4 py-2.5 text-text-secondary">
-                      {"icon" in row ? row.icon ?? "" : ""}
-                    </td>
-                  )}
+                  <td className="px-4 py-2.5 text-text-secondary">
+                    <SolarIcon name={row.icon} size={18} color={row.color} />
+                  </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center justify-end gap-1">
                       <IconButton
@@ -166,39 +163,27 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
         title={editingId === null ? t("settings.lookup.addTitle") : t("settings.lookup.editTitle")}
       >
         <div className="flex flex-col gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">
-              {t("settings.lookup.name")}
-            </label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">
-              {t("settings.lookup.color")}
-            </label>
-            <input
-              type="color"
-              value={form.color}
-              onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-              className="h-10 w-full rounded-xl border border-border bg-surface"
-            />
-          </div>
-          {hasIcon && (
-            <div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                {t("settings.lookup.icon")}
+                {t("settings.lookup.name")}
               </label>
               <Input
-                value={form.icon}
-                onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-                placeholder="📘"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                autoFocus
               />
             </div>
-          )}
+            <ColorPickerPopover
+              value={form.color}
+              onChange={(hex) => setForm((f) => ({ ...f, color: hex }))}
+            />
+            <IconPicker
+              value={form.icon}
+              color={form.color}
+              onChange={(icon) => setForm((f) => ({ ...f, icon }))}
+            />
+          </div>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setModalOpen(false)}>
               {t("settings.lookup.cancel")}

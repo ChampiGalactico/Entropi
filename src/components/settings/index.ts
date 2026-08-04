@@ -5,3 +5,4 @@ export * from "./GradingConfigSection";
 export * from "./GeneralSettingsSection";
 export * from "./SettingsNav";
 export * from "./SettingsRow";
+export * from "./ProfessorsManager";

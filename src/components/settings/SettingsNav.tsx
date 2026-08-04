@@ -32,7 +32,7 @@ export function SettingsNav({ items, activeId, onChange }: SettingsNavProps) {
     <nav ref={containerRef} className="relative flex w-56 flex-shrink-0 flex-col gap-1 p-3">
       {indicator && (
         <div
-          className="absolute left-3 right-3 rounded-2xl bg-accent transition-all duration-300 ease-out"
+          className="absolute left-3 right-3 rounded-2xl bg-elevated shadow-card transition-all duration-300 ease-out"
           style={{ top: indicator.top, height: indicator.height }}
         />
       )}
@@ -45,8 +45,8 @@ export function SettingsNav({ items, activeId, onChange }: SettingsNavProps) {
           onClick={() => onChange(item.id)}
           className={`relative z-10 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors duration-200 ${
             activeId === item.id
-              ? "text-white"
-              : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+              ? "text-text-primary"
+              : "text-text-secondary hover:bg-elevated/60 hover:text-text-primary"
           }`}
         >
           {item.icon}

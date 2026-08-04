@@ -1,6 +1,7 @@
 export * from "./DashboardPage";
 export * from "./CalendarPage";
 export * from "./SubjectsPage";
+export * from "./SubjectDetailPage";
 export * from "./GradesPage";
 export * from "./TasksPage";
 export * from "./PlannerPage";

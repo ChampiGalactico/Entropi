@@ -4,10 +4,10 @@ import { TopBar } from "./TopBar";
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen bg-base">
+    <div className="h-screen overflow-hidden bg-transparent">
       <Sidebar />
       <TopBar />
-      <main className="ml-16 mt-12 min-h-[calc(100vh-3rem)] overflow-y-auto p-6">
+      <main className="ml-[76px] mt-[72px] h-[calc(100vh-72px)] overflow-y-auto px-7 pb-8 pt-3">
         <Outlet />
       </main>
     </div>

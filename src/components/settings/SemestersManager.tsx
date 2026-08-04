@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "solar-icon-set";
+import { AddCircleLinear, PenLinear, TrashBinTrashLinear } from "../ui/appIcons";
 import { Button } from "../ui/Button";
 import { IconButton } from "../ui/IconButton";
 import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { EmptyState } from "../ui/EmptyState";
+import { DateRangePicker } from "../ui/DateRangePicker";
 import {
   createSemester,
   deleteSemester,
@@ -145,28 +146,16 @@ export function SemestersManager() {
             </label>
             <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} autoFocus />
           </div>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-text-secondary">
-                {t("settings.semesters.startDate")}
-              </label>
-              <Input
-                type="date"
-                value={form.start_date}
-                onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-text-secondary">
-                {t("settings.semesters.endDate")}
-              </label>
-              <Input
-                type="date"
-                value={form.end_date}
-                onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
-              />
-            </div>
-          </div>
+          <DateRangePicker
+            value={{ start: form.start_date, end: form.end_date }}
+            startLabel={t("settings.semesters.startDate")}
+            endLabel={t("settings.semesters.endDate")}
+            onChange={({ start, end }) => setForm((current) => ({
+              ...current,
+              start_date: start,
+              end_date: end,
+            }))}
+          />
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setModalOpen(false)}>
               {t("settings.lookup.cancel")}

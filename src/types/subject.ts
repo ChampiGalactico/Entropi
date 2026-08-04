@@ -4,6 +4,7 @@ export interface Subject {
   name: string;
   code: string | null;
   professor: string | null;
+  professor_id: number | null;
   color: string;
   start_date: string;
   end_date: string;
@@ -22,4 +23,5 @@ export interface ClassSession {
   start_time: string;
   end_time: string;
   location_id: number | null;
+  professor_id: number | null;
 }

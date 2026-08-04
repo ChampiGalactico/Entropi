@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import { HexAlphaColorPicker, HexColorInput } from "react-colorful";
 import { ACCENT_PRESETS } from "../../lib/accentColors";
 
@@ -9,20 +10,8 @@ export interface ColorPickerPopoverProps {
 
 export function ColorPickerPopover({ value, onChange }: ColorPickerPopoverProps) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
   return (
-    <div ref={rootRef} className="relative">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -41,8 +30,9 @@ export function ColorPickerPopover({ value, onChange }: ColorPickerPopoverProps)
         <span className="font-mono text-xs uppercase text-text-secondary">{value}</span>
       </button>
 
-      {open && (
-        <div className="vida-color-popover absolute right-0 z-50 mt-2 flex w-56 flex-col gap-3 rounded-2xl border border-border bg-surface p-3 shadow-xl backdrop-blur-2xl">
+      {open && createPortal(
+        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/20 p-4 backdrop-blur-sm" onMouseDown={() => setOpen(false)}>
+        <div className="vida-color-popover flex w-64 flex-col gap-3 rounded-[2rem] border border-border bg-elevated p-4 shadow-modal backdrop-blur-3xl" onMouseDown={(event) => event.stopPropagation()}>
           <HexAlphaColorPicker color={value} onChange={onChange} />
 
           <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-hover px-3 py-1.5">
@@ -68,6 +58,8 @@ export function ColorPickerPopover({ value, onChange }: ColorPickerPopoverProps)
             ))}
           </div>
         </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

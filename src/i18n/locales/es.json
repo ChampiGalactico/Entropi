@@ -1,4 +1,38 @@
 {
+  "iconPicker": {
+    "search": "Buscar íconos...",
+    "noResults": "No se encontraron íconos",
+    "clear": "Quitar ícono",
+    "loadMore": "Mostrar más ({{remaining}} restantes)"
+    ,"allCategories": "Todas las categorías"
+    ,"icons": "íconos"
+  },
+  "common": {
+    "days": {
+      "mon": "Lunes",
+      "tue": "Martes",
+      "wed": "Miércoles",
+      "thu": "Jueves",
+      "fri": "Viernes",
+      "sat": "Sábado",
+      "sun": "Domingo"
+    },
+    "daysShort": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    }
+  },
+  "timePicker": {
+    "title": "Hora",
+    "hours": "Hora",
+    "minutes": "Minutos",
+    "done": "Listo"
+  },
   "nav": {
     "dashboard": "Panel",
     "calendar": "Calendario",
@@ -33,7 +67,120 @@
   },
   "subjects": {
     "title": "Materias",
-    "subtitle": "Tus materias del semestre actual aparecerán aquí."
+    "subtitle": "Tus materias del semestre actual aparecerán aquí.",
+    "add": "Agregar materia",
+    "empty": "Aún no hay materias para este semestre.",
+    "noSemesters": {
+      "title": "Aún no hay semestres",
+      "description": "Crea un semestre en Configuración antes de agregar materias.",
+      "goToSettings": "Ir a Configuración"
+    },
+    "card": {
+      "nonGradable": "No calificable",
+      "credits_one": "{{count}} crédito",
+      "credits_other": "{{count}} créditos"
+    },
+    "form": {
+      "addTitle": "Agregar materia",
+      "editTitle": "Editar materia",
+      "name": "Nombre",
+      "code": "Código",
+      "professor": "Profesor",
+      "selectProfessor": "Selecciona un profesor...",
+      "createProfessor": "Crear profesor “{{name}}”",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "isGradable": "Calificable",
+      "credits": "Créditos",
+      "scaleMaxOverride": "Escala máxima (anulación)",
+      "minPassingOverride": "Nota mínima (anulación)"
+    },
+    "tabs": {
+      "schedule": "Horario",
+      "staff": "Equipo docente",
+      "assessments": "Evaluaciones",
+      "tasks": "Tareas",
+      "grades": "Calificaciones",
+      "notes": "Notas"
+    },
+    "detail": {
+      "back": "Volver a materias",
+      "comingSoon": {
+        "assessments": {
+          "title": "Evaluaciones próximamente",
+          "description": "Esta pestaña mostrará quizzes y exámenes cuando se construya el paso de Evaluaciones."
+        },
+        "tasks": {
+          "title": "Tareas próximamente",
+          "description": "Esta pestaña mostrará las tareas vinculadas a esta materia cuando se construya el paso de Tareas."
+        },
+        "grades": {
+          "title": "Calificaciones próximamente",
+          "description": "Esta pestaña mostrará el desglose de notas cuando se construya el paso de Calificaciones."
+        },
+        "notes": {
+          "title": "Notas próximamente",
+          "description": "Esta pestaña contendrá las notas de la materia cuando se construya el paso de Notas."
+        }
+      }
+    },
+    "schedule": {
+      "title": "Sesiones de clase",
+      "add": "Agregar sesión",
+      "addTitle": "Agregar sesión de clase",
+      "editTitle": "Editar sesión de clase",
+      "empty": "Aún no hay sesiones de clase.",
+      "day": "Día",
+      "type": "Tipo de sesión",
+      "selectType": "Selecciona o escribe para crear...",
+      "time": "Horario",
+      "startTime": "Hora de inicio",
+      "endTime": "Hora de fin",
+      "location": "Ubicación",
+      "selectLocation": "Selecciona o escribe para crear...",
+      "noLocation": "Sin ubicación",
+      "professor": "Profesor de la sesión",
+      "selectProfessor": "Selecciona un profesor...",
+      "noProfessor": "Sin profesor asignado"
+      ,"multiDayHint": "Selecciona todos los días que compartan profesor, salón y horario."
+    },
+    "staff": {
+      "title": "Equipo docente",
+      "description": "Monitores de toda la materia y profesores complementarios.",
+      "add": "Agregar persona",
+      "addTitle": "Agregar al equipo docente",
+      "empty": "Aún no hay monitores ni profesores complementarios.",
+      "person": "Persona",
+      "role": "Rol",
+      "roles": {
+        "complementary": "Profesor complementario",
+        "monitor": "Monitor"
+      }
+    },
+    "assessments": {
+      "title": "Evaluaciones",
+      "description": "Quizzes, talleres, parciales, finales y otras entregas calificadas.",
+      "add": "Agregar evaluación",
+      "addTitle": "Agregar evaluación",
+      "editTitle": "Editar evaluación",
+      "empty": "Aún no hay evaluaciones para esta materia.",
+      "name": "Nombre de la evaluación",
+      "type": "Tipo",
+      "createType": "Crear tipo “{{name}}”",
+      "date": "Fecha",
+      "hasTime": "Tiene horario específico",
+      "startTime": "Hora de inicio",
+      "endTime": "Hora de fin",
+      "location": "Ubicación",
+      "status": "Estado",
+      "grade": "Calificación obtenida",
+      "notes": "Notas",
+      "statuses": {
+        "upcoming": "Próxima",
+        "completed": "Completada",
+        "cancelled": "Cancelada"
+      }
+    }
   },
   "grades": {
     "title": "Calificaciones",
@@ -58,6 +205,7 @@
       "general": "General",
       "lookups": "Tablas de Referencia",
       "locations": "Ubicaciones",
+      "professors": "Profesores",
       "semesters": "Semestres"
     },
     "general": {
@@ -101,6 +249,22 @@
       "room": "Salón",
       "link": "Enlace (URL)",
       "notes": "Notas"
+    },
+    "professors": {
+      "title": "Directorio de profesores",
+      "description": "Información de contacto, atención y notas personales.",
+      "add": "Agregar profesor",
+      "addTitle": "Agregar profesor",
+      "editTitle": "Editar profesor",
+      "empty": "Aún no hay profesores registrados.",
+      "name": "Nombre",
+      "contact": "Contacto",
+      "email": "Correo",
+      "phone": "Teléfono",
+      "department": "Departamento o facultad",
+      "office": "Oficina",
+      "officeHours": "Horario de atención",
+      "notes": "Notas sobre el profesor"
     },
     "semesters": {
       "title": "Semestres",
