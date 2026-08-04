@@ -58,8 +58,8 @@ export function NoteHelpModal({ open, onClose }: { open: boolean; onClose: () =>
         </div>
       </Section>
 
-      <Section title={t("notes.help.calculusTitle")} description={t("notes.help.calculusDescription")}>
-        <div className="grid gap-2">
+      <Section title={t("notes.help.calculusTitle")} description={t("notes.help.calculusDescription")} wide>
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
           <Example latex={"\\frac{dy}{dx} = \\frac{d}{dx} f(x)"} />
           <Example latex={"\\frac{\\partial f}{\\partial x} + \\frac{\\partial f}{\\partial y}"} />
           <Example latex={"\\int_{a}^{b} f(x)\\,dx \\quad \\iint_{D} f(x,y)\\,dA"} />

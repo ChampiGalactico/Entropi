@@ -387,11 +387,12 @@
       "clear": "Limpiar",
       "height": "Altura",
       "thickness": "Grosor",
+      "eraserSize": "Tamaño del borrador",
       "paletteSlot": "Color rápido {{number}}",
       "makeShorter": "Reducir altura",
       "makeTaller": "Aumentar altura",
       "colors": { "accent": "Color principal", "secondary": "Color secundario", "text": "Color de texto" },
-      "tools": { "pen": "Lápiz", "line": "Línea", "circle": "Círculo", "rectangle": "Rectángulo", "triangle": "Triángulo", "axes2d": "Plano 2D", "axes3d": "Ejes 3D" }
+      "tools": { "pen": "Lápiz", "eraser": "Borrador", "line": "Línea", "circle": "Círculo", "rectangle": "Rectángulo", "triangle": "Triángulo", "axes2d": "Plano 2D", "axes3d": "Ejes 3D" }
     },
     "math": { "add": "Añadir fórmula", "slashTitle": "Fórmula matemática", "slashDescription": "Escribe una ecuación en LaTeX." },
     "help": {
