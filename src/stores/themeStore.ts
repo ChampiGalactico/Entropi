@@ -4,8 +4,10 @@ import { getAppSetting, setAppSetting } from "../db/queries/appSettings";
 import { DEFAULT_ACCENT_PRIMARY, DEFAULT_ACCENT_SECONDARY } from "../lib/accentColors";
 
 const THEME_SETTING_KEY = "theme";
+const THEME_MODE_CACHE_KEY = "entropi.theme-mode";
 const ACCENT_PRIMARY_KEY = "accentPrimary";
 const ACCENT_SECONDARY_KEY = "accentSecondary";
+let hydrationPromise: Promise<void> | null = null;
 
 interface ThemeState {
   mode: ThemeMode;
@@ -22,8 +24,14 @@ interface ThemeState {
 function applyToDocument(mode: ThemeMode, accentPrimary: string, accentSecondary: string) {
   const root = document.documentElement;
   root.setAttribute("data-theme", mode);
+  root.style.colorScheme = mode;
   root.style.setProperty("--accent", accentPrimary);
   root.style.setProperty("--accent-secondary", accentSecondary);
+  try {
+    window.localStorage.setItem(THEME_MODE_CACHE_KEY, mode);
+  } catch {
+    // The cache only prevents a startup flash; SQLite remains the source of truth.
+  }
 }
 
 function isThemeMode(value: string): value is ThemeMode {
@@ -34,7 +42,16 @@ const prefersDark =
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
-const initialMode: ThemeMode = prefersDark ? "dark" : "light";
+function getCachedMode(): ThemeMode | null {
+  try {
+    const value = window.localStorage.getItem(THEME_MODE_CACHE_KEY);
+    return value && isThemeMode(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+const initialMode: ThemeMode = getCachedMode() ?? (prefersDark ? "dark" : "light");
 applyToDocument(initialMode, DEFAULT_ACCENT_PRIMARY, DEFAULT_ACCENT_SECONDARY);
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
@@ -43,23 +60,31 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   accentSecondary: DEFAULT_ACCENT_SECONDARY,
   hydrated: false,
 
-  hydrate: async () => {
-    if (get().hydrated) return;
-    try {
-      const [storedMode, storedPrimary, storedSecondary] = await Promise.all([
-        getAppSetting(THEME_SETTING_KEY),
-        getAppSetting(ACCENT_PRIMARY_KEY),
-        getAppSetting(ACCENT_SECONDARY_KEY),
-      ]);
-      const mode = storedMode && isThemeMode(storedMode) ? storedMode : get().mode;
-      const accentPrimary = storedPrimary ?? get().accentPrimary;
-      const accentSecondary = storedSecondary ?? get().accentSecondary;
-      applyToDocument(mode, accentPrimary, accentSecondary);
-      set({ mode, accentPrimary, accentSecondary, hydrated: true });
-    } catch {
-      // No Tauri DB context available (e.g. plain browser preview) — keep the default.
-      set({ hydrated: true });
-    }
+  hydrate: () => {
+    if (get().hydrated) return Promise.resolve();
+    if (hydrationPromise) return hydrationPromise;
+
+    hydrationPromise = (async () => {
+      try {
+        const [storedMode, storedPrimary, storedSecondary] = await Promise.all([
+          getAppSetting(THEME_SETTING_KEY),
+          getAppSetting(ACCENT_PRIMARY_KEY),
+          getAppSetting(ACCENT_SECONDARY_KEY),
+        ]);
+        const mode = storedMode && isThemeMode(storedMode) ? storedMode : get().mode;
+        const accentPrimary = storedPrimary ?? get().accentPrimary;
+        const accentSecondary = storedSecondary ?? get().accentSecondary;
+        applyToDocument(mode, accentPrimary, accentSecondary);
+        set({ mode, accentPrimary, accentSecondary, hydrated: true });
+      } catch {
+        // No Tauri DB context available (e.g. plain browser preview) — keep the default.
+        set({ hydrated: true });
+      } finally {
+        hydrationPromise = null;
+      }
+    })();
+
+    return hydrationPromise;
   },
 
   setMode: async (mode) => {
