@@ -46,6 +46,16 @@ export async function listGradeEntries(gradeComponentId: number): Promise<GradeE
   );
 }
 
+export async function listGradeEntriesForSubject(subjectId: number): Promise<GradeEntry[]> {
+  const db = await getDb();
+  return db.select<GradeEntry[]>(
+    `SELECT ge.* FROM grade_entries ge
+     JOIN grade_components gc ON gc.id = ge.grade_component_id
+     WHERE gc.subject_id = $1 ORDER BY ge.date DESC, ge.id DESC`,
+    [subjectId],
+  );
+}
+
 export async function createGradeEntry(values: Omit<GradeEntry, "id">): Promise<number> {
   const db = await getDb();
   const result = await db.execute(

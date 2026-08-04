@@ -33,10 +33,10 @@ export function Sidebar() {
   const { t } = useTranslation();
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-full w-[76px] flex-col items-center gap-2 py-5">
-      <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-2xl bg-text-primary text-sm font-bold text-base shadow-card">
-        V
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-text-primary text-sm font-bold text-base shadow-card">
+        E
       </div>
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="absolute top-1/2 flex -translate-y-1/2 flex-col gap-1">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
@@ -51,7 +51,7 @@ export function Sidebar() {
             }
           >
             {item.icon}
-            <span className="pointer-events-none absolute left-[calc(100%+10px)] z-50 translate-x-[-4px] whitespace-nowrap rounded-xl border border-border bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary opacity-0 shadow-card backdrop-blur-2xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
+            <span className="vida-tooltip pointer-events-none absolute left-[calc(100%+10px)] z-50 translate-x-[-4px] whitespace-nowrap rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-text-primary opacity-0 shadow-card backdrop-blur-2xl transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">
               {t(item.labelKey)}
             </span>
           </NavLink>

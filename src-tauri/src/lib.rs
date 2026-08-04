@@ -32,6 +32,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0005_professors.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "note_links",
+            sql: include_str!("../../src/db/migrations/0006_note_links.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 7,
+            description: "teaching_roles",
+            sql: include_str!("../../src/db/migrations/0007_teaching_roles.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -41,7 +53,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:vida.db", migrations())
+                .add_migrations("sqlite:entropi.db", migrations())
                 .build(),
         )
         .run(tauri::generate_context!())

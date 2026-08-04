@@ -6,4 +6,5 @@ export * from "./GradesPage";
 export * from "./TasksPage";
 export * from "./PlannerPage";
 export * from "./NotesPage";
+export * from "./NoteEditorPage";
 export * from "./SettingsPage";

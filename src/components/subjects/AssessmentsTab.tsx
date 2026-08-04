@@ -9,6 +9,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { IconButton } from "../ui/IconButton";
 import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
+import { NumberInput } from "../ui/NumberInput";
 import { SolarIcon } from "../ui/SolarIcon";
 import { Switch } from "../ui/Switch";
 import { Textarea } from "../ui/Textarea";
@@ -164,7 +165,7 @@ export function AssessmentsTab({ subjectId }: { subjectId: number }) {
           {form.has_time && <div className="grid grid-cols-2 gap-3"><label className="text-xs text-text-secondary">{t("subjects.assessments.startTime")}<div className="mt-1"><TimePicker value={form.start_time} onChange={(value) => setForm((current) => ({ ...current, start_time: value }))} /></div></label><label className="text-xs text-text-secondary">{t("subjects.assessments.endTime")}<div className="mt-1"><TimePicker value={form.end_time} onChange={(value) => setForm((current) => ({ ...current, end_time: value }))} /></div></label></div>}
           <label className="text-xs text-text-secondary">{t("subjects.assessments.location")}<div className="mt-1"><Combobox value={form.location_id === null ? "" : String(form.location_id)} onChange={(value) => setForm((current) => ({ ...current, location_id: value ? Number(value) : null }))} options={[{ value: "", label: t("subjects.schedule.noLocation") }, ...locations.map((location) => ({ value: String(location.id), label: location.name }))]} searchable creatable onCreate={(name) => void createNewLocation(name)} /></div></label>
           <label className="text-xs text-text-secondary">{t("subjects.assessments.status")}<div className="mt-1"><Combobox value={form.status} onChange={(value) => setForm((current) => ({ ...current, status: value as AssessmentStatus }))} options={(["upcoming", "completed", "cancelled"] as AssessmentStatus[]).map((status) => ({ value: status, label: t(`subjects.assessments.statuses.${status}`) }))} /></div></label>
-          {form.status === "completed" && <label className="text-xs text-text-secondary">{t("subjects.assessments.grade")}<Input className="mt-1" type="number" step="any" value={form.grade} onChange={(event) => setForm((current) => ({ ...current, grade: event.target.value }))} /></label>}
+          {form.status === "completed" && <label className="text-xs text-text-secondary">{t("subjects.assessments.grade")}<NumberInput className="mt-1" step={0.1} value={form.grade} onValueChange={(grade) => setForm((current) => ({ ...current, grade }))} /></label>}
           <label className="text-xs text-text-secondary">{t("subjects.assessments.notes")}<Textarea className="mt-1" rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></label>
           <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setOpen(false)}>{t("settings.lookup.cancel")}</Button><Button onClick={() => void save()}>{t("settings.lookup.save")}</Button></div>
         </div>

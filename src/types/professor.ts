@@ -9,8 +9,16 @@ export interface Professor {
   notes: string | null;
 }
 
-export type SubjectStaffRole = "complementary" | "monitor";
+export interface TeachingRole {
+  id: number;
+  name: string;
+  color: string;
+  icon: string | null;
+}
 
 export interface SubjectStaffMember extends Professor {
-  role: SubjectStaffRole;
+  role_id: number;
+  role_name: string;
+  role_color: string;
+  role_icon: string | null;
 }

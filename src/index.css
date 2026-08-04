@@ -142,6 +142,96 @@ body {
   );
 }
 
+.vida-tooltip {
+  background: color-mix(in srgb, var(--accent-secondary) 22%, var(--bg-elevated));
+}
+
+.entropi-calendar-folder-tab.is-active {
+  background: var(--bg-surface);
+}
+
+.entropi-calendar-folder-tab.is-active::before,
+.entropi-calendar-folder-tab.is-active::after {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 30px;
+  content: "";
+  pointer-events: none;
+}
+
+.entropi-calendar-folder-tab.is-active::before {
+  left: -30px;
+  background: radial-gradient(circle at 0 0, transparent 29px, var(--bg-surface) 30px);
+}
+
+.entropi-calendar-folder-tab.is-active::after {
+  right: -30px;
+  background: radial-gradient(circle at 100% 0, transparent 29px, var(--bg-surface) 30px);
+}
+
+@keyframes vida-tooltip-enter {
+  from { opacity: 0; filter: blur(2px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+.vida-tooltip-enter {
+  animation: vida-tooltip-enter 150ms ease-out;
+}
+
+.entropi-note-page .bn-container,
+.entropi-note-page .bn-editor {
+  background: transparent !important;
+}
+
+.entropi-note-page .bn-editor {
+  min-height: 60vh;
+  padding-inline: 0;
+}
+
+.entropi-math {
+  font-family: "Times New Roman", Cambria, serif;
+  letter-spacing: 0.01em;
+}
+
+.entropi-math-inline {
+  display: inline-block;
+  margin-inline: 0.15em;
+  border-radius: 0.35em;
+  padding-inline: 0.12em;
+  color: var(--text-primary);
+}
+
+.entropi-math-display {
+  display: block;
+  overflow-x: auto;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.6rem;
+  color: var(--text-primary);
+}
+
+.math-frac {
+  display: inline-flex;
+  vertical-align: middle;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+  margin-inline: 0.16em;
+}
+
+.math-frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 0.18em 0.08em; }
+.math-frac > span:last-child { padding: 0.08em 0.18em 0; }
+.math-sqrt > span { border-top: 1px solid currentColor; padding: 0.05em 0.12em 0; }
+.math-function { font-style: normal; margin-right: 0.1em; }
+.entropi-math sup, .entropi-math sub { font-size: 0.68em; }
+
+[data-content-type="codeBlock"] {
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  background: var(--bg-control);
+}
+
 @keyframes vida-tab-enter {
   from { opacity: 0; transform: translateY(7px); filter: blur(2px); }
   to { opacity: 1; transform: translateY(0); filter: blur(0); }

@@ -62,8 +62,8 @@ export async function createTask(
 ): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO tasks (subject_id, task_type_id, title, description, due_date, due_time, priority, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    `INSERT INTO tasks (subject_id, task_type_id, title, description, due_date, due_time, priority, status, completed_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CASE WHEN $8 = 'completed' THEN CURRENT_TIMESTAMP ELSE NULL END)`,
     [
       values.subject_id,
       values.task_type_id,
@@ -86,7 +86,8 @@ export async function updateTask(
   await db.execute(
     `UPDATE tasks SET
       subject_id = $1, task_type_id = $2, title = $3, description = $4,
-      due_date = $5, due_time = $6, priority = $7, status = $8
+      due_date = $5, due_time = $6, priority = $7, status = $8,
+      completed_at = CASE WHEN $8 = 'completed' THEN COALESCE(completed_at, CURRENT_TIMESTAMP) ELSE NULL END
      WHERE id = $9`,
     [
       values.subject_id,

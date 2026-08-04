@@ -45,7 +45,7 @@ export function SettingsNav({ items, activeId, onChange }: SettingsNavProps) {
           onClick={() => onChange(item.id)}
           className={`relative z-10 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors duration-200 ${
             activeId === item.id
-              ? "text-text-primary"
+              ? "text-accent"
               : "text-text-secondary hover:bg-elevated/60 hover:text-text-primary"
           }`}
         >

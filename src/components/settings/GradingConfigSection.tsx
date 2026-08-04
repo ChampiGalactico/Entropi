@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Input } from "../ui/Input";
+import { NumberInput } from "../ui/NumberInput";
 import { Button } from "../ui/Button";
 import { SettingsRow } from "./SettingsRow";
 import { getGradingConfig, updateGradingConfig } from "../../db/queries/config";
@@ -34,31 +34,28 @@ export function GradingConfigSection() {
       <h3 className="pb-1 text-sm font-semibold text-text-primary">{t("settings.grading.title")}</h3>
 
       <SettingsRow label={t("settings.grading.scaleMin")}>
-        <Input
-          type="number"
-          step="any"
+        <NumberInput
+          step={0.1}
           value={form.scale_min}
-          onChange={(e) => setForm((f) => f && { ...f, scale_min: Number(e.target.value) })}
+          onValueChange={(value) => setForm((f) => f && { ...f, scale_min: Number(value) })}
           className="w-24 text-right"
         />
       </SettingsRow>
 
       <SettingsRow label={t("settings.grading.scaleMax")}>
-        <Input
-          type="number"
-          step="any"
+        <NumberInput
+          step={0.1}
           value={form.scale_max}
-          onChange={(e) => setForm((f) => f && { ...f, scale_max: Number(e.target.value) })}
+          onValueChange={(value) => setForm((f) => f && { ...f, scale_max: Number(value) })}
           className="w-24 text-right"
         />
       </SettingsRow>
 
       <SettingsRow label={t("settings.grading.minPassing")}>
-        <Input
-          type="number"
-          step="any"
+        <NumberInput
+          step={0.1}
           value={form.min_passing_grade}
-          onChange={(e) => setForm((f) => f && { ...f, min_passing_grade: Number(e.target.value) })}
+          onValueChange={(value) => setForm((f) => f && { ...f, min_passing_grade: Number(value) })}
           className="w-24 text-right"
         />
       </SettingsRow>
@@ -67,14 +64,13 @@ export function GradingConfigSection() {
         label={t("settings.grading.decimalPlaces")}
         description={t("settings.grading.decimalPlacesHint")}
       >
-        <Input
-          type="number"
+        <NumberInput
           min={0}
           max={8}
           step={1}
           value={form.decimal_places_display}
-          onChange={(e) =>
-            setForm((f) => f && { ...f, decimal_places_display: Number(e.target.value) })
+          onValueChange={(value) =>
+            setForm((f) => f && { ...f, decimal_places_display: Number(value) })
           }
           className="w-24 text-right"
         />

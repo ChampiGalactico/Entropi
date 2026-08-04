@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
+import { NumberInput } from "../ui/NumberInput";
+import { Textarea } from "../ui/Textarea";
 import { Button } from "../ui/Button";
 import { Switch } from "../ui/Switch";
 import { ColorPickerPopover } from "../ui/ColorPickerPopover";
@@ -31,6 +33,7 @@ interface FormState {
   credits: string;
   scale_max_override: string;
   min_passing_override: string;
+  notes: string;
 }
 
 function emptyForm(semester: Semester): FormState {
@@ -45,6 +48,7 @@ function emptyForm(semester: Semester): FormState {
     credits: "",
     scale_max_override: "",
     min_passing_override: "",
+    notes: "",
   };
 }
 
@@ -60,6 +64,7 @@ function formFromSubject(subject: Subject): FormState {
     credits: subject.credits?.toString() ?? "",
     scale_max_override: subject.scale_max_override?.toString() ?? "",
     min_passing_override: subject.min_passing_override?.toString() ?? "",
+    notes: subject.notes_content ?? "",
   };
 }
 
@@ -120,7 +125,7 @@ export function SubjectFormModal({
       credits: form.credits ? Number(form.credits) : null,
       scale_max_override: form.scale_max_override ? Number(form.scale_max_override) : null,
       min_passing_override: form.min_passing_override ? Number(form.min_passing_override) : null,
-      notes_content: subject?.notes_content ?? null,
+      notes_content: form.notes.trim() || null,
     };
     if (subject) {
       await updateSubject(subject.id, values);
@@ -152,14 +157,14 @@ export function SubjectFormModal({
           <ColorPickerPopover value={form.color} onChange={(hex) => setForm((f) => ({ ...f, color: hex }))} />
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+          <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-text-secondary">
               {t("subjects.form.code")}
             </label>
             <Input value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
           </div>
-          <div className="flex-1">
+          <div className="min-w-0">
             <label className="mb-1 block text-xs font-medium text-text-secondary">
               {t("subjects.form.professor")}
             </label>
@@ -201,40 +206,49 @@ export function SubjectFormModal({
           <label className="mb-1 block text-xs font-medium text-text-secondary">
             {t("subjects.form.credits")}
           </label>
-          <Input
-            type="number"
-            step="any"
+          <NumberInput
+            min={0}
+            step={1}
             value={form.credits}
-            onChange={(e) => setForm((f) => ({ ...f, credits: e.target.value }))}
+            onValueChange={(credits) => setForm((f) => ({ ...f, credits }))}
           />
         </div>
 
         {form.is_gradable && (
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+            <div className="min-w-0">
               <label className="mb-1 block text-xs font-medium text-text-secondary">
                 {t("subjects.form.scaleMaxOverride")}
               </label>
-              <Input
-                type="number"
-                step="any"
+              <NumberInput
+                step={0.1}
                 value={form.scale_max_override}
-                onChange={(e) => setForm((f) => ({ ...f, scale_max_override: e.target.value }))}
+                onValueChange={(scale_max_override) => setForm((f) => ({ ...f, scale_max_override }))}
               />
             </div>
-            <div className="flex-1">
+            <div className="min-w-0">
               <label className="mb-1 block text-xs font-medium text-text-secondary">
                 {t("subjects.form.minPassingOverride")}
               </label>
-              <Input
-                type="number"
-                step="any"
+              <NumberInput
+                step={0.1}
                 value={form.min_passing_override}
-                onChange={(e) => setForm((f) => ({ ...f, min_passing_override: e.target.value }))}
+                onValueChange={(min_passing_override) => setForm((f) => ({ ...f, min_passing_override }))}
               />
             </div>
           </div>
         )}
+
+        <label className="text-xs font-medium text-text-secondary">
+          {t("subjects.form.notes")}
+          <Textarea
+            className="mt-1"
+            rows={4}
+            value={form.notes}
+            onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+            placeholder={t("subjects.form.notesPlaceholder")}
+          />
+        </label>
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>

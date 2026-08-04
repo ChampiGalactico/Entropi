@@ -6,3 +6,5 @@ export * from "./GeneralSettingsSection";
 export * from "./SettingsNav";
 export * from "./SettingsRow";
 export * from "./ProfessorsManager";
+export * from "./TeachingRolesManager";
+export * from "./CalendarSettingsSection";

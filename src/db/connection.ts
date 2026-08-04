@@ -4,7 +4,7 @@ let dbPromise: Promise<Database> | null = null;
 
 export function getDb(): Promise<Database> {
   if (!dbPromise) {
-    dbPromise = Database.load("sqlite:vida.db");
+    dbPromise = Database.load("sqlite:entropi.db");
   }
   return dbPromise;
 }

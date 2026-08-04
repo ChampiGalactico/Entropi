@@ -31,7 +31,13 @@
     "title": "Hora",
     "hours": "Hora",
     "minutes": "Minutos",
+    "period": "Periodo",
     "done": "Listo"
+  },
+  "datePicker": {
+    "month": "Mes",
+    "year": "Año",
+    "viewCalendar": "Ver calendario"
   },
   "nav": {
     "dashboard": "Panel",
@@ -63,7 +69,17 @@
   },
   "calendar": {
     "title": "Calendario",
-    "subtitle": "Las vistas mensual, semanal y diaria aparecerán aquí."
+    "subtitle": "Clases, evaluaciones, tareas y eventos en una sola línea de tiempo.",
+    "today": "Hoy",
+    "selectDate": "Seleccionar fecha a consultar",
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "previousPeriod": "Periodo anterior",
+    "nextPeriod": "Periodo siguiente",
+    "weekView": "Semana",
+    "allDay": "Todo el día",
+    "views": { "month": "Mensual", "week": "Semanal", "day": "Diaria" },
+    "kinds": { "session": "Clase", "assessment": "Evaluación", "task": "Tarea", "event": "Evento" }
   },
   "subjects": {
     "title": "Materias",
@@ -93,7 +109,9 @@
       "isGradable": "Calificable",
       "credits": "Créditos",
       "scaleMaxOverride": "Escala máxima (anulación)",
-      "minPassingOverride": "Nota mínima (anulación)"
+      "minPassingOverride": "Nota mínima (anulación)",
+      "notes": "Nota sobre la materia",
+      "notesPlaceholder": "Por ejemplo: el profesor exige entregas en PDF o suele evaluar demostraciones..."
     },
     "tabs": {
       "schedule": "Horario",
@@ -149,9 +167,12 @@
       "description": "Monitores de toda la materia y profesores complementarios.",
       "add": "Agregar persona",
       "addTitle": "Agregar al equipo docente",
+      "editMember": "Editar integrante del equipo docente",
       "empty": "Aún no hay monitores ni profesores complementarios.",
       "person": "Persona",
       "role": "Rol",
+      "createRole": "Crear rol “{{name}}”",
+      "editRole": "Editar rol",
       "roles": {
         "complementary": "Profesor complementario",
         "monitor": "Monitor"
@@ -184,11 +205,74 @@
   },
   "grades": {
     "title": "Calificaciones",
-    "subtitle": "El desglose de notas y el promedio semestral aparecerán aquí."
+    "subtitle": "Consulta tus resultados y el progreso de cada materia.",
+    "currentGrade": "Calificación actual",
+    "passing": "La nota mínima para aprobar es {{grade}}",
+    "breakdown": "Estructura de calificación",
+    "breakdownDescription": "Organiza categorías, porcentajes y notas obtenidas.",
+    "configuredWeight": "Peso configurado",
+    "addComponent": "Agregar componente",
+    "editComponent": "Editar componente",
+    "componentName": "Nombre",
+    "parent": "Categoría superior",
+    "noParent": "Componente principal",
+    "weight": "Porcentaje (%)",
+    "weightPlaceholder": "Opcional; por ejemplo, 30",
+    "addChild": "Agregar subcategoría",
+    "addItem": "Añadir ítem",
+    "addEntry": "Agregar calificación obtenida",
+    "addReceivedGrade": "Agregar calificación obtenida",
+    "editEntry": "Editar calificación obtenida",
+    "editReceivedGrade": "Editar calificación obtenida",
+    "grade": "Calificación obtenida",
+    "date": "Fecha",
+    "assessment": "Evaluación relacionada",
+    "noAssessment": "Sin evaluación relacionada",
+    "entryNotes": "Comentario",
+    "empty": "Aún no has configurado las calificaciones.",
+    "emptyDescription": "Agrega parciales, talleres, quices u otras categorías.",
+    "childCount_one": "{{count}} subcategoría",
+    "childCount_other": "{{count}} subcategorías",
+    "itemCount_one": "{{count}} ítem",
+    "itemCount_other": "{{count}} ítems",
+    "entryCount_one": "{{count}} calificación obtenida",
+    "entryCount_other": "{{count}} calificaciones obtenidas",
+    "componentCount_one": "{{count}} componente",
+    "componentCount_other": "{{count}} componentes",
+    "overviewEmpty": "No hay materias calificables para mostrar."
   },
   "tasks": {
     "title": "Tareas",
-    "subtitle": "La lista de tareas filtrable aparecerá aquí."
+    "subtitle": "Organiza tareas académicas y personales, fechas límite y prioridades.",
+    "listTitle": "Todas las tareas",
+    "listDescription": "Marca, filtra y organiza lo que tienes pendiente.",
+    "add": "Agregar tarea",
+    "empty": "No hay tareas que coincidan con estos filtros.",
+    "noDueDate": "Sin fecha límite",
+    "statuses": { "pending": "Pendiente", "in_progress": "En progreso", "completed": "Completada", "cancelled": "Cancelada", "overdue": "Vencida" },
+    "priorities": { "1": "Urgente", "2": "Alta", "3": "Media", "4": "Baja", "5": "Algún día" },
+    "filters": {
+      "search": "Buscar tareas...",
+      "allStatuses": "Todos los estados",
+      "allTypes": "Todos los tipos",
+      "allPriorities": "Todas las prioridades"
+      ,"allSubjects": "Todas las materias"
+    },
+    "form": {
+      "addTitle": "Agregar tarea",
+      "editTitle": "Editar tarea",
+      "title": "Título",
+      "description": "Descripción",
+      "type": "Tipo de tarea",
+      "createType": "Crear tipo “{{name}}”",
+      "subject": "Materia",
+      "personal": "Tarea personal",
+      "hasDueDate": "Tiene fecha límite",
+      "dueDate": "Fecha límite",
+      "hasDueTime": "Tiene hora límite",
+      "priority": "Prioridad",
+      "status": "Estado"
+    }
   },
   "planner": {
     "title": "Planificador Semanal",
@@ -196,7 +280,42 @@
   },
   "notes": {
     "title": "Notas",
-    "subtitle": "La biblioteca de notas con búsqueda aparecerá aquí."
+    "subtitle": "Tu biblioteca de notas enriquecidas y conectadas.",
+    "library": "Biblioteca de notas",
+    "libraryDescription": "Escribe con bloques y relaciona cada nota con materias, tareas o evaluaciones.",
+    "add": "Agregar nota",
+    "empty": "Todavía no hay notas.",
+    "addTitle": "Nueva nota",
+    "editTitle": "Editar nota",
+    "noteTitle": "Título",
+    "untitled": "Sin título",
+    "back": "Volver",
+    "saved": "Guardado",
+    "unsaved": "Cambios sin guardar",
+    "links": {
+      "title": "Relacionar con",
+      "description": "Una nota puede estar conectada con varios elementos.",
+      "none": "Esta nota es independiente y no está relacionada con nada.",
+      "clear": "Quitar todas",
+      "subjects": "Materias",
+      "tasks": "Tareas",
+      "assessments": "Evaluaciones",
+      "notes": "Otras notas"
+    },
+    "slashGroup": "Ingeniería y física",
+    "drawing": {
+      "add": "Añadir lienzo",
+      "slashTitle": "Canvas de dibujo",
+      "slashDescription": "Dibuja a mano, figuras y planos cartesianos.",
+      "undo": "Deshacer",
+      "clear": "Limpiar",
+      "height": "Altura",
+      "makeShorter": "Reducir altura",
+      "makeTaller": "Aumentar altura",
+      "colors": { "accent": "Color principal", "secondary": "Color secundario", "text": "Color de texto" },
+      "tools": { "pen": "Lápiz", "line": "Línea", "circle": "Círculo", "rectangle": "Rectángulo", "triangle": "Triángulo", "axes2d": "Plano 2D", "axes3d": "Ejes 3D" }
+    },
+    "math": { "add": "Añadir fórmula", "slashTitle": "Fórmula matemática", "slashDescription": "Escribe una ecuación en LaTeX." }
   },
   "settings": {
     "title": "Configuración",
@@ -215,6 +334,16 @@
       "accentPrimaryHint": "Se usa en botones, estados activos y enlaces.",
       "accentSecondary": "Color de acento secundario",
       "accentSecondaryHint": "Se usa en chips y resaltados secundarios."
+    },
+    "calendar": {
+      "title": "Calendario",
+      "description": "Configura el rango visible y cómo se muestran las horas.",
+      "dayStart": "El día inicia a las",
+      "dayEnd": "El día termina a las",
+      "timeFormat": "Formato de hora",
+      "format24": "24 horas (18:30)",
+      "format12": "12 horas (6:30 p. m.)",
+      "invalidRange": "La hora final debe ser posterior a la hora inicial."
     },
     "lookup": {
       "sessionTypes": "Tipos de Sesión",
@@ -264,7 +393,16 @@
       "department": "Departamento o facultad",
       "office": "Oficina",
       "officeHours": "Horario de atención",
-      "notes": "Notas sobre el profesor"
+      "notes": "Notas sobre el profesor",
+      "roles": {
+        "title": "Roles",
+        "description": "Roles disponibles para las personas del equipo docente.",
+        "add": "Agregar rol",
+        "addTitle": "Agregar rol docente",
+        "editTitle": "Editar rol docente",
+        "empty": "Aún no hay roles docentes.",
+        "inUse": "Este rol está asignado a una persona del equipo docente y no se puede eliminar."
+      }
     },
     "semesters": {
       "title": "Semestres",

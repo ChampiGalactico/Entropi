@@ -1,7 +1,26 @@
 import { getDb } from "../connection";
 import type { Assessment } from "../../types";
 
+async function completePastAssessments(): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `UPDATE assessments SET status = 'completed'
+     WHERE status = 'upcoming' AND (
+       date < date('now', 'localtime') OR
+       (date = date('now', 'localtime') AND COALESCE(end_time, start_time) IS NOT NULL
+        AND COALESCE(end_time, start_time) < time('now', 'localtime'))
+     )`,
+  );
+}
+
+export async function listAllAssessments(): Promise<Assessment[]> {
+  await completePastAssessments();
+  const db = await getDb();
+  return db.select<Assessment[]>("SELECT * FROM assessments ORDER BY date DESC");
+}
+
 export async function listAssessmentsBySubject(subjectId: number): Promise<Assessment[]> {
+  await completePastAssessments();
   const db = await getDb();
   return db.select<Assessment[]>(
     `SELECT * FROM assessments WHERE subject_id = $1
@@ -11,6 +30,7 @@ export async function listAssessmentsBySubject(subjectId: number): Promise<Asses
 }
 
 export async function listAssessmentsInRange(startDate: string, endDate: string): Promise<Assessment[]> {
+  await completePastAssessments();
   const db = await getDb();
   return db.select<Assessment[]>(
     "SELECT * FROM assessments WHERE date BETWEEN $1 AND $2 ORDER BY date ASC",
@@ -19,6 +39,7 @@ export async function listAssessmentsInRange(startDate: string, endDate: string)
 }
 
 export async function getAssessment(id: number): Promise<Assessment | null> {
+  await completePastAssessments();
   const db = await getDb();
   const rows = await db.select<Assessment[]>("SELECT * FROM assessments WHERE id = $1", [id]);
   return rows[0] ?? null;

@@ -11,6 +11,7 @@ import { SolarIcon } from "../ui/SolarIcon";
 import {
   createClassSession,
   deleteClassSession,
+  getSubject,
   listClassSessions,
   updateClassSession,
 } from "../../db/queries/subjects";
@@ -50,6 +51,7 @@ export function ScheduleTab({ subjectId }: ScheduleTabProps) {
   const [sessionTypes, setSessionTypes] = useState<SessionType[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [professors, setProfessors] = useState<Professor[]>([]);
+  const [defaultProfessorId, setDefaultProfessorId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -82,12 +84,13 @@ export function ScheduleTab({ subjectId }: ScheduleTabProps) {
     void reloadSessionTypes();
     void reloadLocations();
     void reloadProfessors();
+    void getSubject(subjectId).then((subject) => setDefaultProfessorId(subject?.professor_id ?? null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectId]);
 
   function openCreate() {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM, session_type_id: sessionTypes[0]?.id ?? null });
+    setForm({ ...EMPTY_FORM, session_type_id: sessionTypes[0]?.id ?? null, professor_id: defaultProfessorId });
     setModalOpen(true);
   }
 

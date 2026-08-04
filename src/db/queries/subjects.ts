@@ -1,6 +1,15 @@
 import { getDb } from "../connection";
 import type { ClassSession, Subject } from "../../types";
 
+export async function listAllSubjects(): Promise<Subject[]> {
+  const db = await getDb();
+  return db.select<Subject[]>(
+    `SELECT s.*, COALESCE(p.name, s.professor) AS professor
+     FROM subjects s LEFT JOIN professors p ON p.id = s.professor_id
+     ORDER BY s.name COLLATE NOCASE ASC`,
+  );
+}
+
 export async function listSubjectsBySemester(semesterId: number): Promise<Subject[]> {
   const db = await getDb();
   return db.select<Subject[]>(
@@ -84,6 +93,11 @@ export async function listClassSessions(subjectId: number): Promise<ClassSession
     "SELECT * FROM class_sessions WHERE subject_id = $1 ORDER BY day_of_week ASC, start_time ASC",
     [subjectId],
   );
+}
+
+export async function listAllClassSessions(): Promise<ClassSession[]> {
+  const db = await getDb();
+  return db.select<ClassSession[]>("SELECT * FROM class_sessions ORDER BY day_of_week ASC, start_time ASC");
 }
 
 export async function createClassSession(values: Omit<ClassSession, "id">): Promise<number> {

@@ -35,7 +35,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? "modal-title" : undefined}
-        className="my-auto max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-[2rem] border border-border bg-elevated p-6 shadow-modal backdrop-blur-3xl"
+        className="my-auto max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-x-hidden overflow-y-auto rounded-[2rem] border border-border bg-elevated p-6 shadow-modal backdrop-blur-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         {title && <h2 id="modal-title" className="mb-4 text-lg font-semibold text-text-primary">{title}</h2>}

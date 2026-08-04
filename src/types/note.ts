@@ -9,3 +9,9 @@ export interface Note {
   created_at: string;
   updated_at: string;
 }
+
+export interface NoteLink {
+  note_id: number;
+  entity_type: LinkedEntityType;
+  entity_id: number;
+}

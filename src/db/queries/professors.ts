@@ -1,5 +1,32 @@
 import { getDb } from "../connection";
-import type { Professor, SubjectStaffMember, SubjectStaffRole } from "../../types";
+import type { Professor, SubjectStaffMember, TeachingRole } from "../../types";
+
+export async function listTeachingRoles(): Promise<TeachingRole[]> {
+  const db = await getDb();
+  return db.select<TeachingRole[]>("SELECT * FROM teaching_roles ORDER BY name COLLATE NOCASE ASC");
+}
+
+export async function createTeachingRole(values: Omit<TeachingRole, "id">): Promise<number> {
+  const db = await getDb();
+  const result = await db.execute(
+    "INSERT INTO teaching_roles (name, color, icon) VALUES ($1, $2, $3)",
+    [values.name, values.color, values.icon],
+  );
+  return result.lastInsertId as number;
+}
+
+export async function updateTeachingRole(id: number, values: Omit<TeachingRole, "id">): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    "UPDATE teaching_roles SET name = $1, color = $2, icon = $3 WHERE id = $4",
+    [values.name, values.color, values.icon, id],
+  );
+}
+
+export async function deleteTeachingRole(id: number): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM teaching_roles WHERE id = $1", [id]);
+}
 
 export async function listProfessors(): Promise<Professor[]> {
   const db = await getDb();
@@ -33,25 +60,27 @@ export async function deleteProfessor(id: number): Promise<void> {
 export async function listSubjectStaff(subjectId: number): Promise<SubjectStaffMember[]> {
   const db = await getDb();
   return db.select<SubjectStaffMember[]>(
-    `SELECT p.*, ss.role FROM subject_staff ss
+    `SELECT p.*, ss.role_id, tr.name AS role_name, tr.color AS role_color, tr.icon AS role_icon
+     FROM subject_staff ss
      JOIN professors p ON p.id = ss.professor_id
-     WHERE ss.subject_id = $1 ORDER BY ss.role, p.name COLLATE NOCASE`,
+     JOIN teaching_roles tr ON tr.id = ss.role_id
+     WHERE ss.subject_id = $1 ORDER BY tr.name COLLATE NOCASE, p.name COLLATE NOCASE`,
     [subjectId],
   );
 }
 
-export async function addSubjectStaff(subjectId: number, professorId: number, role: SubjectStaffRole): Promise<void> {
+export async function addSubjectStaff(subjectId: number, professorId: number, roleId: number): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "INSERT OR IGNORE INTO subject_staff (subject_id, professor_id, role) VALUES ($1, $2, $3)",
-    [subjectId, professorId, role],
+    "INSERT OR IGNORE INTO subject_staff (subject_id, professor_id, role_id) VALUES ($1, $2, $3)",
+    [subjectId, professorId, roleId],
   );
 }
 
-export async function removeSubjectStaff(subjectId: number, professorId: number, role: SubjectStaffRole): Promise<void> {
+export async function removeSubjectStaff(subjectId: number, professorId: number, roleId: number): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "DELETE FROM subject_staff WHERE subject_id = $1 AND professor_id = $2 AND role = $3",
-    [subjectId, professorId, role],
+    "DELETE FROM subject_staff WHERE subject_id = $1 AND professor_id = $2 AND role_id = $3",
+    [subjectId, professorId, roleId],
   );
 }

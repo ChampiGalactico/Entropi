@@ -9,6 +9,7 @@ import {
   TasksPage,
   PlannerPage,
   NotesPage,
+  NoteEditorPage,
   SettingsPage,
 } from "./pages";
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="tasks" element={<TasksPage />} />
           <Route path="planner" element={<PlannerPage />} />
           <Route path="notes" element={<NotesPage />} />
+          <Route path="notes/:id" element={<NoteEditorPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>

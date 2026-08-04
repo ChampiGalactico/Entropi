@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { AltArrowDownLinear, MagniferLinear } from "./appIcons";
 
@@ -33,6 +34,8 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ left: number; top: number; width: number; above: boolean } | null>(null);
 
   const selected = options.find((o) => o.value === value) ?? null;
 
@@ -46,7 +49,7 @@ export function Combobox({
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node) && !panelRef.current?.contains(e.target as Node)) {
         setOpen(false);
         setQuery("");
       }
@@ -54,6 +57,23 @@ export function Combobox({
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  useLayoutEffect(() => {
+    if (!open) { setPosition(null); return; }
+    function place() {
+      const rect = rootRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const estimatedHeight = Math.min(320, filtered.length * 42 + (searchable ? 54 : 12));
+      const below = window.innerHeight - rect.bottom - 12;
+      const above = rect.top - 12;
+      const openAbove = below < Math.min(estimatedHeight, 220) && above > below;
+      setPosition({ left: rect.left, top: openAbove ? Math.max(8, rect.top - estimatedHeight - 8) : rect.bottom + 8, width: Math.max(rect.width, 220), above: openAbove });
+    }
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
+  }, [open, filtered.length, searchable]);
 
   function select(v: string) {
     onChange(v);
@@ -93,8 +113,12 @@ export function Combobox({
         />
       </button>
 
-      {open && (
-        <div className="vida-popover-enter absolute z-50 mt-2 w-full origin-top rounded-2xl border border-border bg-elevated p-1.5 shadow-modal backdrop-blur-3xl">
+      {open && position && createPortal(
+        <div
+          ref={panelRef}
+          className="vida-popover-enter fixed z-[160] max-h-[min(320px,calc(100vh-24px))] overflow-hidden rounded-2xl border border-border bg-elevated p-1.5 shadow-modal backdrop-blur-3xl"
+          style={{ left: position.left, top: position.top, width: position.width, transformOrigin: position.above ? "bottom" : "top" }}
+        >
           {searchable && (
             <div className="mb-1 flex items-center gap-2 rounded-xl border border-border bg-surface-hover px-3 py-1.5">
               <MagniferLinear size={14} className="text-text-muted" />
@@ -107,7 +131,7 @@ export function Combobox({
               />
             </div>
           )}
-          <div className="max-h-56 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto">
             {filtered.map((opt) => (
               <button
                 key={opt.value}
@@ -140,7 +164,8 @@ export function Combobox({
               </button>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

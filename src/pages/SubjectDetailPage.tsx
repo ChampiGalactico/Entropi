@@ -5,11 +5,13 @@ import { PenLinear, TrashBinTrashLinear, AltArrowLeftLinear } from "../component
 import { IconButton } from "../components/ui/IconButton";
 import { Badge } from "../components/ui/Badge";
 import { Tabs, type TabItem } from "../components/ui/Tabs";
-import { EmptyState } from "../components/ui/EmptyState";
 import { SubjectFormModal } from "../components/subjects";
 import { ScheduleTab } from "../components/subjects/ScheduleTab";
 import { StaffTab } from "../components/subjects/StaffTab";
 import { AssessmentsTab } from "../components/subjects/AssessmentsTab";
+import { TaskList } from "../components/tasks";
+import { NotesPanel } from "../components/notes";
+import { GradesTab } from "../components/grades";
 import { getSubject, deleteSubject } from "../db/queries/subjects";
 import { getSemester } from "../db/queries/semesters";
 import type { Semester, Subject } from "../types";
@@ -80,6 +82,11 @@ export function SubjectDetailPage() {
             <span className="text-sm text-text-muted">
               {[subject.code, subject.professor, semester?.name].filter(Boolean).join(" · ")}
             </span>
+            {subject.notes_content && (
+              <p className="mt-2 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
+                {subject.notes_content}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -101,24 +108,9 @@ export function SubjectDetailPage() {
       {tab === "schedule" && <ScheduleTab subjectId={subject.id} />}
       {tab === "staff" && <StaffTab subjectId={subject.id} />}
       {tab === "assessments" && <AssessmentsTab subjectId={subject.id} />}
-      {tab === "tasks" && (
-        <EmptyState
-          title={t("subjects.detail.comingSoon.tasks.title")}
-          description={t("subjects.detail.comingSoon.tasks.description")}
-        />
-      )}
-      {tab === "grades" && (
-        <EmptyState
-          title={t("subjects.detail.comingSoon.grades.title")}
-          description={t("subjects.detail.comingSoon.grades.description")}
-        />
-      )}
-      {tab === "notes" && (
-        <EmptyState
-          title={t("subjects.detail.comingSoon.notes.title")}
-          description={t("subjects.detail.comingSoon.notes.description")}
-        />
-      )}
+      {tab === "tasks" && <TaskList subjectId={subject.id} />}
+      {tab === "grades" && <GradesTab subject={subject} />}
+      {tab === "notes" && <NotesPanel subjectId={subject.id} />}
 
       {semester && (
         <SubjectFormModal

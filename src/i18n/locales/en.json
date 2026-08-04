@@ -31,7 +31,13 @@
     "title": "Time",
     "hours": "Hour",
     "minutes": "Minutes",
+    "period": "Period",
     "done": "Done"
+  },
+  "datePicker": {
+    "month": "Month",
+    "year": "Year",
+    "viewCalendar": "View calendar"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -63,7 +69,17 @@
   },
   "calendar": {
     "title": "Calendar",
-    "subtitle": "Monthly, weekly, and daily views will live here."
+    "subtitle": "Classes, assessments, tasks, and events in one timeline.",
+    "today": "Today",
+    "selectDate": "Select date to view",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "previousPeriod": "Previous period",
+    "nextPeriod": "Next period",
+    "weekView": "Week",
+    "allDay": "All day",
+    "views": { "month": "Monthly", "week": "Weekly", "day": "Daily" },
+    "kinds": { "session": "Class", "assessment": "Assessment", "task": "Task", "event": "Event" }
   },
   "subjects": {
     "title": "Subjects",
@@ -93,7 +109,9 @@
       "isGradable": "Gradable",
       "credits": "Credits",
       "scaleMaxOverride": "Scale max override",
-      "minPassingOverride": "Min passing override"
+      "minPassingOverride": "Min passing override",
+      "notes": "Subject note",
+      "notesPlaceholder": "For example: the professor requires PDF submissions or often tests proofs..."
     },
     "tabs": {
       "schedule": "Schedule",
@@ -149,9 +167,12 @@
       "description": "Course-wide teaching assistants and complementary professors.",
       "add": "Add person",
       "addTitle": "Add to teaching team",
+      "editMember": "Edit teaching team member",
       "empty": "No teaching assistants or complementary professors yet.",
       "person": "Person",
       "role": "Role",
+      "createRole": "Create role “{{name}}”",
+      "editRole": "Edit role",
       "roles": {
         "complementary": "Complementary professor",
         "monitor": "Teaching assistant"
@@ -184,11 +205,74 @@
   },
   "grades": {
     "title": "Grades",
-    "subtitle": "Grade breakdowns and semester GPA will live here."
+    "subtitle": "Review results and progress for every subject.",
+    "currentGrade": "Current grade",
+    "passing": "The minimum passing grade is {{grade}}",
+    "breakdown": "Grade structure",
+    "breakdownDescription": "Organize categories, weights, and received grades.",
+    "configuredWeight": "Configured weight",
+    "addComponent": "Add component",
+    "editComponent": "Edit component",
+    "componentName": "Name",
+    "parent": "Parent category",
+    "noParent": "Top-level component",
+    "weight": "Weight (%)",
+    "weightPlaceholder": "Optional; for example, 30",
+    "addChild": "Add subcategory",
+    "addItem": "Add item",
+    "addEntry": "Add received grade",
+    "addReceivedGrade": "Add received grade",
+    "editEntry": "Edit received grade",
+    "editReceivedGrade": "Edit received grade",
+    "grade": "Grade received",
+    "date": "Date",
+    "assessment": "Related assessment",
+    "noAssessment": "No related assessment",
+    "entryNotes": "Comment",
+    "empty": "Grades have not been configured yet.",
+    "emptyDescription": "Add exams, workshops, quizzes, or other categories.",
+    "childCount_one": "{{count}} subcategory",
+    "childCount_other": "{{count}} subcategories",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "entryCount_one": "{{count}} received grade",
+    "entryCount_other": "{{count}} received grades",
+    "componentCount_one": "{{count}} component",
+    "componentCount_other": "{{count}} components",
+    "overviewEmpty": "There are no gradable subjects to show."
   },
   "tasks": {
     "title": "Tasks",
-    "subtitle": "Filterable task list will live here."
+    "subtitle": "Organize academic and personal tasks, deadlines, and priorities.",
+    "listTitle": "All tasks",
+    "listDescription": "Complete, filter, and organize what is still pending.",
+    "add": "Add task",
+    "empty": "No tasks match these filters.",
+    "noDueDate": "No due date",
+    "statuses": { "pending": "Pending", "in_progress": "In progress", "completed": "Completed", "cancelled": "Cancelled", "overdue": "Overdue" },
+    "priorities": { "1": "Urgent", "2": "High", "3": "Medium", "4": "Low", "5": "Someday" },
+    "filters": {
+      "search": "Search tasks...",
+      "allStatuses": "All statuses",
+      "allTypes": "All types",
+      "allPriorities": "All priorities"
+      ,"allSubjects": "All subjects"
+    },
+    "form": {
+      "addTitle": "Add task",
+      "editTitle": "Edit task",
+      "title": "Title",
+      "description": "Description",
+      "type": "Task type",
+      "createType": "Create type “{{name}}”",
+      "subject": "Subject",
+      "personal": "Personal task",
+      "hasDueDate": "Has a due date",
+      "dueDate": "Due date",
+      "hasDueTime": "Has a due time",
+      "priority": "Priority",
+      "status": "Status"
+    }
   },
   "planner": {
     "title": "Weekly Planner",
@@ -196,7 +280,42 @@
   },
   "notes": {
     "title": "Notes",
-    "subtitle": "Searchable notes library will live here."
+    "subtitle": "Your library of rich, connected notes.",
+    "library": "Notes library",
+    "libraryDescription": "Write with blocks and connect notes to subjects, tasks, or assessments.",
+    "add": "Add note",
+    "empty": "There are no notes yet.",
+    "addTitle": "New note",
+    "editTitle": "Edit note",
+    "noteTitle": "Title",
+    "untitled": "Untitled",
+    "back": "Back",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "links": {
+      "title": "Link to",
+      "description": "A note can be connected to multiple items.",
+      "none": "This is a standalone note with no relationships.",
+      "clear": "Clear all",
+      "subjects": "Subjects",
+      "tasks": "Tasks",
+      "assessments": "Assessments",
+      "notes": "Other notes"
+    },
+    "slashGroup": "Engineering and physics",
+    "drawing": {
+      "add": "Add canvas",
+      "slashTitle": "Drawing canvas",
+      "slashDescription": "Draw by hand, add shapes, and Cartesian axes.",
+      "undo": "Undo",
+      "clear": "Clear",
+      "height": "Height",
+      "makeShorter": "Reduce height",
+      "makeTaller": "Increase height",
+      "colors": { "accent": "Primary color", "secondary": "Secondary color", "text": "Text color" },
+      "tools": { "pen": "Pen", "line": "Line", "circle": "Circle", "rectangle": "Rectangle", "triangle": "Triangle", "axes2d": "2D plane", "axes3d": "3D axes" }
+    },
+    "math": { "add": "Add formula", "slashTitle": "Math formula", "slashDescription": "Write a LaTeX equation." }
   },
   "settings": {
     "title": "Settings",
@@ -215,6 +334,16 @@
       "accentPrimaryHint": "Used for buttons, active states, and links.",
       "accentSecondary": "Secondary accent color",
       "accentSecondaryHint": "Used for badges and secondary highlights."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "description": "Configure the visible range and how times are displayed.",
+      "dayStart": "Day starts at",
+      "dayEnd": "Day ends at",
+      "timeFormat": "Time format",
+      "format24": "24-hour (18:30)",
+      "format12": "12-hour (6:30 PM)",
+      "invalidRange": "The end time must be later than the start time."
     },
     "lookup": {
       "sessionTypes": "Session Types",
@@ -264,7 +393,16 @@
       "department": "Department or faculty",
       "office": "Office",
       "officeHours": "Office hours",
-      "notes": "Notes about the professor"
+      "notes": "Notes about the professor",
+      "roles": {
+        "title": "Roles",
+        "description": "Roles available for people on the teaching team.",
+        "add": "Add role",
+        "addTitle": "Add teaching role",
+        "editTitle": "Edit teaching role",
+        "empty": "No teaching roles yet.",
+        "inUse": "This role is assigned to a teaching team member and cannot be deleted."
+      }
     },
     "semesters": {
       "title": "Semesters",
