@@ -10,6 +10,7 @@ import { SolarIcon } from "../ui/SolarIcon";
 import { ColorPickerPopover } from "../ui/ColorPickerPopover";
 import { IconPicker } from "../ui/IconPicker";
 import { Input } from "../ui/Input";
+import { ProfessorProfileModal } from "../professors";
 import { addSubjectStaff, createProfessor, createTeachingRole, listProfessors, listSubjectStaff, listTeachingRoles, removeSubjectStaff, updateTeachingRole } from "../../db/queries/professors";
 import type { Professor, SubjectStaffMember, TeachingRole } from "../../types";
 
@@ -24,6 +25,7 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
   const [roleEditorOpen, setRoleEditorOpen] = useState(false);
   const [roleForm, setRoleForm] = useState({ name: "", color: "#6366f1", icon: null as string | null });
   const [editingMember, setEditingMember] = useState<{ professorId: number; roleId: number } | null>(null);
+  const [profileProfessor, setProfileProfessor] = useState<Professor | null>(null);
 
   async function reload() {
     const [staff, people, teachingRoles] = await Promise.all([listSubjectStaff(subjectId), listProfessors(), listTeachingRoles()]);
@@ -82,7 +84,7 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {members.map((member) => (
             <div key={`${member.id}-${member.role_id}`} className="flex items-start justify-between rounded-2xl border border-border bg-control p-4">
-              <div><p className="font-medium text-text-primary">{member.name}</p><p className="mt-1 flex items-center gap-1.5 text-xs" style={{ color: member.role_color }}><SolarIcon name={member.role_icon} size={14} color={member.role_color} />{member.role_name}</p>{member.email && <p className="mt-2 text-xs text-text-muted">{member.email}</p>}</div>
+              <button type="button" onClick={() => setProfileProfessor(member)} className="min-w-0 text-left"><p className="font-medium text-text-primary hover:text-accent">{member.name}</p><p className="mt-1 flex items-center gap-1.5 text-xs" style={{ color: member.role_color }}><SolarIcon name={member.role_icon} size={14} color={member.role_color} />{member.role_name}</p>{member.email && <p className="mt-2 text-xs text-text-muted">{member.email}</p>}</button>
               <div className="flex items-center gap-1"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={16} />} onClick={() => { setEditingMember({ professorId: member.id, roleId: member.role_id }); setProfessorId(member.id); setRoleId(member.role_id); setOpen(true); }} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void removeSubjectStaff(subjectId, member.id, member.role_id).then(reload)} /></div>
             </div>
           ))}
@@ -98,6 +100,7 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
       <Modal open={roleEditorOpen} onClose={() => setRoleEditorOpen(false)} onSave={() => void saveSelectedRole()} title={t("subjects.staff.editRole")}>
         <div className="flex flex-col gap-4"><div className="flex items-end gap-3"><label className="min-w-0 flex-1 text-xs text-text-secondary">{t("settings.lookup.name")}<Input className="mt-1" value={roleForm.name} onChange={(event) => setRoleForm((current) => ({ ...current, name: event.target.value }))} autoFocus /></label><ColorPickerPopover value={roleForm.color} onChange={(color) => setRoleForm((current) => ({ ...current, color }))} /><IconPicker value={roleForm.icon} color={roleForm.color} onChange={(icon) => setRoleForm((current) => ({ ...current, icon }))} /></div><div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setRoleEditorOpen(false)}>{t("settings.lookup.cancel")}</Button><Button onClick={() => void saveSelectedRole()}>{t("settings.lookup.save")}</Button></div></div>
       </Modal>
+      <ProfessorProfileModal professor={profileProfessor} open={profileProfessor !== null} onClose={() => setProfileProfessor(null)} onSaved={async (saved) => { setProfileProfessor(saved); await reload(); }} />
     </div>
   );
 }

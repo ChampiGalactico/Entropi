@@ -13,6 +13,11 @@ export interface GradeComponent {
   name: string;
   weight: number | null;
   sort_order: number;
+  is_group: number;
+  grade: number | null;
+  date: string | null;
+  assessment_id: number | null;
+  notes: string | null;
 }
 
 export interface GradeEntry {

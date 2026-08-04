@@ -14,9 +14,10 @@ export async function createGradeComponent(
 ): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
-    `INSERT INTO grade_components (subject_id, parent_id, name, weight, sort_order)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [values.subject_id, values.parent_id, values.name, values.weight, values.sort_order],
+    `INSERT INTO grade_components
+       (subject_id, parent_id, name, weight, sort_order, is_group, grade, date, assessment_id, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [values.subject_id, values.parent_id, values.name, values.weight, values.sort_order, values.is_group, values.grade, values.date, values.assessment_id, values.notes],
   );
   return result.lastInsertId as number;
 }
@@ -27,9 +28,10 @@ export async function updateGradeComponent(
 ): Promise<void> {
   const db = await getDb();
   await db.execute(
-    `UPDATE grade_components SET subject_id = $1, parent_id = $2, name = $3, weight = $4, sort_order = $5
-     WHERE id = $6`,
-    [values.subject_id, values.parent_id, values.name, values.weight, values.sort_order, id],
+    `UPDATE grade_components SET subject_id = $1, parent_id = $2, name = $3, weight = $4,
+       sort_order = $5, is_group = $6, grade = $7, date = $8, assessment_id = $9, notes = $10
+     WHERE id = $11`,
+    [values.subject_id, values.parent_id, values.name, values.weight, values.sort_order, values.is_group, values.grade, values.date, values.assessment_id, values.notes, id],
   );
 }
 

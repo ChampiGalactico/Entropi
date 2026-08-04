@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { AddCircleLinear, BookLinear, ChecklistMinimalisticLinear, MagniferLinear, NotebookLinear, SquareAcademicCapLinear, UserIdLinear } from "../ui/appIcons";
 import { notify } from "../ui/Toast";
+import { ProfessorProfileModal } from "../professors";
 import { listAllAssessments } from "../../db/queries/assessments";
 import { createNote, listNotes, replaceNoteLinks } from "../../db/queries/notes";
 import { createProfessor, listProfessors } from "../../db/queries/professors";
@@ -83,6 +84,7 @@ export function GlobalSearch() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [profileProfessor, setProfileProfessor] = useState<Professor | null>(null);
 
   async function reloadData() {
     const [subjectRows, semesterRows, professorRows, taskRows, assessmentRows, noteRows] = await Promise.all([
@@ -128,7 +130,7 @@ export function GlobalSearch() {
       ];
       return [
         ...subjects.map((subject) => ({ id: `subject-${subject.id}`, title: subject.name, subtitle: subject.code ?? t("search.types.subject"), icon: <SquareAcademicCapLinear size={16} />, color: subject.color, run: () => { navigate(`/subjects/${subject.id}`); close(); } })),
-        ...professors.map((professor) => ({ id: `professor-${professor.id}`, title: professor.name, subtitle: [professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" · ") || "Profesor", searchText: [professor.name, professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" "), icon: <UserIdLinear size={16} />, color: "var(--accent-secondary)", run: () => { navigate("/settings", { state: { section: "professors" } }); close(); } })),
+        ...professors.map((professor) => ({ id: `professor-${professor.id}`, title: professor.name, subtitle: [professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" · ") || "Profesor", searchText: [professor.name, professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" "), icon: <UserIdLinear size={16} />, color: "var(--accent-secondary)", run: () => { close(); setProfileProfessor(professor); } })),
         ...tasks.map((task) => ({ id: `task-${task.id}`, title: task.title, subtitle: t("search.types.task"), icon: <ChecklistMinimalisticLinear size={16} />, color: "var(--accent-secondary)", run: () => { navigate("/tasks"); close(); } })),
         ...assessments.map((assessment) => ({ id: `assessment-${assessment.id}`, title: assessment.title, subtitle: t("search.types.assessment"), icon: <BookLinear size={16} />, color: "var(--accent)", run: () => { navigate(`/subjects/${assessment.subject_id}`, { state: { tab: "assessments" } }); close(); } })),
         ...notes.map((note) => ({ id: `note-${note.id}`, title: note.title, subtitle: t("search.types.note"), icon: <NotebookLinear size={16} />, color: "var(--text-secondary)", run: () => { navigate(`/notes/${note.id}`); close(); } })),
@@ -158,6 +160,7 @@ export function GlobalSearch() {
     if (parsed.currentKey) {
       const matching = (valuesByKey[parsed.currentKey] ?? [])
         .filter((row) => normalized(row.label).includes(normalized(parsed.currentValue)))
+        .filter((row) => !(parsed.currentKey === "professor" && normalized(row.label) === normalized(parsed.currentValue)))
         .slice(0, 6);
       for (const row of matching) output.push({
         id: `complete-${parsed.currentKey}-${row.id}`,
@@ -206,7 +209,7 @@ export function GlobalSearch() {
     else if (primary === "subject" && semester) output.push({ id: "create-subject", title: `Preparar materia “${title}”`, subtitle: `${semester.name}${professor ? ` · ${professor.name}` : ""}`, icon: <AddCircleLinear size={16} />, color: "var(--accent)", run: () => { navigate("/subjects", { state: { commandDraft: { name: title, semesterId: semester.id, professorId: professor?.id ?? null } } }); close(); } });
     else if (primary === "semester" && semester) output.push({ id: "open-semester", title: semester.name, subtitle: "El semestre ya existe", icon: <MagniferLinear size={16} />, color: "var(--accent)", run: () => { navigate("/settings", { state: { section: "semesters" } }); close(); } });
     else if (primary === "semester") output.push({ id: "create-semester", title: `Preparar semestre “${title}”`, subtitle: "Completa sus fechas en Configuración", icon: <AddCircleLinear size={16} />, color: "var(--accent)", run: () => { navigate("/settings", { state: { section: "semesters", semesterDraftName: title } }); close(); } });
-    else if (primary === "professor" && professor) output.push({ id: "open-professor", title: professor.name, subtitle: "Abrir base de profesores", icon: <UserIdLinear size={16} />, color: "var(--accent)", run: () => { navigate("/settings", { state: { section: "professors" } }); close(); } });
+    else if (primary === "professor" && professor) output.push({ id: "open-professor", title: professor.name, subtitle: "Ver información del docente", icon: <UserIdLinear size={16} />, color: "var(--accent)", run: () => { close(); setProfileProfessor(professor); } });
 
     return output;
   }, [assessments, navigate, notes, professors, query, semesters, subjects, t, tasks]);
@@ -218,7 +221,7 @@ export function GlobalSearch() {
     if (event.key === "Enter" && results[activeIndex]) { event.preventDefault(); void results[activeIndex].run(); }
   }
 
-  return <div ref={rootRef} className="absolute left-1/2 w-full max-w-md -translate-x-1/2">
+  return <><div ref={rootRef} className="absolute left-1/2 w-full max-w-md -translate-x-1/2">
     <label className="flex items-center gap-2 rounded-full border border-border bg-control px-4 py-2.5 text-text-muted shadow-card backdrop-blur-2xl transition-all duration-200 focus-within:bg-elevated focus-within:text-text-primary">
       <MagniferLinear size={16} className="shrink-0" />
       <input ref={inputRef} value={query} onChange={(event) => { setQuery(event.target.value); setOpen(true); setActiveIndex(0); }} onFocus={() => setOpen(true)} onKeyDown={onKeyDown} type="search" placeholder={t("topbar.search")} className="w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted" />
@@ -227,5 +230,5 @@ export function GlobalSearch() {
     {open && <div className="vida-popover-enter absolute left-0 right-0 top-[calc(100%+8px)] max-h-80 overflow-y-auto rounded-2xl border border-border bg-elevated p-1.5 shadow-modal backdrop-blur-3xl">
       {results.length === 0 ? <p className="px-3 py-4 text-center text-xs text-text-muted">{t("search.empty")}</p> : results.map((item, index) => <button key={item.id} type="button" onMouseEnter={() => setActiveIndex(index)} onClick={() => void item.run()} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors ${index === activeIndex ? "bg-surface-hover" : "hover:bg-surface-hover"}`}><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ color: item.color, background: `color-mix(in srgb, ${item.color} 13%, transparent)` }}>{item.icon}</span><span className="min-w-0"><strong className="block truncate text-sm font-medium text-text-primary">{item.title}</strong><span className="block truncate text-[10px] text-text-muted">{item.subtitle}</span></span></button>)}
     </div>}
-  </div>;
+  </div><ProfessorProfileModal professor={profileProfessor} open={profileProfessor !== null} onClose={() => setProfileProfessor(null)} onSaved={async (saved) => { setProfileProfessor(saved); await reloadData(); }} /></>;
 }

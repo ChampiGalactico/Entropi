@@ -18,6 +18,23 @@ export function calculateGrades(components: GradeComponent[], entries: GradeEntr
 
   function valueFor(component: GradeComponent): number | null {
     if (values.has(component.id)) return values.get(component.id) ?? null;
+    const componentChildren = children.get(component.id) ?? [];
+    if (component.is_group || componentChildren.length) {
+      const available = componentChildren
+        .map((child) => ({ child, value: valueFor(child) }))
+        .filter((item): item is { child: GradeComponent; value: number } => item.value !== null);
+      const totalWeight = available.reduce((sum, item) => sum + (item.child.weight ?? 0), 0);
+      const value = totalWeight > 0
+        ? available.reduce((sum, item) => sum + item.value * (item.child.weight ?? 0), 0) / totalWeight
+        : available.length ? available.reduce((sum, item) => sum + item.value, 0) / available.length : null;
+      values.set(component.id, value);
+      return value;
+    }
+    if (component.grade !== null) {
+      values.set(component.id, component.grade);
+      return component.grade;
+    }
+    // Compatibility fallback for databases opened before migration 10 finishes.
     const componentEntries = entries.filter((entry) => entry.grade_component_id === component.id);
     const weightedEntries = componentEntries.filter((entry) => entry.weight > 0);
     let value: number | null;

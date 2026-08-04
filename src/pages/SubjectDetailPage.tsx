@@ -12,9 +12,11 @@ import { AssessmentsTab } from "../components/subjects/AssessmentsTab";
 import { TaskList } from "../components/tasks";
 import { NotesPanel } from "../components/notes";
 import { GradesTab } from "../components/grades";
+import { ProfessorProfileModal } from "../components/professors";
 import { getSubject, deleteSubject } from "../db/queries/subjects";
+import { getProfessor } from "../db/queries/professors";
 import { getSemester } from "../db/queries/semesters";
-import type { Semester, Subject } from "../types";
+import type { Professor, Semester, Subject } from "../types";
 
 type TabId = "schedule" | "staff" | "assessments" | "tasks" | "grades" | "notes";
 
@@ -29,6 +31,7 @@ export function SubjectDetailPage() {
   const [semester, setSemester] = useState<Semester | null>(null);
   const [tab, setTab] = useState<TabId>("schedule");
   const [editOpen, setEditOpen] = useState(false);
+  const [profileProfessor, setProfileProfessor] = useState<Professor | null>(null);
   const [commandState] = useState(() => location.state as { tab?: TabId; assessmentDraftTitle?: string } | null);
 
   useEffect(() => {
@@ -54,6 +57,12 @@ export function SubjectDetailPage() {
   async function handleDelete() {
     await deleteSubject(subjectId);
     navigate("/subjects");
+  }
+
+  async function showProfessor() {
+    const professorId = subject?.professor_id;
+    if (professorId === null || professorId === undefined) return;
+    setProfileProfessor(await getProfessor(professorId));
   }
 
   if (!subject) return null;
@@ -87,8 +96,11 @@ export function SubjectDetailPage() {
                 <Badge color="var(--text-muted)">{t("subjects.card.nonGradable")}</Badge>
               )}
             </div>
-            <span className="text-sm text-text-muted">
-              {[subject.code, subject.professor, semester?.name].filter(Boolean).join(" · ")}
+            <span className="flex flex-wrap items-center gap-1 text-sm text-text-muted">
+              {subject.code && <span>{subject.code} ·</span>}
+              {subject.professor && (subject.professor_id !== null ? <button type="button" onClick={() => void showProfessor()} className="hover:text-accent hover:underline">{subject.professor}</button> : <span>{subject.professor}</span>)}
+              {subject.professor && semester?.name && <span>·</span>}
+              {semester?.name && <span>{semester.name}</span>}
             </span>
             {subject.notes_content && (
               <p className="mt-2 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">
@@ -129,6 +141,7 @@ export function SubjectDetailPage() {
           subject={subject}
         />
       )}
+      <ProfessorProfileModal professor={profileProfessor} open={profileProfessor !== null} onClose={() => setProfileProfessor(null)} onSaved={async (saved) => { setProfileProfessor(saved); await reload(); }} />
     </div>
   );
 }

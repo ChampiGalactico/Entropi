@@ -56,6 +56,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0009_flat_grade_entries.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 10,
+            description: "recursive_grade_components",
+            sql: include_str!("../../src/db/migrations/0010_recursive_grade_components.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

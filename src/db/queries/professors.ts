@@ -33,6 +33,12 @@ export async function listProfessors(): Promise<Professor[]> {
   return db.select<Professor[]>("SELECT * FROM professors ORDER BY name COLLATE NOCASE ASC");
 }
 
+export async function getProfessor(id: number): Promise<Professor | null> {
+  const db = await getDb();
+  const rows = await db.select<Professor[]>("SELECT * FROM professors WHERE id = $1", [id]);
+  return rows[0] ?? null;
+}
+
 export async function createProfessor(values: Omit<Professor, "id">): Promise<number> {
   const db = await getDb();
   const result = await db.execute(
