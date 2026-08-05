@@ -234,6 +234,19 @@
       "location": "Location",
       "status": "Status",
       "grade": "Grade received",
+      "gradeRelation": "Relate to grades",
+      "noGradeRelation": "No related grade",
+      "createDirectGrade": "Create a direct grade",
+      "createParentAndChild": "Create a parent component and add this assessment as a child",
+      "parentComponent": "parent component",
+      "parentName": "Parent component name",
+      "parentWeight": "Parent total weight",
+      "gradeWeight": "Grade weight",
+      "childWeight": "Child weight",
+      "gradeRelationHint": "The grade will be linked to this assessment and automatically use its date.",
+      "childRelationHint": "A child grade will be created with this assessment's name and date.",
+      "gradeWeightRequired": "Enter a valid weight for the grade.",
+      "parentRequired": "Complete the parent component name and weight.",
       "notes": "Notes",
       "statuses": {
         "upcoming": "Upcoming",
@@ -357,6 +370,9 @@
     "prepareSession": "Plan class",
     "prepareSessionHint": "Anything you add will inherit this class date and time.",
     "addPrepTask": "Add class-prep task",
+    "addTask": "Add task",
+    "taskType": "Task type",
+    "taskCreated": "Task created",
     "addAssessment": "Add assessment",
     "assessmentName": "Assessment name",
     "assessmentType": "Assessment type",
@@ -467,6 +483,14 @@
     },
     "types": { "subject": "Subject", "task": "Task", "assessment": "Assessment", "note": "Note" }
   },
+  "confirmation": {
+    "deleteTitle": "Delete this item?",
+    "deleteDescription": "You are about to delete {{name}}.",
+    "thisItem": "this item",
+    "cannotUndo": "This action cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
   "feedback": {
     "created": "Created successfully",
     "saved": "Changes saved",
@@ -492,7 +516,14 @@
       "accentPrimary": "Primary accent color",
       "accentPrimaryHint": "Used for buttons, active states, and links.",
       "accentSecondary": "Secondary accent color",
-      "accentSecondaryHint": "Used for badges and secondary highlights."
+      "accentSecondaryHint": "Used for badges and secondary highlights.",
+      "system": "System",
+      "autostart": "Launch Entropi when the computer starts",
+      "autostartHint": "Opens Entropi automatically when you sign in to your computer.",
+      "autostartDesktopOnly": "This option is only available in the desktop application.",
+      "autostartEnabled": "Automatic startup enabled",
+      "autostartDisabled": "Automatic startup disabled",
+      "autostartError": "Automatic startup could not be changed"
     },
     "calendar": {
       "title": "Calendar",

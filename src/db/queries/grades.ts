@@ -40,6 +40,14 @@ export async function deleteGradeComponent(id: number): Promise<void> {
   await db.execute("DELETE FROM grade_components WHERE id = $1", [id]);
 }
 
+export async function clearAssessmentGradeLinks(assessmentId: number): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    "UPDATE grade_components SET assessment_id = NULL WHERE assessment_id = $1",
+    [assessmentId],
+  );
+}
+
 export async function listGradeEntries(gradeComponentId: number): Promise<GradeEntry[]> {
   const db = await getDb();
   return db.select<GradeEntry[]>(

@@ -8,6 +8,7 @@ import { Modal } from "../ui/Modal";
 import { EmptyState } from "../ui/EmptyState";
 import { DateRangePicker } from "../ui/DateRangePicker";
 import { notify } from "../ui/Toast";
+import { confirmDelete } from "../ui/ConfirmDialog";
 import {
   createSemester,
   deleteSemester,
@@ -80,7 +81,10 @@ export function SemestersManager({ initialDraftName = "" }: { initialDraftName?:
   }
 
   async function handleDelete(id: number) {
+    const semester = semesters.find((item) => item.id === id);
+    if (!(await confirmDelete({ itemName: semester?.name }))) return;
     await deleteSemester(id);
+    notify.success(t("feedback.deleted"));
     await reload();
   }
 

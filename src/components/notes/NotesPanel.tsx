@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AddCircleLinear, TrashBinTrashLinear } from "../ui/appIcons";
-import { Badge, Button, EmptyState, IconButton } from "../ui";
+import { Badge, Button, EmptyState, IconButton, notify } from "../ui";
+import { confirmDelete } from "../ui/ConfirmDialog";
 import { listAllAssessments, listAssessmentsBySubject } from "../../db/queries/assessments";
 import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, replaceNoteLinks } from "../../db/queries/notes";
 import { listAllSubjects } from "../../db/queries/subjects";
@@ -44,8 +45,15 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
     return link.entity_type;
   }
 
+  async function removeNote(note: Note) {
+    if (!(await confirmDelete({ itemName: note.title }))) return;
+    await deleteNote(note.id);
+    notify.success(t("feedback.deleted"));
+    await reload();
+  }
+
   return <div className="flex flex-col gap-4">
     <div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold text-text-primary">{t("notes.library")}</h3><p className="mt-1 text-xs text-text-muted">{t("notes.libraryDescription")}</p></div><Button variant="secondary" className="flex items-center gap-1.5" onClick={() => void createBlank()}><AddCircleLinear size={16} />{t("notes.add")}</Button></div>
-    {notes.length === 0 ? <EmptyState title={t("notes.empty")} /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{notes.map((note) => <article role="button" tabIndex={0} key={note.id} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-pointer rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 text-xs text-text-muted">{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void deleteNote(note.id).then(reload); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div></article>)}</div>}
+    {notes.length === 0 ? <EmptyState title={t("notes.empty")} /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{notes.map((note) => <article role="button" tabIndex={0} key={note.id} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-pointer rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 text-xs text-text-muted">{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void removeNote(note); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div></article>)}</div>}
   </div>;
 }

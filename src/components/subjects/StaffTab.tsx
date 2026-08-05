@@ -10,6 +10,8 @@ import { SolarIcon } from "../ui/SolarIcon";
 import { ColorPickerPopover } from "../ui/ColorPickerPopover";
 import { IconPicker } from "../ui/IconPicker";
 import { Input } from "../ui/Input";
+import { confirmDelete } from "../ui/ConfirmDialog";
+import { notify } from "../ui/Toast";
 import { ProfessorProfileModal } from "../professors";
 import { addSubjectStaff, createProfessor, createTeachingRole, listProfessors, listSubjectStaff, listTeachingRoles, removeSubjectStaff, updateTeachingRole } from "../../db/queries/professors";
 import type { Professor, SubjectStaffMember, TeachingRole } from "../../types";
@@ -74,6 +76,13 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
     await reload();
   }
 
+  async function removeMember(member: SubjectStaffMember) {
+    if (!(await confirmDelete({ itemName: member.name }))) return;
+    await removeSubjectStaff(subjectId, member.id, member.role_id);
+    notify.success(t("feedback.deleted"));
+    await reload();
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -85,7 +94,7 @@ export function StaffTab({ subjectId }: { subjectId: number }) {
           {members.map((member) => (
             <div key={`${member.id}-${member.role_id}`} className="flex items-start justify-between rounded-2xl border border-border bg-control p-4">
               <button type="button" onClick={() => setProfileProfessor(member)} className="min-w-0 text-left"><p className="font-medium text-text-primary hover:text-accent">{member.name}</p><p className="mt-1 flex items-center gap-1.5 text-xs" style={{ color: member.role_color }}><SolarIcon name={member.role_icon} size={14} color={member.role_color} />{member.role_name}</p>{member.email && <p className="mt-2 text-xs text-text-muted">{member.email}</p>}</button>
-              <div className="flex items-center gap-1"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={16} />} onClick={() => { setEditingMember({ professorId: member.id, roleId: member.role_id }); setProfessorId(member.id); setRoleId(member.role_id); setOpen(true); }} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void removeSubjectStaff(subjectId, member.id, member.role_id).then(reload)} /></div>
+              <div className="flex items-center gap-1"><IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={16} />} onClick={() => { setEditingMember({ professorId: member.id, roleId: member.role_id }); setProfessorId(member.id); setRoleId(member.role_id); setOpen(true); }} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void removeMember(member)} /></div>
             </div>
           ))}
         </div>

@@ -12,11 +12,24 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Entropi",
         "width": 1280,
         "height": 800,
         "minWidth": 1024,
         "minHeight": 640
+      },
+      {
+        "label": "splashscreen",
+        "title": "Entropi",
+        "url": "/splashscreen.html",
+        "width": 760,
+        "height": 300,
+        "center": true,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true
       }
     ],
     "security": {

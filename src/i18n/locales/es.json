@@ -234,6 +234,19 @@
       "location": "Ubicación",
       "status": "Estado",
       "grade": "Calificación obtenida",
+      "gradeRelation": "Relacionar con calificaciones",
+      "noGradeRelation": "Sin calificación relacionada",
+      "createDirectGrade": "Crear una calificación directa",
+      "createParentAndChild": "Crear componente padre y agregar esta evaluación como hija",
+      "parentComponent": "componente padre",
+      "parentName": "Nombre del componente padre",
+      "parentWeight": "Porcentaje total del padre",
+      "gradeWeight": "Porcentaje de esta calificación",
+      "childWeight": "Porcentaje de esta hija",
+      "gradeRelationHint": "La calificación quedará vinculada al examen y usará automáticamente su fecha.",
+      "childRelationHint": "Se creará una calificación hija con el nombre y la fecha de esta evaluación.",
+      "gradeWeightRequired": "Escribe un porcentaje válido para la calificación.",
+      "parentRequired": "Completa el nombre y el porcentaje del componente padre.",
       "notes": "Notas",
       "statuses": {
         "upcoming": "Próxima",
@@ -357,6 +370,9 @@
     "prepareSession": "Planificar clase",
     "prepareSessionHint": "Todo lo que agregues heredará la fecha y la hora de esta clase.",
     "addPrepTask": "Añadir tarea de preparación",
+    "addTask": "Añadir tarea",
+    "taskType": "Tipo de tarea",
+    "taskCreated": "Tarea creada",
     "addAssessment": "Añadir evaluación",
     "assessmentName": "Nombre de la evaluación",
     "assessmentType": "Tipo de evaluación",
@@ -467,6 +483,14 @@
     },
     "types": { "subject": "Materia", "task": "Tarea", "assessment": "Evaluación", "note": "Nota" }
   },
+  "confirmation": {
+    "deleteTitle": "¿Eliminar este elemento?",
+    "deleteDescription": "Estás a punto de eliminar {{name}}.",
+    "thisItem": "este elemento",
+    "cannotUndo": "Esta acción no se puede deshacer.",
+    "cancel": "Cancelar",
+    "delete": "Eliminar"
+  },
   "feedback": {
     "created": "Creado correctamente",
     "saved": "Cambios guardados",
@@ -492,7 +516,14 @@
       "accentPrimary": "Color de acento primario",
       "accentPrimaryHint": "Se usa en botones, estados activos y enlaces.",
       "accentSecondary": "Color de acento secundario",
-      "accentSecondaryHint": "Se usa en chips y resaltados secundarios."
+      "accentSecondaryHint": "Se usa en chips y resaltados secundarios.",
+      "system": "Sistema",
+      "autostart": "Iniciar Entropi al encender el computador",
+      "autostartHint": "Abre Entropi automáticamente cuando inicias sesión en tu computador.",
+      "autostartDesktopOnly": "Esta opción solo está disponible en la aplicación de escritorio.",
+      "autostartEnabled": "Inicio automático activado",
+      "autostartDisabled": "Inicio automático desactivado",
+      "autostartError": "No se pudo cambiar el inicio automático"
     },
     "calendar": {
       "title": "Calendario",

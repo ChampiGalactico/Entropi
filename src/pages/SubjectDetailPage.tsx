@@ -13,6 +13,8 @@ import { TaskList } from "../components/tasks";
 import { NotesPanel } from "../components/notes";
 import { GradesTab } from "../components/grades";
 import { ProfessorProfileModal } from "../components/professors";
+import { confirmDelete } from "../components/ui/ConfirmDialog";
+import { notify } from "../components/ui/Toast";
 import { getSubject, deleteSubject } from "../db/queries/subjects";
 import { getProfessor } from "../db/queries/professors";
 import { getSemester } from "../db/queries/semesters";
@@ -55,7 +57,9 @@ export function SubjectDetailPage() {
   }, [subjectId]);
 
   async function handleDelete() {
+    if (!(await confirmDelete({ itemName: subject?.name }))) return;
     await deleteSubject(subjectId);
+    notify.success(t("feedback.deleted"));
     navigate("/subjects");
   }
 

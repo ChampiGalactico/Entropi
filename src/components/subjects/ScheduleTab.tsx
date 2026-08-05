@@ -8,6 +8,8 @@ import { Combobox } from "../ui/Combobox";
 import { TimePicker } from "../ui/TimePicker";
 import { EmptyState } from "../ui/EmptyState";
 import { SolarIcon } from "../ui/SolarIcon";
+import { confirmDelete } from "../ui/ConfirmDialog";
+import { notify } from "../ui/Toast";
 import {
   createClassSession,
   deleteClassSession,
@@ -130,7 +132,9 @@ export function ScheduleTab({ subjectId }: ScheduleTabProps) {
   }
 
   async function handleDelete(id: number) {
+    if (!(await confirmDelete())) return;
     await deleteClassSession(id);
+    notify.success(t("feedback.deleted"));
     await reloadSessions();
   }
 

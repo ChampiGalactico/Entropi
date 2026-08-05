@@ -88,6 +88,10 @@ export async function updateAssessment(id: number, values: Omit<Assessment, "id"
       id,
     ],
   );
+  await db.execute(
+    "UPDATE grade_components SET date = $1 WHERE assessment_id = $2",
+    [values.date, id],
+  );
 }
 
 export async function deleteAssessment(id: number): Promise<void> {

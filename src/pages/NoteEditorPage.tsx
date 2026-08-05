@@ -5,6 +5,7 @@ import { AltArrowDownLinear, AltArrowLeftLinear, QuestionCircleLinear, TrashBinT
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { Button, Checkbox, IconButton, notify } from "../components/ui";
+import { confirmDelete } from "../components/ui/ConfirmDialog";
 import { listAllAssessments } from "../db/queries/assessments";
 import { deleteNote, getNote, listNoteLinks, listNotes, replaceNoteLinks, updateNote } from "../db/queries/notes";
 import { listAllSubjects } from "../db/queries/subjects";
@@ -81,7 +82,7 @@ export function NoteEditorPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [save]);
 
-  async function remove() { if (!note) return; await deleteNote(note.id); notify.success(t("feedback.deleted")); navigate(-1); }
+  async function remove() { if (!note || !(await confirmDelete({ itemName: note.title }))) return; await deleteNote(note.id); notify.success(t("feedback.deleted")); navigate(-1); }
 
   if (!note) return null;
   return <div className="mx-auto max-w-7xl">

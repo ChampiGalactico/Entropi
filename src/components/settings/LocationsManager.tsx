@@ -10,6 +10,7 @@ import { Textarea } from "../ui/Textarea";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
 import { notify } from "../ui/Toast";
+import { confirmDelete } from "../ui/ConfirmDialog";
 import {
   createLocation,
   deleteLocation,
@@ -99,7 +100,10 @@ export function LocationsManager() {
   }
 
   async function handleDelete(id: number) {
+    const location = locations.find((item) => item.id === id);
+    if (!(await confirmDelete({ itemName: location?.name }))) return;
     await deleteLocation(id);
+    notify.success(t("feedback.deleted"));
     await reload();
   }
 

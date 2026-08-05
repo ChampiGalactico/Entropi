@@ -10,6 +10,7 @@ import { Input } from "../ui/Input";
 import { Modal } from "../ui/Modal";
 import { SolarIcon } from "../ui/SolarIcon";
 import { notify } from "../ui/Toast";
+import { confirmDelete } from "../ui/ConfirmDialog";
 import {
   createTeachingRole,
   deleteTeachingRole,
@@ -54,8 +55,11 @@ export function TeachingRolesManager() {
   }
 
   async function remove(id: number) {
+    const role = roles.find((item) => item.id === id);
+    if (!(await confirmDelete({ itemName: role?.name }))) return;
     try {
       await deleteTeachingRole(id);
+      notify.success(t("feedback.deleted"));
       setError(null);
       await reload();
     } catch {

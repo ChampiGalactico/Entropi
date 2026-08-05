@@ -37,6 +37,7 @@ export function PlannerPage() {
   const [assessmentStart, setAssessmentStart] = useState("09:00");
   const [assessmentEnd, setAssessmentEnd] = useState("10:00");
   const [taskTitle, setTaskTitle] = useState("");
+  const [taskTypeId, setTaskTypeId] = useState<number | null>(null);
   const weekIso = toIsoDate(weekStart);
   const endIso = toIsoDate(weekEnd);
 
@@ -49,6 +50,7 @@ export function PlannerPage() {
     ]);
     setPlan(weeklyPlan); setGoals(weeklyPlan?.goals ?? null); setReflection(weeklyPlan?.reflection ?? null);
     setTaskTypes(types); setTasks(weekTasks); setDirty(false); setError(null); setCollapsedDays(new Set());
+    setTaskTypeId((current) => current ?? types.find((type) => /prep|prepar/i.test(type.name))?.id ?? types[0]?.id ?? null);
     setAssessmentTypes(assessmentTypeRows); setAssessmentTypeId((current) => current ?? assessmentTypeRows[0]?.id ?? null);
   }
 
@@ -73,23 +75,34 @@ export function PlannerPage() {
   }
 
   function hasPlannedItem(item: CalendarItem) {
-    return Boolean(prepFor(item)) || assessments.some((assessment) => assessment.subjectId === item.subjectId && assessment.date === item.date && assessment.startTime === item.startTime);
+    const hasTask = tasks.some((task) => task.subject_id === item.subjectId && task.due_date === item.date && task.due_time === item.startTime);
+    return hasTask || assessments.some((assessment) => assessment.subjectId === item.subjectId && assessment.date === item.date && assessment.startTime === item.startTime);
   }
 
   function openPrepare(item: CalendarItem) {
     setPlanningSession(item); setAssessmentTitle("");
     setTaskTitle(t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }));
+    setTaskTypeId(prepType?.id ?? taskTypes[0]?.id ?? null);
     setAssessmentStart(item.startTime ?? "09:00"); setAssessmentEnd(item.endTime ?? item.startTime ?? "10:00");
   }
 
-  async function createPrep(item: CalendarItem, status: "pending" | "completed" = "pending", title = taskTitle) {
+  async function createPlannedTask(item: CalendarItem) {
+    if (taskTypeId === null || item.subjectId === undefined) { setError(t("planner.noTaskType")); return; }
+    await createTask({ subject_id: item.subjectId, task_type_id: taskTypeId, title: taskTitle.trim() || t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "pending" });
+    setTasks(await listTasks({ dueDateFrom: weekIso, dueDateTo: endIso }));
+    setTaskTitle("");
+    setError(null);
+    notify.success(t("planner.taskCreated"));
+  }
+
+  async function markPrepared(item: CalendarItem) {
     if (!prepType || item.subjectId === undefined) { setError(t("planner.noTaskType")); return; }
     const existing = prepFor(item);
-    if (status === "completed" && existing) await setTaskStatus(existing.id, status);
-    else await createTask({ subject_id: item.subjectId, task_type_id: prepType.id, title: title.trim() || t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status });
+    if (existing) await setTaskStatus(existing.id, "completed");
+    else await createTask({ subject_id: item.subjectId, task_type_id: prepType.id, title: t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "completed" });
     setTasks(await listTasks({ dueDateFrom: weekIso, dueDateTo: endIso }));
-    if (status === "pending") setTaskTitle("");
-    notify.success(status === "completed" ? t("planner.prepared") : t("planner.prepTaskCreated"));
+    setError(null);
+    notify.success(t("planner.prepared"));
   }
 
   async function addAssessmentForSession() {
@@ -124,7 +137,7 @@ export function PlannerPage() {
     </div>
 
     <div className="grid min-h-0 flex-1 grid-rows-2 gap-4 xl:grid-cols-[1.1fr_.9fr] xl:grid-rows-1">
-      <div className="grid min-h-0 gap-4 grid-rows-[minmax(0,2.2fr)_minmax(0,.8fr)]">
+      <div className="grid min-h-0 gap-4 grid-rows-[minmax(0,1.8fr)_minmax(0,1fr)]">
         <Card className="flex min-h-0 flex-col overflow-hidden">
           <div className="mb-4 shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.weekSchedule")}</h2><p className="mt-1 text-xs text-text-muted">{t("planner.weekScheduleHint")}</p></div>
           {sessions.length === 0 ? <div className="min-h-0 flex-1 overflow-y-auto"><EmptyState title={t("planner.noClasses")} /></div> : <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1" style={{ scrollbarGutter: "stable" }}>
@@ -142,12 +155,12 @@ export function PlannerPage() {
         </Card>
 
         <Card className="flex min-h-0 flex-col overflow-hidden">
-          <div className="shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.goals")}</h2><p className="mb-3 mt-1 text-xs text-text-muted">{t("planner.goalsHint")}</p></div><div className="min-h-0 flex-1 overflow-y-auto"><BlockNoteEditor key={`goals-${weekIso}-${plan?.id ?? "new"}`} value={goals} onChange={(value) => { setGoals(value); setDirty(true); }} /></div>
+          <div className="shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.reflection")}</h2><p className="mb-3 mt-1 text-xs text-text-muted">{t("planner.reflectionHint")}</p></div><div className="min-h-0 flex-1 overflow-y-auto"><BlockNoteEditor key={`reflection-${weekIso}-${plan?.id ?? "new"}`} value={reflection} onChange={(value) => { setReflection(value); setDirty(true); }} /></div>
         </Card>
       </div>
 
       <div className="relative grid min-h-0 gap-4 grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Card className="flex min-h-0 flex-col overflow-hidden"><div className="shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.reflection")}</h2><p className="mb-3 mt-1 text-xs text-text-muted">{t("planner.reflectionHint")}</p></div><div className="min-h-0 flex-1 overflow-y-auto"><BlockNoteEditor key={`reflection-${weekIso}-${plan?.id ?? "new"}`} value={reflection} onChange={(value) => { setReflection(value); setDirty(true); }} /></div></Card>
+        <Card className="flex min-h-0 flex-col overflow-hidden"><div className="shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.goals")}</h2><p className="mb-3 mt-1 text-xs text-text-muted">{t("planner.goalsHint")}</p></div><div className="min-h-0 flex-1 overflow-y-auto"><BlockNoteEditor key={`goals-${weekIso}-${plan?.id ?? "new"}`} value={goals} onChange={(value) => { setGoals(value); setDirty(true); }} /></div></Card>
         <Card className="flex min-h-0 flex-col overflow-hidden"><div className="mb-4 shrink-0"><h2 className="text-sm font-semibold text-text-primary">{t("planner.assessments")}</h2><p className="mt-1 text-xs text-text-muted">{t("planner.assessmentsHint")}</p></div>{assessments.length === 0 ? <div className="min-h-0 flex-1 overflow-y-auto"><EmptyState title={t("planner.noAssessments")} /></div> : <div className="grid min-h-0 flex-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2" style={{ scrollbarGutter: "stable" }}>{assessments.map((item) => <div key={item.id} className="h-fit rounded-xl bg-control p-2.5"><p className="text-[10px] capitalize" style={{ color: item.color }}>{new Intl.DateTimeFormat(i18n.language, { weekday: "short", day: "numeric", month: "short" }).format(fromIso(item.date))}</p><p className="mt-0.5 truncate text-xs font-semibold text-text-primary">{item.title}</p><p className="truncate text-[10px] text-text-muted">{item.subtitle}</p></div>)}</div>}</Card>
         {error && <p className="absolute bottom-2 right-4 text-xs text-danger">{error}</p>}
       </div>
@@ -157,10 +170,10 @@ export function PlannerPage() {
       {planningSession && <div className="space-y-4">
         <div className="rounded-2xl bg-control p-3"><p className="text-sm font-semibold text-text-primary">{planningSession.title}</p><p className="mt-1 text-xs text-text-muted">{planningSession.date} · {planningSession.startTime}–{planningSession.endTime}</p><p className="mt-2 text-xs text-text-secondary">{t("planner.prepareSessionHint")}</p></div>
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="flex flex-col rounded-2xl bg-control p-4"><h3 className="text-sm font-semibold text-text-primary">{t("planner.addPrepTask")}</h3><p className="mt-1 text-xs text-text-muted">{t("planner.prepDescription")}</p><Input className="mt-3" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder={t("planner.addPrepTask")} /><Button className="mt-4" variant="secondary" onClick={() => void createPrep(planningSession)} disabled={!taskTitle.trim()}>{t("planner.addPrepTask")}</Button></div>
+          <div className="flex flex-col rounded-2xl bg-control p-4"><h3 className="text-sm font-semibold text-text-primary">{t("planner.addTask")}</h3><p className="mt-1 text-xs text-text-muted">{t("planner.prepDescription")}</p><label className="mt-3 text-xs text-text-secondary">{t("planner.taskType")}<div className="mt-1"><Combobox value={taskTypeId === null ? null : String(taskTypeId)} onChange={(value) => setTaskTypeId(Number(value))} options={taskTypes.map((type) => ({ value: String(type.id), label: type.name, color: type.color }))} /></div></label><Input className="mt-3" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder={t("planner.addTask")} /><Button className="mt-4" variant="secondary" onClick={() => void createPlannedTask(planningSession)} disabled={!taskTitle.trim() || taskTypeId === null}>{t("planner.addTask")}</Button></div>
           <div className="rounded-2xl bg-control p-4"><h3 className="text-sm font-semibold text-text-primary">{t("planner.addAssessment")}</h3><label className="mt-3 block text-xs text-text-secondary">{t("planner.assessmentName")}<Input className="mt-1" value={assessmentTitle} onChange={(event) => setAssessmentTitle(event.target.value)} /></label><label className="mt-3 block text-xs text-text-secondary">{t("planner.assessmentType")}<div className="mt-1"><Combobox value={assessmentTypeId === null ? null : String(assessmentTypeId)} onChange={(value) => setAssessmentTypeId(Number(value))} options={assessmentTypes.map((type) => ({ value: String(type.id), label: type.name, color: type.color }))} /></div></label><div className="mt-3 grid grid-cols-2 gap-2"><TimePicker value={assessmentStart} onChange={setAssessmentStart} /><TimePicker value={assessmentEnd} onChange={setAssessmentEnd} /></div><Button className="mt-4 w-full" variant="secondary" onClick={() => void addAssessmentForSession()} disabled={!assessmentTitle.trim() || assessmentTypeId === null}>{t("planner.addAssessment")}</Button></div>
         </div>
-        <div className="flex justify-end"><Button className="flex items-center gap-2" disabled={!hasPlannedItem(planningSession)} onClick={() => void createPrep(planningSession, "completed").then(() => setPlanningSession(null))}><CheckCircleLinear size={16} />{t("planner.markPrepared")}</Button></div>
+        <div className="flex justify-end"><Button className="flex items-center gap-2" disabled={!hasPlannedItem(planningSession)} onClick={() => void markPrepared(planningSession).then(() => setPlanningSession(null))}><CheckCircleLinear size={16} />{t("planner.markPrepared")}</Button></div>
       </div>}
     </Modal>
   </div>;

@@ -10,6 +10,7 @@ import { ColorPickerPopover } from "../ui/ColorPickerPopover";
 import { IconPicker } from "../ui/IconPicker";
 import { SolarIcon } from "../ui/SolarIcon";
 import { notify } from "../ui/Toast";
+import { confirmDelete } from "../ui/ConfirmDialog";
 import {
   createLookupRow,
   countLookupRowUsage,
@@ -102,6 +103,8 @@ export function LookupTableEditor({ table, title }: LookupTableEditorProps) {
         notify.error(t("settings.lookup.inUse", { count: usage }));
         return;
       }
+      const row = rows.find((item) => item.id === id);
+      if (!(await confirmDelete({ itemName: row?.name }))) return;
       await deleteLookupRow(table, id);
       notify.success(t("feedback.deleted"));
       await reload();

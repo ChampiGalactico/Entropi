@@ -7,6 +7,7 @@ import { createGradeComponent, deleteGradeComponent, listGradeComponents, update
 import { getGradingConfig } from "../../db/queries/config";
 import { calculateGrades } from "../../lib/gradeCalculator";
 import type { Assessment, GradeComponent, GradingConfig, Subject } from "../../types";
+import { confirmDelete } from "../ui/ConfirmDialog";
 
 const todayIso = () => new Date().toLocaleDateString("en-CA");
 const DEFAULT_CONFIG: GradingConfig = { id: 1, scale_min: 0, scale_max: 5, min_passing_grade: 3, decimal_places_display: 2 };
@@ -139,6 +140,13 @@ export function GradesTab({ subject }: { subject: Subject }) {
     await reload();
   }
 
+  async function removeComponent(component: GradeComponent) {
+    if (!(await confirmDelete({ itemName: component.name }))) return;
+    await deleteGradeComponent(component.id);
+    notify.success(t("feedback.deleted"));
+    await reload();
+  }
+
   useEffect(() => {
     if (!componentOpen) return;
     function onSave(event: KeyboardEvent) {
@@ -170,7 +178,7 @@ export function GradesTab({ subject }: { subject: Subject }) {
               ? <><span className={`mr-2 text-lg font-bold ${value !== null && value < passing ? "text-danger" : "text-text-primary"}`}>{format(value)}</span><Button variant="ghost" className="flex items-center gap-1 px-3 py-1.5 text-xs" onClick={() => openComponent(undefined, component.id)}><AddCircleLinear size={14} />{t("grades.addGrade")}</Button></>
               : <InlineGrade component={component} min={config.scale_min} max={scaleMax} passing={passing} decimals={config.decimal_places_display} onSave={(grade) => saveInlineGrade(component, grade)} />}
             <IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={15} />} onClick={() => openComponent(component)} />
-            <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={() => void deleteGradeComponent(component.id).then(reload)} />
+            <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={() => void removeComponent(component)} />
           </div>
         </div>
       </div>
@@ -195,7 +203,10 @@ export function GradesTab({ subject }: { subject: Subject }) {
         {!form.isGroup && <>
           <label className="text-xs text-text-secondary">{t("grades.gradeOptional")}<NumberInput className={`mt-1 ${errors.has("grade") ? invalidClass : ""}`} step={0.1} min={config.scale_min} max={scaleMax} value={form.grade} onValueChange={(grade) => { setForm((current) => ({ ...current, grade })); setErrors((current) => { const next = new Set(current); next.delete("grade"); return next; }); }} placeholder="—" /></label>
           <DatePicker label={t("grades.date")} value={form.date} onChange={(date) => setForm((current) => ({ ...current, date }))} />
-          <label className="text-xs text-text-secondary">{t("grades.assessment")}<div className="mt-1"><Combobox value={form.assessmentId} onChange={(assessmentId) => setForm((current) => ({ ...current, assessmentId }))} options={[{ value: "", label: t("grades.noAssessment") }, ...assessments.map((assessment) => ({ value: String(assessment.id), label: assessment.title }))]} searchable /></div></label>
+          <label className="text-xs text-text-secondary">{t("grades.assessment")}<div className="mt-1"><Combobox value={form.assessmentId} onChange={(assessmentId) => setForm((current) => {
+            const assessment = assessments.find((item) => String(item.id) === assessmentId);
+            return { ...current, assessmentId, date: assessment?.date ?? current.date };
+          })} options={[{ value: "", label: t("grades.noAssessment") }, ...assessments.map((assessment) => ({ value: String(assessment.id), label: assessment.title }))]} searchable /></div></label>
           <label className="text-xs text-text-secondary">{t("grades.entryNotes")}<Textarea className="mt-1" rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></label>
         </>}
         <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setComponentOpen(false)}>{t("settings.lookup.cancel")}</Button><Button onClick={() => void saveComponent()}>{t("settings.lookup.save")}</Button></div>

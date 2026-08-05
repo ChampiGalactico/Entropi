@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { Combobox } from "../ui/Combobox";
 import { Switch } from "../ui/Switch";
 import { ColorPickerPopover } from "../ui/ColorPickerPopover";
@@ -8,12 +10,41 @@ import { useTheme } from "../../hooks/useTheme";
 import { useLanguage } from "../../hooks/useLanguage";
 import { CalendarSettingsSection } from "./CalendarSettingsSection";
 import { NotesSettingsSection } from "./NotesSettingsSection";
+import { notify } from "../ui/Toast";
 
 export function GeneralSettingsSection() {
   const { t } = useTranslation();
   const { mode, setMode, accentPrimary, accentSecondary, setAccentPrimary, setAccentSecondary } =
     useTheme();
   const { language, setLanguage, locales } = useLanguage();
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+  const [autostartBusy, setAutostartBusy] = useState(true);
+  const [autostartAvailable, setAutostartAvailable] = useState(true);
+
+  useEffect(() => {
+    void isEnabled()
+      .then((enabled) => setAutostartEnabled(enabled))
+      .catch(() => setAutostartAvailable(false))
+      .finally(() => setAutostartBusy(false));
+  }, []);
+
+  async function changeAutostart(checked: boolean) {
+    setAutostartBusy(true);
+    try {
+      if (checked) await enable();
+      else await disable();
+
+      const enabled = await isEnabled();
+      setAutostartEnabled(enabled);
+      notify.success(
+        t(enabled ? "settings.general.autostartEnabled" : "settings.general.autostartDisabled"),
+      );
+    } catch {
+      notify.error(t("settings.general.autostartError"));
+    } finally {
+      setAutostartBusy(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -51,6 +82,27 @@ export function GeneralSettingsSection() {
           <ColorPickerPopover
             value={accentSecondary}
             onChange={(hex) => void setAccentSecondary(hex)}
+          />
+        </SettingsRow>
+      </div>
+
+      <div className="flex flex-col">
+        <h3 className="pb-1 text-sm font-semibold text-text-primary">
+          {t("settings.general.system")}
+        </h3>
+
+        <SettingsRow
+          label={t("settings.general.autostart")}
+          description={t(
+            autostartAvailable
+              ? "settings.general.autostartHint"
+              : "settings.general.autostartDesktopOnly",
+          )}
+        >
+          <Switch
+            checked={autostartEnabled}
+            disabled={autostartBusy || !autostartAvailable}
+            onChange={(checked) => void changeAutostart(checked)}
           />
         </SettingsRow>
       </div>
