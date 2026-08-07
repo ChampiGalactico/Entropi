@@ -1,4 +1,5 @@
 import { BlockNoteSchema, createCodeBlockSpec, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
+import { DiagramBlock } from "./DiagramBlock";
 import { DrawingBlock } from "./DrawingBlock";
 import { InlineMath, MathBlock } from "./MathBlocks";
 
@@ -50,6 +51,7 @@ export const noteSchema = BlockNoteSchema.create({
     codeBlock: createCodeBlockSpec({ supportedLanguages: languages, defaultLanguage: "javascript", createHighlighter: async () => localHighlighter as any }),
     drawing: DrawingBlock,
     math: MathBlock,
+    diagram: DiagramBlock,
   },
   inlineContentSpecs: { ...defaultInlineContentSpecs, inlineMath: InlineMath },
 });

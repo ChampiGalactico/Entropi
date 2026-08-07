@@ -32,7 +32,7 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokesRef = useRef<Stroke[]>(parseStrokes(block.props.drawing));
   const drawingRef = useRef(false);
-  const [color, setColor] = useState<InkColor>("accent");
+  const initialPalette = loadPalette();
   const [tool, setTool] = useState<DrawingTool>("pen");
   const [penStyle, setPenStyle] = useState<PenStyle>("pencil");
   const [penMenuOpen, setPenMenuOpen] = useState(false);
@@ -40,8 +40,9 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
   const [eraserMenuOpen, setEraserMenuOpen] = useState(false);
   const [strokeWidth, setStrokeWidth] = useState(2.5);
   const [eraserSize, setEraserSize] = useState(28);
-  const [palette, setPalette] = useState<string[]>(loadPalette);
+  const [palette, setPalette] = useState<string[]>(initialPalette);
   const [activeSlot, setActiveSlot] = useState(0);
+  const [color, setColor] = useState<InkColor>(initialPalette[0]);
   const [, setRevision] = useState(0);
 
   function resolveColor(ink: InkColor) {

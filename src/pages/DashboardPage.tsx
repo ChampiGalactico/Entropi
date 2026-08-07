@@ -29,10 +29,14 @@ export function DashboardPage() {
   const todayIso = toIsoDate(today);
   const weekStart = startOfWeek(today);
   const weekEnd = addDays(weekStart, 6);
+  const [dayOffset, setDayOffset] = useState(0);
+  const selectedDay = addDays(today, dayOffset);
+  const selectedDayIso = toIsoDate(selectedDay);
   const [rangeOffset, setRangeOffset] = useState(0);
   const rangeStart = addDays(today, rangeOffset * 7);
   const rangeEnd = addDays(rangeStart, 6);
   const weekItems = useCalendarItems(weekStart, weekEnd);
+  const dayItems = useCalendarItems(selectedDay, selectedDay);
   const rangeItems = useCalendarItems(rangeStart, rangeEnd);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [topics, setTopics] = useState<LearningTopic[]>([]);
@@ -54,9 +58,10 @@ export function DashboardPage() {
   const completed = tasks.filter((task) => task.status === "completed").length;
   const inProgress = tasks.filter((task) => task.status === "in_progress").length;
   const overdue = tasks.filter((task) => task.status === "pending" && task.due_date && new Date(`${task.due_date}T${task.due_time ?? "23:59"}`).getTime() < Date.now()).length;
-  const todayItems = weekItems.filter((item) => item.date === todayIso && !item.muted);
+  const todayItems = dayItems.filter((item) => item.date === selectedDayIso && !item.muted);
   const sessions = todayItems.filter((item) => item.kind === "session").sort(byTime);
   const looseTodayItems = todayItems.filter((item) => item.kind !== "session");
+  const selectedDayLabel = new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(selectedDay);
   const upcoming = rangeItems.filter((item) => item.kind !== "session" && !item.muted).sort(byDateTime);
   const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
   const activeTopics = topics.filter((topic) => topic.status !== "completed");
@@ -101,9 +106,12 @@ export function DashboardPage() {
     <div className="flex min-h-0 flex-1 flex-col gap-2.5">
       <div className="grid min-h-0 flex-1 gap-2.5" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
       <Card className="flex min-h-0 flex-col overflow-hidden p-3.5">
-        <PanelTitle icon={<CalendarLinear size={17} />} title={t("dashboard.todayAgenda")} subtitle={t("dashboard.todayAgendaHint")} />
+        <div className="flex items-center justify-between gap-3">
+          <PanelTitle icon={<CalendarLinear size={17} />} title={dayOffset === 0 ? t("dashboard.todayAgenda") : selectedDayLabel} subtitle={dayOffset === 0 ? t("dashboard.todayAgendaHint") : undefined} />
+          <div className="flex shrink-0 gap-1"><IconButton label={t("dashboard.previousDay")} icon={<AltArrowLeftLinear size={15} />} onClick={() => setDayOffset((value) => value - 1)} />{dayOffset !== 0 && <Button className="px-3 py-1 text-xs" variant="ghost" onClick={() => setDayOffset(0)}>{t("calendar.today")}</Button>}<IconButton label={t("dashboard.nextDay")} icon={<AltArrowRightLinear size={15} />} onClick={() => setDayOffset((value) => value + 1)} /></div>
+        </div>
         <div className="mt-2.5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1" style={{ scrollbarGutter: "stable" }}>
-          {sessions.length === 0 && looseTodayItems.length === 0 ? <EmptyState title={t("dashboard.noAgenda")} /> : sessions.map((session, index) => {
+          {sessions.length === 0 && looseTodayItems.length === 0 ? <EmptyState title={dayOffset === 0 ? t("dashboard.noAgenda") : t("dashboard.noAgendaDay")} /> : sessions.map((session, index) => {
             const children = index === sessions.findIndex((candidate) => candidate.subjectId === session.subjectId)
               ? looseTodayItems.filter((item) => item.subjectId === session.subjectId)
               : [];

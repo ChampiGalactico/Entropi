@@ -65,6 +65,9 @@
     "todayAgenda": "Today's agenda",
     "todayAgendaHint": "Everything that needs your attention today.",
     "noAgenda": "Nothing scheduled for today.",
+    "noAgendaDay": "Nothing scheduled for this day.",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
     "upcoming": "Next 7 days",
     "upcomingHint": "Assessments, tasks, and personal events.",
     "noUpcoming": "No upcoming deadlines.",
@@ -425,6 +428,18 @@
       "tools": { "pen": "Pen", "eraser": "Eraser", "line": "Line", "circle": "Circle", "rectangle": "Rectangle", "triangle": "Triangle", "axes2d": "2D plane", "axes3d": "3D axes" }
     },
     "math": { "add": "Add formula", "slashTitle": "Math formula", "slashDescription": "Write a LaTeX equation." },
+    "diagram": {
+      "slashTitle": "Diagram",
+      "done": "Done",
+      "error": "Syntax error",
+      "templates": {
+        "flowchart": { "title": "Flowchart", "description": "Flowchart with decisions and steps." },
+        "sequence": { "title": "Sequence diagram", "description": "Interactions between participants over time." },
+        "class": { "title": "Class diagram", "description": "Classes, attributes, and relationships." },
+        "state": { "title": "State diagram", "description": "States and transitions." },
+        "gantt": { "title": "Gantt chart", "description": "Timeline of tasks and phases." }
+      }
+    },
     "help": {
       "title": "Writing notes help",
       "tooltip": "Commands and LaTeX help",
@@ -479,7 +494,8 @@
       "exam": "Prepare an assessment",
       "note": "Create a note",
       "search": "Search Entropi",
-      "searchHint": "Type to search subjects, professors, tasks, assessments, and notes."
+      "searchHint": "Type to search subjects, professors, tasks, assessments, and notes.",
+      "useCommand": "Use this command"
     },
     "types": { "subject": "Subject", "task": "Task", "assessment": "Assessment", "note": "Note" }
   },

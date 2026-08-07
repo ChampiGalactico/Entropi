@@ -202,12 +202,108 @@ body {
   box-shadow: var(--shadow-modal) !important;
   backdrop-filter: blur(20px);
   padding: 0.28rem !important;
+  gap: 0.15rem !important;
 }
 
 .bn-formatting-toolbar,
 .bn-menu-dropdown {
   z-index: 150 !important;
   overflow: visible !important;
+}
+
+.bn-formatting-toolbar .bn-button {
+  border-radius: 0.6rem !important;
+}
+
+/* The formatting toolbar's dropdowns (color picker, block type, etc.) render via Mantine's
+   Menu, whose default styling depends on a MantineProvider theme this app doesn't set up —
+   so they arrive unstyled. Re-skin them to match the rest of the app's popovers. */
+.mantine-Menu-dropdown.bn-menu-dropdown {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 1rem !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-modal) !important;
+  backdrop-filter: blur(20px);
+  padding: 0.35rem !important;
+  max-height: min(70vh, 26rem) !important;
+  overflow-y: auto !important;
+}
+
+.mantine-Menu-label {
+  padding: 0.35rem 0.6rem 0.2rem !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted) !important;
+}
+
+.mantine-Menu-item {
+  border-radius: 0.6rem !important;
+  padding: 0.4rem 0.6rem !important;
+  color: var(--text-primary) !important;
+  font-size: 0.82rem !important;
+}
+
+.mantine-Menu-item:hover,
+.mantine-Menu-item[data-hovered] {
+  background: var(--bg-surface-hover) !important;
+}
+
+/* BlockNote's color swatches (.bn-color-icon) are colored via [data-text-color]/[data-background-color]
+   attribute selectors defined in @blocknote/core's CSS — but Mantine's own menu-item text color rule
+   loads after it and wins the specificity tie, so every swatch renders in the same neutral gray.
+   Re-assert BlockNote's own palette here (after both stylesheets) and turn the swatch into an
+   actual color circle instead of a colored letter, so colors are visible at a glance. */
+.bn-color-icon {
+  width: 1.1rem !important;
+  height: 1.1rem !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--border-subtle);
+  font-size: 0 !important;
+}
+
+.bn-color-icon[data-background-color="default"] { background-color: transparent; }
+.bn-color-icon[data-background-color="gray"] { background-color: #ebeced !important; }
+.bn-color-icon[data-background-color="brown"] { background-color: #e9e5e3 !important; }
+.bn-color-icon[data-background-color="red"] { background-color: #fbe4e4 !important; }
+.bn-color-icon[data-background-color="orange"] { background-color: #f6e9d9 !important; }
+.bn-color-icon[data-background-color="yellow"] { background-color: #fbf3db !important; }
+.bn-color-icon[data-background-color="green"] { background-color: #ddedea !important; }
+.bn-color-icon[data-background-color="blue"] { background-color: #ddebf1 !important; }
+.bn-color-icon[data-background-color="purple"] { background-color: #eae4f2 !important; }
+.bn-color-icon[data-background-color="pink"] { background-color: #f4dfeb !important; }
+
+.bn-color-icon[data-background-color="default"][data-text-color="default"] { background-color: var(--text-primary) !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="gray"] { background-color: #9b9a97 !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="brown"] { background-color: #64473a !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="red"] { background-color: #e03e3e !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="orange"] { background-color: #d9730d !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="yellow"] { background-color: #dfab01 !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="green"] { background-color: #4d6461 !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="blue"] { background-color: #0b6e99 !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="purple"] { background-color: #6940a5 !important; }
+.bn-color-icon[data-background-color="default"][data-text-color="pink"] { background-color: #ad1a72 !important; }
+
+/* Mantine's Tooltip has no theme configured in this app (no MantineProvider), so its default
+   tooltip renders as plain unstyled text. Re-skin it to match this app's own Tooltip component. */
+.mantine-Tooltip-tooltip {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 0.75rem !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-card) !important;
+  backdrop-filter: blur(20px);
+  padding: 0.4rem 0.65rem !important;
+  color: var(--text-primary) !important;
+}
+
+.bn-tooltip .mantine-Text-root {
+  font-size: 0.72rem !important;
+  color: var(--text-primary) !important;
+}
+
+.bn-tooltip .mantine-Text-root:last-child:not(:first-child) {
+  color: var(--text-muted) !important;
 }
 
 .entropi-note-page .bn-inline-content code,
@@ -250,62 +346,14 @@ body {
 }
 
 .entropi-math-display {
-  display: block;
+  display: inline-block;
+  max-width: 100%;
   overflow-x: auto;
-  padding: 1rem;
+  padding: 0.35rem 0.75rem;
   text-align: center;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: var(--text-primary);
 }
-
-.math-frac {
-  display: inline-flex;
-  vertical-align: middle;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.05;
-  margin-inline: 0.16em;
-}
-
-.math-frac > span:first-child { border-bottom: 1px solid currentColor; padding: 0 0.18em 0.08em; }
-.math-frac > span:last-child { padding: 0.08em 0.18em 0; }
-.math-sqrt > span { border-top: 1px solid currentColor; padding: 0.05em 0.12em 0; }
-.math-function { font-style: normal; margin-right: 0.1em; }
-.math-operator, .math-text, .math-roman { font-style: normal; }
-.math-bold { font-weight: 700; }
-.math-italic { font-style: italic; }
-.math-vec, .math-hat, .math-bar, .math-underline { position: relative; display: inline-block; }
-.math-vec::before { content: "→"; position: absolute; inset: -0.72em 0 auto; text-align: center; font-size: 0.72em; line-height: 1; }
-.math-hat::before { content: "^"; position: absolute; inset: -0.62em 0 auto; text-align: center; font-size: 0.72em; line-height: 1; }
-.math-bar { border-top: 1px solid currentColor; }
-.math-underline { border-bottom: 1px solid currentColor; }
-.math-boxed { display: inline-block; border: 1px solid currentColor; padding: 0.12em 0.28em; }
-.math-cancel { display: inline-block; text-decoration: line-through; }
-.math-line-break { display: block; height: 0.3em; }
-.math-space-thin { display: inline-block; width: 0.16em; }
-.math-space-medium { display: inline-block; width: 0.22em; }
-.math-space-thick { display: inline-block; width: 0.28em; }
-.math-space-negative { display: inline-block; margin-left: -0.16em; }
-.math-space-normal { display: inline-block; width: 0.34em; }
-.math-space-quad { display: inline-block; width: 1em; }
-.math-space-qquad { display: inline-block; width: 2em; }
-.math-matrix-wrap, .math-align-wrap, .math-delimited { display: inline-flex; align-items: stretch; vertical-align: middle; margin-inline: 0.18em; }
-.math-delimited-content { display: inline-flex; align-items: center; min-height: 1.5em; }
-.math-matrix { display: inline-grid; gap: 0.28em 0.7em; padding: 0.12em 0.3em; }
-.math-matrix-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0.7em; }
-.math-matrix-cell { display: inline-block; min-width: 1em; text-align: center; }
-.math-matrix-separator { border-left: 1px solid currentColor; padding-left: 0.7em; }
-.math-matrix-delimiter { align-self: stretch; display: inline-flex; width: 0.48em; min-height: 1.65em; color: currentColor; }
-.math-delimiter-none { width: 0; }
-.math-delimiter-svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.math-delimiter-svg path { fill: none; stroke: currentColor; stroke-width: 1.55; stroke-linecap: square; stroke-linejoin: miter; vector-effect: non-scaling-stroke; }
-.math-cases-brace { align-self: stretch; display: inline-flex; align-items: center; font-size: 2em; font-weight: 300; transform: scaleY(1.08); }
-.math-binomial, .math-align { display: inline-flex; flex-direction: column; gap: 0.2em; padding-inline: 0.2em; }
-.math-align-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: baseline; column-gap: 0.2em; }
-.math-align-cell { display: inline-block; min-width: 0; }
-.math-align-right { text-align: right; }
-.math-align-left { text-align: left; }
-.entropi-math sup, .entropi-math sub { font-size: 0.68em; }
 
 [data-content-type="codeBlock"] {
   border: 1px solid var(--border-subtle);

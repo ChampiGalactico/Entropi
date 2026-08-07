@@ -128,13 +128,34 @@ export function GlobalSearch() {
         { id: "guide-note", title: t("search.guide.note"), subtitle: "note: Ideas del proyecto · subject: es opcional", icon: <NotebookLinear size={16} />, color: "var(--text-secondary)", run: () => { setQuery("note: "); setActiveIndex(0); requestAnimationFrame(() => inputRef.current?.focus()); } },
         { id: "guide-search", title: t("search.guide.search"), subtitle: t("search.guide.searchHint"), icon: <MagniferLinear size={16} />, color: "var(--text-muted)", run: () => inputRef.current?.focus() },
       ];
-      return [
+
+      const commandIcons: Record<CommandKey, ReactNode> = {
+        subject: <SquareAcademicCapLinear size={16} />, semester: <SquareAcademicCapLinear size={16} />,
+        professor: <UserIdLinear size={16} />, task: <ChecklistMinimalisticLinear size={16} />,
+        exam: <BookLinear size={16} />, note: <NotebookLinear size={16} />,
+      };
+      const matchedKeys = new Set<CommandKey>();
+      for (const [alias, key] of Object.entries(COMMAND_ALIASES)) {
+        if (alias.startsWith(search)) matchedKeys.add(key);
+      }
+      const commandSuggestions: ResultItem[] = [...matchedKeys].map((key) => ({
+        id: `command-key-${key}`,
+        title: `${COMMAND_LABELS[key]} · ${key}:`,
+        subtitle: t("search.guide.useCommand"),
+        icon: commandIcons[key],
+        color: "var(--accent)",
+        run: () => { setQuery(`${key}: `); setActiveIndex(0); requestAnimationFrame(() => inputRef.current?.focus()); },
+      }));
+
+      const entityResults = [
         ...subjects.map((subject) => ({ id: `subject-${subject.id}`, title: subject.name, subtitle: subject.code ?? t("search.types.subject"), icon: <SquareAcademicCapLinear size={16} />, color: subject.color, run: () => { navigate(`/subjects/${subject.id}`); close(); } })),
         ...professors.map((professor) => ({ id: `professor-${professor.id}`, title: professor.name, subtitle: [professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" · ") || "Profesor", searchText: [professor.name, professor.email, professor.department, professor.office, professor.phone].filter(Boolean).join(" "), icon: <UserIdLinear size={16} />, color: "var(--accent-secondary)", run: () => { close(); setProfileProfessor(professor); } })),
         ...tasks.map((task) => ({ id: `task-${task.id}`, title: task.title, subtitle: t("search.types.task"), icon: <ChecklistMinimalisticLinear size={16} />, color: "var(--accent-secondary)", run: () => { navigate("/tasks"); close(); } })),
         ...assessments.map((assessment) => ({ id: `assessment-${assessment.id}`, title: assessment.title, subtitle: t("search.types.assessment"), icon: <BookLinear size={16} />, color: "var(--accent)", run: () => { navigate(`/subjects/${assessment.subject_id}`, { state: { tab: "assessments" } }); close(); } })),
         ...notes.map((note) => ({ id: `note-${note.id}`, title: note.title, subtitle: t("search.types.note"), icon: <NotebookLinear size={16} />, color: "var(--text-secondary)", run: () => { navigate(`/notes/${note.id}`); close(); } })),
       ].filter((item) => normalized(`${item.title} ${item.subtitle} ${"searchText" in item ? item.searchText : ""}`).includes(search)).slice(0, 8);
+
+      return [...commandSuggestions, ...entityResults];
     }
 
     const output: ResultItem[] = [];

@@ -65,6 +65,9 @@
     "todayAgenda": "Agenda de hoy",
     "todayAgendaHint": "Todo lo que requiere tu atención hoy.",
     "noAgenda": "No hay compromisos para hoy.",
+    "noAgendaDay": "No hay compromisos para este día.",
+    "previousDay": "Día anterior",
+    "nextDay": "Día siguiente",
     "upcoming": "Próximos 7 días",
     "upcomingHint": "Evaluaciones, tareas y eventos personales.",
     "noUpcoming": "No hay vencimientos próximos.",
@@ -425,6 +428,18 @@
       "tools": { "pen": "Lápiz", "eraser": "Borrador", "line": "Línea", "circle": "Círculo", "rectangle": "Rectángulo", "triangle": "Triángulo", "axes2d": "Plano 2D", "axes3d": "Ejes 3D" }
     },
     "math": { "add": "Añadir fórmula", "slashTitle": "Fórmula matemática", "slashDescription": "Escribe una ecuación en LaTeX." },
+    "diagram": {
+      "slashTitle": "Diagrama",
+      "done": "Listo",
+      "error": "Error de sintaxis",
+      "templates": {
+        "flowchart": { "title": "Diagrama de flujo", "description": "Flowchart con decisiones y pasos." },
+        "sequence": { "title": "Diagrama de secuencia", "description": "Interacciones entre participantes en el tiempo." },
+        "class": { "title": "Diagrama de clases", "description": "Clases, atributos y relaciones." },
+        "state": { "title": "Diagrama de estados", "description": "Estados y transiciones." },
+        "gantt": { "title": "Diagrama de Gantt", "description": "Cronograma de tareas y fases." }
+      }
+    },
     "help": {
       "title": "Ayuda para escribir notas",
       "tooltip": "Comandos y ayuda de LaTeX",
@@ -479,7 +494,8 @@
       "exam": "Preparar una evaluación",
       "note": "Crear una nota",
       "search": "Buscar en Entropi",
-      "searchHint": "Escribe para buscar materias, profesores, tareas, evaluaciones y notas."
+      "searchHint": "Escribe para buscar materias, profesores, tareas, evaluaciones y notas.",
+      "useCommand": "Usar este comando"
     },
     "types": { "subject": "Materia", "task": "Tarea", "assessment": "Evaluación", "note": "Nota" }
   },

@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import { PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
+import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
 
 function EntropiFormattingToolbar() {
   return <FormattingToolbar>
@@ -56,11 +57,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const initialContent = useMemo(() => parseBlocks(value), [value]);
   const editor = useCreateBlockNote({ schema: noteSchema, initialContent: initialContent as any, dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en }, []);
   const activeBlockId = useRef<string | null>(null);
+  const isSyncingMath = useRef(false);
 
   function serialize() {
-    if (activeBlockId.current === null) {
-      try { activeBlockId.current = editor.getTextCursorPosition().block.id; } catch { /* The editor may not have a text cursor yet. */ }
-    }
     onChange(JSON.stringify(editor.document));
   }
 
@@ -69,11 +68,18 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     const content = block.content.map((item: any) => item.type === "inlineMath"
       ? { type: "text", text: `$${item.props.latex}$`, styles: {} }
       : item);
+    isSyncingMath.current = true;
     editor.updateBlock(block, { content } as any);
+    isSyncingMath.current = false;
   }
 
   function renderMathInBlock(blockId: string | null) {
     if (!blockId) return;
+    isSyncingMath.current = true;
+    try { renderMathInBlockInner(blockId); } finally { isSyncingMath.current = false; }
+  }
+
+  function renderMathInBlockInner(blockId: string) {
     const block = editor.getBlock(blockId) as any;
     if (!block || !Array.isArray(block.content)) return;
     const textOnly = block.content.every((item: any) => item.type === "text");
@@ -125,10 +131,73 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     if (changed) editor.updateBlock(block, { content } as any);
   }
 
+  function caretOffsetInBlock(blockId: string): number | null {
+    const container = document.querySelector(`[data-id="${blockId}"] .bn-inline-content`);
+    const selection = window.getSelection();
+    if (!container || !selection || selection.rangeCount === 0) return null;
+    const range = selection.getRangeAt(0);
+    if (!container.contains(range.startContainer)) return null;
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(container);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    return preRange.toString().length;
+  }
+
+  // Convert an inline $..$ formula (or promote a whole-line $$..$$ into a display math block) the
+  // moment the caret moves past its closing $, without waiting for the user to leave the block —
+  // mirrors Obsidian's live-preview behavior.
+  function convertCompletedInlineMath(blockId: string) {
+    const caret = caretOffsetInBlock(blockId);
+    if (caret === null) return;
+    const block = editor.getBlock(blockId) as any;
+    if (!block || !Array.isArray(block.content) || !block.content.every((item: any) => item.type === "text")) return;
+
+    const fullText = block.content.map((item: any) => item.text).join("");
+    const trimmed = fullText.trim();
+    if (trimmed.startsWith("$$") && trimmed.endsWith("$$") && trimmed.length > 4) {
+      if (caret > fullText.trimEnd().length) {
+        isSyncingMath.current = true;
+        editor.updateBlock(block, { type: "math", props: { latex: trimmed } } as any);
+        isSyncingMath.current = false;
+      }
+      return;
+    }
+
+    const content: any[] = [];
+    let changed = false;
+    let cursor = 0;
+    for (const item of block.content) {
+      const text: string = item.text;
+      if (!text.includes("$")) { content.push(item); cursor += text.length; continue; }
+      const pattern = /\$\$[^$]*\$\$|\$[^$\n]+\$/g;
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(text))) {
+        const matchEnd = cursor + match.index + match[0].length;
+        if (matchEnd >= caret) continue;
+        if (match.index > lastIndex) content.push({ ...item, text: text.slice(lastIndex, match.index) });
+        if (match[0].startsWith("$$")) content.push({ ...item, text: match[0] });
+        else { content.push({ type: "inlineMath", props: { latex: match[0].slice(1, -1) } }); changed = true; }
+        lastIndex = match.index + match[0].length;
+      }
+      if (lastIndex < text.length) content.push({ ...item, text: text.slice(lastIndex) });
+      cursor += text.length;
+    }
+    if (changed) {
+      isSyncingMath.current = true;
+      editor.updateBlock(block, { content } as any);
+      isSyncingMath.current = false;
+    }
+  }
+
   function handleSelectionChange() {
+    if (isSyncingMath.current) return;
     let current: any;
     try { current = editor.getTextCursorPosition().block; } catch { return; }
-    if (activeBlockId.current === current.id) return;
+    if (activeBlockId.current === current.id) {
+      convertCompletedInlineMath(current.id);
+      return;
+    }
     renderMathInBlock(activeBlockId.current);
     activeBlockId.current = current.id;
     revealInlineMath(current);
@@ -142,6 +211,15 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       revealInlineMath(current);
     } catch { /* Custom blocks do not always expose a text cursor. */ }
   }
+
+  // BlockNote's onSelectionChange subscribes/unsubscribes via a useEffect keyed on the callback's
+  // identity, and every keystroke that mutates the doc re-renders this component (onChange -> parent
+  // setState -> new props), producing a fresh handleSelectionChange each time. That resubscription
+  // window can silently swallow the selection-change event for that very keystroke. Route the
+  // subscription through a stable wrapper so it never needs to resubscribe.
+  const handleSelectionChangeRef = useRef(handleSelectionChange);
+  handleSelectionChangeRef.current = handleSelectionChange;
+  const stableHandleSelectionChange = useRef(() => handleSelectionChangeRef.current()).current;
 
   useEffect(() => {
     const before = JSON.stringify(editor.document);
@@ -165,15 +243,23 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     {
       title: t("notes.drawing.slashTitle"),
       subtext: t("notes.drawing.slashDescription"),
-      aliases: ["canvas", "dibujo", "lienzo", "draw", "diagram"],
+      aliases: ["canvas", "dibujo", "lienzo", "draw"],
       group: t("notes.slashGroup"),
       icon: <PenLinear size={18} />,
       onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" }),
     },
+    ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
+      title: t(`notes.diagram.templates.${template}.title`),
+      subtext: t(`notes.diagram.templates.${template}.description`),
+      aliases: ["diagram", "diagrama", "mermaid", template],
+      group: t("notes.slashGroup"),
+      icon: <SolarIcon name="RoutingLinear" size={18} />,
+      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "diagram", props: { code: DIAGRAM_TEMPLATES[template] } }),
+    })),
   ], [editor, t]);
   return (
     <div className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}>
-      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={handleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
+      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
         <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
         <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
       </BlockNoteView>
