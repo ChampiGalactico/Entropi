@@ -15,6 +15,8 @@ import {
   useCreateBlockNote,
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
+import { MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
@@ -274,10 +276,12 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   ], [editor, t]);
   return (
     <div className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}>
-      <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
-        <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
-        <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
-      </BlockNoteView>
+      <MantineProvider forceColorScheme={mode}>
+        <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
+          <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
+          <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
+        </BlockNoteView>
+      </MantineProvider>
     </div>
   );
 }

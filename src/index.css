@@ -56,6 +56,55 @@
   --info: #60a5fa;
 }
 
+/* BlockNote's color-swatch icons (.bn-color-icon) read their color from --bn-colors-highlights-*
+   custom properties that BlockNote scopes to .bn-root. The formatting toolbar is portaled to
+   document.body (see FormattingToolbarController in BlockNoteEditor.tsx, needed so its dropdowns
+   aren't clipped by scrollable note containers), which moves it outside .bn-root's DOM subtree —
+   breaking CSS custom property inheritance and leaving every swatch a flat gray. Redefine the same
+   values BlockNote ships at :root so they're available regardless of where the toolbar portals to. */
+:root,
+:root[data-theme="light"] {
+  --bn-colors-highlights-gray-text: #9b9a97;
+  --bn-colors-highlights-gray-background: #ebeced;
+  --bn-colors-highlights-brown-text: #64473a;
+  --bn-colors-highlights-brown-background: #e9e5e3;
+  --bn-colors-highlights-red-text: #e03e3e;
+  --bn-colors-highlights-red-background: #fbe4e4;
+  --bn-colors-highlights-orange-text: #d9730d;
+  --bn-colors-highlights-orange-background: #f6e9d9;
+  --bn-colors-highlights-yellow-text: #dfab01;
+  --bn-colors-highlights-yellow-background: #fbf3db;
+  --bn-colors-highlights-green-text: #4d6461;
+  --bn-colors-highlights-green-background: #ddedea;
+  --bn-colors-highlights-blue-text: #0b6e99;
+  --bn-colors-highlights-blue-background: #ddebf1;
+  --bn-colors-highlights-purple-text: #6940a5;
+  --bn-colors-highlights-purple-background: #eae4f2;
+  --bn-colors-highlights-pink-text: #ad1a72;
+  --bn-colors-highlights-pink-background: #f4dfeb;
+}
+
+:root[data-theme="dark"] {
+  --bn-colors-highlights-gray-text: #bebdb8;
+  --bn-colors-highlights-gray-background: #9b9a97;
+  --bn-colors-highlights-brown-text: #8e6552;
+  --bn-colors-highlights-brown-background: #64473a;
+  --bn-colors-highlights-red-text: #ec4040;
+  --bn-colors-highlights-red-background: #be3434;
+  --bn-colors-highlights-orange-text: #e3790d;
+  --bn-colors-highlights-orange-background: #b7600a;
+  --bn-colors-highlights-yellow-text: #dfab01;
+  --bn-colors-highlights-yellow-background: #b58b00;
+  --bn-colors-highlights-green-text: #6b8b87;
+  --bn-colors-highlights-green-background: #4d6461;
+  --bn-colors-highlights-blue-text: #0e87bc;
+  --bn-colors-highlights-blue-background: #0b6e99;
+  --bn-colors-highlights-purple-text: #8552d7;
+  --bn-colors-highlights-purple-background: #6940a5;
+  --bn-colors-highlights-pink-text: #da208f;
+  --bn-colors-highlights-pink-background: #ad1a72;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg-base: #0a0a0a;
@@ -75,6 +124,24 @@
     --warning: #facc15;
     --danger: #f87171;
     --info: #60a5fa;
+    --bn-colors-highlights-gray-text: #bebdb8;
+    --bn-colors-highlights-gray-background: #9b9a97;
+    --bn-colors-highlights-brown-text: #8e6552;
+    --bn-colors-highlights-brown-background: #64473a;
+    --bn-colors-highlights-red-text: #ec4040;
+    --bn-colors-highlights-red-background: #be3434;
+    --bn-colors-highlights-orange-text: #e3790d;
+    --bn-colors-highlights-orange-background: #b7600a;
+    --bn-colors-highlights-yellow-text: #dfab01;
+    --bn-colors-highlights-yellow-background: #b58b00;
+    --bn-colors-highlights-green-text: #6b8b87;
+    --bn-colors-highlights-green-background: #4d6461;
+    --bn-colors-highlights-blue-text: #0e87bc;
+    --bn-colors-highlights-blue-background: #0b6e99;
+    --bn-colors-highlights-purple-text: #8552d7;
+    --bn-colors-highlights-purple-background: #6940a5;
+    --bn-colors-highlights-pink-text: #da208f;
+    --bn-colors-highlights-pink-background: #ad1a72;
   }
 }
 
@@ -215,95 +282,12 @@ body {
   border-radius: 0.6rem !important;
 }
 
-/* The formatting toolbar's dropdowns (color picker, block type, etc.) render via Mantine's
-   Menu, whose default styling depends on a MantineProvider theme this app doesn't set up —
-   so they arrive unstyled. Re-skin them to match the rest of the app's popovers. */
-.mantine-Menu-dropdown.bn-menu-dropdown {
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 1rem !important;
-  background: var(--bg-elevated) !important;
-  box-shadow: var(--shadow-modal) !important;
-  backdrop-filter: blur(20px);
-  padding: 0.35rem !important;
+/* The toolbar's dropdowns/tooltips (color picker, block type select, ...) are Mantine components
+   now rendered inside a real <MantineProvider> (see BlockNoteEditor.tsx), so their own default
+   styling — colors, spacing, tooltips — applies natively and needs no per-selector patching here. */
+.mantine-Menu-dropdown {
   max-height: min(70vh, 26rem) !important;
   overflow-y: auto !important;
-}
-
-.mantine-Menu-label {
-  padding: 0.35rem 0.6rem 0.2rem !important;
-  font-size: 0.65rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-muted) !important;
-}
-
-.mantine-Menu-item {
-  border-radius: 0.6rem !important;
-  padding: 0.4rem 0.6rem !important;
-  color: var(--text-primary) !important;
-  font-size: 0.82rem !important;
-}
-
-.mantine-Menu-item:hover,
-.mantine-Menu-item[data-hovered] {
-  background: var(--bg-surface-hover) !important;
-}
-
-/* BlockNote's color swatches (.bn-color-icon) are colored via [data-text-color]/[data-background-color]
-   attribute selectors defined in @blocknote/core's CSS — but Mantine's own menu-item text color rule
-   loads after it and wins the specificity tie, so every swatch renders in the same neutral gray.
-   Re-assert BlockNote's own palette here (after both stylesheets) and turn the swatch into an
-   actual color circle instead of a colored letter, so colors are visible at a glance. */
-.bn-color-icon {
-  width: 1.1rem !important;
-  height: 1.1rem !important;
-  border-radius: 999px !important;
-  border: 1px solid var(--border-subtle);
-  font-size: 0 !important;
-}
-
-.bn-color-icon[data-background-color="default"] { background-color: transparent; }
-.bn-color-icon[data-background-color="gray"] { background-color: #ebeced !important; }
-.bn-color-icon[data-background-color="brown"] { background-color: #e9e5e3 !important; }
-.bn-color-icon[data-background-color="red"] { background-color: #fbe4e4 !important; }
-.bn-color-icon[data-background-color="orange"] { background-color: #f6e9d9 !important; }
-.bn-color-icon[data-background-color="yellow"] { background-color: #fbf3db !important; }
-.bn-color-icon[data-background-color="green"] { background-color: #ddedea !important; }
-.bn-color-icon[data-background-color="blue"] { background-color: #ddebf1 !important; }
-.bn-color-icon[data-background-color="purple"] { background-color: #eae4f2 !important; }
-.bn-color-icon[data-background-color="pink"] { background-color: #f4dfeb !important; }
-
-.bn-color-icon[data-background-color="default"][data-text-color="default"] { background-color: var(--text-primary) !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="gray"] { background-color: #9b9a97 !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="brown"] { background-color: #64473a !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="red"] { background-color: #e03e3e !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="orange"] { background-color: #d9730d !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="yellow"] { background-color: #dfab01 !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="green"] { background-color: #4d6461 !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="blue"] { background-color: #0b6e99 !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="purple"] { background-color: #6940a5 !important; }
-.bn-color-icon[data-background-color="default"][data-text-color="pink"] { background-color: #ad1a72 !important; }
-
-/* Mantine's Tooltip has no theme configured in this app (no MantineProvider), so its default
-   tooltip renders as plain unstyled text. Re-skin it to match this app's own Tooltip component. */
-.mantine-Tooltip-tooltip {
-  border: 1px solid var(--border-subtle) !important;
-  border-radius: 0.75rem !important;
-  background: var(--bg-elevated) !important;
-  box-shadow: var(--shadow-card) !important;
-  backdrop-filter: blur(20px);
-  padding: 0.4rem 0.65rem !important;
-  color: var(--text-primary) !important;
-}
-
-.bn-tooltip .mantine-Text-root {
-  font-size: 0.72rem !important;
-  color: var(--text-primary) !important;
-}
-
-.bn-tooltip .mantine-Text-root:last-child:not(:first-child) {
-  color: var(--text-muted) !important;
 }
 
 .entropi-note-page .bn-inline-content code,
