@@ -72,7 +72,7 @@ On first launch, Entropi creates its local database automatically. No database s
 
 ### Requirements
 
-- [Node.js](https://nodejs.org/) 20 or newer
+- [Node.js](https://nodejs.org/) 24 or newer
 - [Rust](https://www.rust-lang.org/tools/install)
 - The [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system
 
