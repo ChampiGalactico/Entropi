@@ -6,6 +6,7 @@ export * from "./NumberInput";
 export * from "./Textarea";
 export * from "./Select";
 export * from "./Combobox";
+export * from "./MultiCombobox";
 export * from "./ColorPickerPopover";
 export * from "./IconPicker";
 export * from "./SolarIcon";

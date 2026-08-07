@@ -88,7 +88,7 @@ export function PlannerPage() {
 
   async function createPlannedTask(item: CalendarItem) {
     if (taskTypeId === null || item.subjectId === undefined) { setError(t("planner.noTaskType")); return; }
-    await createTask({ subject_id: item.subjectId, task_type_id: taskTypeId, title: taskTitle.trim() || t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "pending" });
+    await createTask({ subject_id: item.subjectId, task_type_id: taskTypeId, title: taskTitle.trim() || t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "pending", recurrence_rule: null, recurrence_parent_id: null });
     setTasks(await listTasks({ dueDateFrom: weekIso, dueDateTo: endIso }));
     setTaskTitle("");
     setError(null);
@@ -99,10 +99,19 @@ export function PlannerPage() {
     if (!prepType || item.subjectId === undefined) { setError(t("planner.noTaskType")); return; }
     const existing = prepFor(item);
     if (existing) await setTaskStatus(existing.id, "completed");
-    else await createTask({ subject_id: item.subjectId, task_type_id: prepType.id, title: t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "completed" });
+    else await createTask({ subject_id: item.subjectId, task_type_id: prepType.id, title: t("planner.prepTitle", { subject: item.title, session: item.subtitle ?? t("calendar.kinds.session") }), description: t("planner.prepDescription"), due_date: item.date, due_time: item.startTime, priority: 3, status: "completed", recurrence_rule: null, recurrence_parent_id: null });
     setTasks(await listTasks({ dueDateFrom: weekIso, dueDateTo: endIso }));
     setError(null);
     notify.success(t("planner.prepared"));
+  }
+
+  async function unmarkPrepared(item: CalendarItem) {
+    const existing = prepFor(item);
+    if (!existing) return;
+    await setTaskStatus(existing.id, "pending");
+    setTasks(await listTasks({ dueDateFrom: weekIso, dueDateTo: endIso }));
+    setError(null);
+    notify.success(t("planner.unprepared"));
   }
 
   async function addAssessmentForSession() {
@@ -148,7 +157,7 @@ export function PlannerPage() {
                   <span className="text-xs font-semibold capitalize text-text-primary">{new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "short" }).format(fromIso(day.date))}</span>
                   <AltArrowDownLinear size={14} className={`text-text-muted transition-transform ${collapsed ? "-rotate-90" : ""}`} />
                 </button>
-                {!collapsed && <div className="space-y-1.5 border-t border-border/70 p-2">{day.sessions.map((item) => <div key={item.id} className="flex items-center gap-2 rounded-xl bg-elevated/65 p-2"><span className="h-8 w-1 shrink-0 rounded-full" style={{ background: item.color }} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-text-primary"><span className="mr-1.5 tabular-nums" style={{ color: item.color }}>{item.startTime}</span>{item.title}</p><p className="truncate text-[10px] text-text-muted">{item.subtitle}</p></div>{isPrepared(item) ? <span className="flex shrink-0 items-center gap-1 text-[10px] text-success"><CheckCircleLinear size={13} />✨ {t("planner.prepared")}</span> : <Button variant="secondary" className="flex shrink-0 items-center gap-1 px-2 py-1 text-[10px]" onClick={() => openPrepare(item)}><AddCircleLinear size={12} />{t("planner.createPrep")}</Button>}</div>)}</div>}
+                {!collapsed && <div className="space-y-1.5 border-t border-border/70 p-2">{day.sessions.map((item) => <div key={item.id} className="flex items-center gap-2 rounded-xl bg-elevated/65 p-2"><span className="h-8 w-1 shrink-0 rounded-full" style={{ background: item.color }} /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-text-primary"><span className="mr-1.5 tabular-nums" style={{ color: item.color }}>{item.startTime}</span>{item.title}</p><p className="truncate text-[10px] text-text-muted">{item.subtitle}</p></div>{isPrepared(item) ? <button type="button" onClick={() => openPrepare(item)} className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] text-success transition-colors hover:bg-success/10"><CheckCircleLinear size={13} />✨ {t("planner.prepared")}</button> : <Button variant="secondary" className="flex shrink-0 items-center gap-1 px-2 py-1 text-[10px]" onClick={() => openPrepare(item)}><AddCircleLinear size={12} />{t("planner.createPrep")}</Button>}</div>)}</div>}
               </section>;
             })}
           </div>}
@@ -173,7 +182,10 @@ export function PlannerPage() {
           <div className="flex flex-col rounded-2xl bg-control p-4"><h3 className="text-sm font-semibold text-text-primary">{t("planner.addTask")}</h3><p className="mt-1 text-xs text-text-muted">{t("planner.prepDescription")}</p><label className="mt-3 text-xs text-text-secondary">{t("planner.taskType")}<div className="mt-1"><Combobox value={taskTypeId === null ? null : String(taskTypeId)} onChange={(value) => setTaskTypeId(Number(value))} options={taskTypes.map((type) => ({ value: String(type.id), label: type.name, color: type.color }))} /></div></label><Input className="mt-3" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder={t("planner.addTask")} /><Button className="mt-4" variant="secondary" onClick={() => void createPlannedTask(planningSession)} disabled={!taskTitle.trim() || taskTypeId === null}>{t("planner.addTask")}</Button></div>
           <div className="rounded-2xl bg-control p-4"><h3 className="text-sm font-semibold text-text-primary">{t("planner.addAssessment")}</h3><label className="mt-3 block text-xs text-text-secondary">{t("planner.assessmentName")}<Input className="mt-1" value={assessmentTitle} onChange={(event) => setAssessmentTitle(event.target.value)} /></label><label className="mt-3 block text-xs text-text-secondary">{t("planner.assessmentType")}<div className="mt-1"><Combobox value={assessmentTypeId === null ? null : String(assessmentTypeId)} onChange={(value) => setAssessmentTypeId(Number(value))} options={assessmentTypes.map((type) => ({ value: String(type.id), label: type.name, color: type.color }))} /></div></label><div className="mt-3 grid grid-cols-2 gap-2"><TimePicker value={assessmentStart} onChange={setAssessmentStart} /><TimePicker value={assessmentEnd} onChange={setAssessmentEnd} /></div><Button className="mt-4 w-full" variant="secondary" onClick={() => void addAssessmentForSession()} disabled={!assessmentTitle.trim() || assessmentTypeId === null}>{t("planner.addAssessment")}</Button></div>
         </div>
-        <div className="flex justify-end"><Button className="flex items-center gap-2" disabled={!hasPlannedItem(planningSession)} onClick={() => void markPrepared(planningSession).then(() => setPlanningSession(null))}><CheckCircleLinear size={16} />{t("planner.markPrepared")}</Button></div>
+        <div className="flex justify-end gap-2">
+          {isPrepared(planningSession) && <Button variant="secondary" onClick={() => void unmarkPrepared(planningSession).then(() => setPlanningSession(null))}>{t("planner.unmarkPrepared")}</Button>}
+          <Button className="flex items-center gap-2" disabled={!hasPlannedItem(planningSession)} onClick={() => void markPrepared(planningSession).then(() => setPlanningSession(null))}><CheckCircleLinear size={16} />{t("planner.markPrepared")}</Button>
+        </div>
       </div>}
     </Modal>
   </div>;

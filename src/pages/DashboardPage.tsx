@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { addDays, startOfWeek, toIsoDate, useCalendarItems, type CalendarItem } from "../components/calendar";
+import { addDays, entityIdFromCalendarItem, startOfWeek, toIsoDate, useCalendarItems, type CalendarItem } from "../components/calendar";
+import { openEntityDetail } from "../stores/entityDetailStore";
 import { AddCircleLinear, AltArrowLeftLinear, AltArrowRightLinear, CalendarLinear, LightbulbBoltLinear } from "../components/ui/appIcons";
 import { Badge, Button, Card, Combobox, EmptyState, IconButton, Input, notify } from "../components/ui";
 import { createLearningTopic, listLearningTopics, updateLearningTopic } from "../db/queries/learningTopics";
@@ -127,7 +128,7 @@ export function DashboardPage() {
           <div className="flex gap-1"><IconButton label={t("dashboard.previousSevenDays")} icon={<AltArrowLeftLinear size={15} />} onClick={() => setRangeOffset((value) => value - 1)} /><Button className="px-3 py-1 text-xs" variant="ghost" onClick={() => setRangeOffset(0)}>{t("calendar.today")}</Button><IconButton label={t("dashboard.nextSevenDays")} icon={<AltArrowRightLinear size={15} />} onClick={() => setRangeOffset((value) => value + 1)} /></div>
         </div>
         <div className="mt-2.5 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1" style={{ scrollbarGutter: "stable" }}>
-          {upcoming.length === 0 ? <EmptyState title={t("dashboard.noUpcoming")} /> : upcoming.map((item) => <div key={item.id} className="flex items-center gap-2.5 rounded-xl bg-control px-2.5 py-2">
+          {upcoming.length === 0 ? <EmptyState title={t("dashboard.noUpcoming")} /> : upcoming.map((item) => <div key={item.id} role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className="flex cursor-pointer items-center gap-2.5 rounded-xl bg-control px-2.5 py-2 transition-colors hover:bg-surface-hover">
             <span className="flex h-8 w-8 shrink-0 flex-col items-center justify-center rounded-lg text-[10px] font-semibold" style={{ color: item.color, background: `color-mix(in srgb, ${item.color} 13%, transparent)` }}><strong>{fromIso(item.date).getDate()}</strong><span className="text-[7px] uppercase">{new Intl.DateTimeFormat(i18n.language, { month: "short" }).format(fromIso(item.date))}</span></span>
             <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-text-primary">{item.title}</p><p className="truncate text-[10px] text-text-muted">{formatTime(item.startTime)} · {item.subtitle ?? t(`calendar.kinds.${item.kind}`)}</p></div>
             <Badge className="shrink-0 px-2 py-0.5 text-[9px]" color={item.color}>{t(`calendar.kinds.${item.kind}`)}</Badge>
@@ -167,11 +168,11 @@ function PanelTitle({ icon, title, subtitle }: { icon: ReactNode; title: string;
 
 function AgendaGroup({ session, children, formatTime, kindLabel }: { session: CalendarItem; children: CalendarItem[]; formatTime: (value: string | null) => string; kindLabel: (kind: CalendarItem["kind"]) => string }) {
   const subjectColor = session.subjectColor ?? session.color;
-  return <div><div className="flex items-center gap-2 rounded-xl bg-control px-3 py-2"><span className="h-7 w-1 rounded-full" style={{ background: subjectColor }} /><p className="shrink-0 text-[11px] font-semibold" style={{ color: subjectColor }}>{formatTime(session.startTime)} – {formatTime(session.endTime)}</p><p className="min-w-0 truncate text-xs font-semibold text-text-primary">{session.title}</p>{session.sessionType && <Badge className="shrink-0 px-2 py-0.5 text-[9px]" color={subjectColor}>{session.sessionType}</Badge>}{session.location && <Badge className="shrink-0 px-2 py-0.5 text-[9px]" color="var(--text-muted)">{session.location}</Badge>}</div>{children.map((item, index) => <div key={item.id} className="ml-5 flex items-center gap-2 py-0.5 text-[10px] text-text-secondary"><span className="text-text-muted">{index === children.length - 1 ? "└─" : "├─"}</span><span className="truncate">{kindLabel(item.kind)} · {item.title}</span></div>)}</div>;
+  return <div><div role="button" tabIndex={0} onClick={() => openEntityDetail(session.kind, entityIdFromCalendarItem(session))} className="flex cursor-pointer items-center gap-2 rounded-xl bg-control px-3 py-2 transition-colors hover:bg-surface-hover"><span className="h-7 w-1 rounded-full" style={{ background: subjectColor }} /><p className="shrink-0 text-[11px] font-semibold" style={{ color: subjectColor }}>{formatTime(session.startTime)} – {formatTime(session.endTime)}</p><p className="min-w-0 truncate text-xs font-semibold text-text-primary">{session.title}</p>{session.sessionType && <Badge className="shrink-0 px-2 py-0.5 text-[9px]" color={subjectColor}>{session.sessionType}</Badge>}{session.location && <Badge className="shrink-0 px-2 py-0.5 text-[9px]" color="var(--text-muted)">{session.location}</Badge>}</div>{children.map((item, index) => <div key={item.id} role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className="ml-5 flex cursor-pointer items-center gap-2 py-0.5 text-[10px] text-text-secondary hover:text-text-primary"><span className="text-text-muted">{index === children.length - 1 ? "└─" : "├─"}</span><span className="truncate">{kindLabel(item.kind)} · {item.title}</span></div>)}</div>;
 }
 
 function AgendaLooseItem({ item, formatTime }: { item: CalendarItem; formatTime: (value: string | null) => string }) {
-  return <div className="flex items-center gap-2 rounded-xl bg-control px-3 py-2"><span className="text-[10px] font-semibold" style={{ color: item.color }}>{formatTime(item.startTime)}</span><p className="truncate text-xs text-text-primary">{item.title}</p></div>;
+  return <div role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className="flex cursor-pointer items-center gap-2 rounded-xl bg-control px-3 py-2 transition-colors hover:bg-surface-hover"><span className="text-[10px] font-semibold" style={{ color: item.color }}>{formatTime(item.startTime)}</span><p className="truncate text-xs text-text-primary">{item.title}</p></div>;
 }
 
 function byTime(a: CalendarItem, b: CalendarItem) { return (a.startTime ?? "23:59").localeCompare(b.startTime ?? "23:59"); }

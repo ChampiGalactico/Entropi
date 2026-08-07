@@ -53,7 +53,9 @@
   "topbar": {
     "search": "Buscar",
     "toggleTheme": "Cambiar tema",
-    "language": "Idioma"
+    "language": "Idioma",
+    "goBack": "Página anterior",
+    "goForward": "Página siguiente"
   },
   "dashboard": {
     "title": "Panel",
@@ -322,6 +324,7 @@
     "noDueDate": "Sin fecha límite",
     "statuses": { "pending": "Pendiente", "in_progress": "En progreso", "completed": "Completada", "cancelled": "Cancelada", "overdue": "Vencida" },
     "priorities": { "1": "Urgente", "2": "Alta", "3": "Media", "4": "Baja", "5": "Algún día" },
+    "views": { "list": "Lista", "day": "Día", "week": "Semana", "month": "Mes" },
     "filters": {
       "search": "Buscar tareas...",
       "allStatuses": "Todos los estados",
@@ -342,7 +345,25 @@
       "dueDate": "Fecha límite",
       "hasDueTime": "Tiene hora límite",
       "priority": "Prioridad",
-      "status": "Estado"
+      "status": "Estado",
+      "repeat": "Repetir",
+      "repeatNone": "No se repite",
+      "repeatDaily": "Diariamente",
+      "repeatWeekdays": "Cada día hábil",
+      "repeatWeekly": "Semanalmente",
+      "repeatWeeklyOn": "Semanalmente los {{days}}",
+      "repeatMonthly": "Mensualmente",
+      "repeatCustom": "Personalizado...",
+      "repeatEvery": "Cada {{count}} {{unit}}",
+      "repeatEveryLabel": "Repetir cada",
+      "repeatOn": "Repetir el",
+      "repeatEnds": "Termina",
+      "repeatNever": "Nunca",
+      "repeatOnDate": "En una fecha",
+      "repeatEndDate": "Fecha de fin",
+      "unitDays": "días",
+      "unitWeeks": "semanas",
+      "unitMonths": "meses"
     }
   },
   "planner": {
@@ -357,6 +378,7 @@
     "noClasses": "No hay clases programadas esta semana.",
     "createPrep": "Preparar",
     "prepared": "Preparada",
+    "unprepared": "Preparación deshecha",
     "prepTitle": "Preparar {{subject}} · {{session}}",
     "prepDescription": "Tarea creada desde el planificador semanal.",
     "noTaskType": "Crea primero un tipo de tarea para poder generar preparaciones.",
@@ -380,8 +402,23 @@
     "assessmentName": "Nombre de la evaluación",
     "assessmentType": "Tipo de evaluación",
     "markPrepared": "Marcar preparada",
+    "unmarkPrepared": "Desmarcar preparada",
     "prepTaskCreated": "Tarea de preparación creada",
     "assessmentCreated": "Evaluación creada"
+  },
+  "entityDetail": {
+    "editTitle": "Editar {{kind}}",
+    "edit": "Editar",
+    "loading": "Cargando…",
+    "date": "Fecha",
+    "location": "Ubicación",
+    "description": "Descripción",
+    "noDescription": "Sin descripción.",
+    "notes": "Notas relacionadas",
+    "noNotes": "Todavía no hay notas vinculadas.",
+    "openSubject": "Abrir materia",
+    "recurring": "Se repite",
+    "eventType": "Tipo de evento"
   },
   "notes": {
     "title": "Notas",

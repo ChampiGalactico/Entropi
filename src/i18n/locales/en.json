@@ -53,7 +53,9 @@
   "topbar": {
     "search": "Search",
     "toggleTheme": "Toggle theme",
-    "language": "Language"
+    "language": "Language",
+    "goBack": "Previous page",
+    "goForward": "Next page"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -322,6 +324,7 @@
     "noDueDate": "No due date",
     "statuses": { "pending": "Pending", "in_progress": "In progress", "completed": "Completed", "cancelled": "Cancelled", "overdue": "Overdue" },
     "priorities": { "1": "Urgent", "2": "High", "3": "Medium", "4": "Low", "5": "Someday" },
+    "views": { "list": "List", "day": "Day", "week": "Week", "month": "Month" },
     "filters": {
       "search": "Search tasks...",
       "allStatuses": "All statuses",
@@ -342,7 +345,25 @@
       "dueDate": "Due date",
       "hasDueTime": "Has a due time",
       "priority": "Priority",
-      "status": "Status"
+      "status": "Status",
+      "repeat": "Repeat",
+      "repeatNone": "Does not repeat",
+      "repeatDaily": "Daily",
+      "repeatWeekdays": "Every weekday",
+      "repeatWeekly": "Weekly",
+      "repeatWeeklyOn": "Weekly on {{days}}",
+      "repeatMonthly": "Monthly",
+      "repeatCustom": "Custom...",
+      "repeatEvery": "Every {{count}} {{unit}}",
+      "repeatEveryLabel": "Repeat every",
+      "repeatOn": "Repeat on",
+      "repeatEnds": "Ends",
+      "repeatNever": "Never",
+      "repeatOnDate": "On date",
+      "repeatEndDate": "End date",
+      "unitDays": "days",
+      "unitWeeks": "weeks",
+      "unitMonths": "months"
     }
   },
   "planner": {
@@ -357,6 +378,7 @@
     "noClasses": "No classes are scheduled this week.",
     "createPrep": "Prepare",
     "prepared": "Prepared",
+    "unprepared": "Prep undone",
     "prepTitle": "Prepare {{subject}} · {{session}}",
     "prepDescription": "Task created from the weekly planner.",
     "noTaskType": "Create a task type first to generate preparation tasks.",
@@ -380,8 +402,23 @@
     "assessmentName": "Assessment name",
     "assessmentType": "Assessment type",
     "markPrepared": "Mark prepared",
+    "unmarkPrepared": "Unmark prepared",
     "prepTaskCreated": "Preparation task created",
     "assessmentCreated": "Assessment created"
+  },
+  "entityDetail": {
+    "editTitle": "Edit {{kind}}",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "date": "Date",
+    "location": "Location",
+    "description": "Description",
+    "noDescription": "No description.",
+    "notes": "Related notes",
+    "noNotes": "No notes linked yet.",
+    "openSubject": "Open subject",
+    "recurring": "Repeats",
+    "eventType": "Event type"
   },
   "notes": {
     "title": "Notes",

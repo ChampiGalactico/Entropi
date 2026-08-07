@@ -12,7 +12,7 @@ export function IconButton({ icon, label, active = false, className = "", ...res
     <Tooltip label={label}>
     <button
       aria-label={label}
-      className={`flex items-center justify-center rounded-full p-2 transition-all duration-150 active:scale-[0.92] ${
+      className={`flex items-center justify-center rounded-full p-2 transition-all duration-150 active:scale-[0.92] disabled:pointer-events-none disabled:opacity-40 ${
         active ? "bg-accent text-white" : "bg-control text-text-secondary backdrop-blur-xl hover:bg-elevated hover:text-text-primary"
       } ${className}`}
       {...rest}

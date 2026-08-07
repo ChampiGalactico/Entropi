@@ -4,6 +4,8 @@ export interface GradeSummary {
   values: Map<number, number | null>;
   subjectGrade: number | null;
   configuredWeight: number;
+  /** Sum of the weight of root components that already have a grade resolved — how much of the configured weight has been graded so far. */
+  gradedWeight: number;
 }
 
 /** Calculates with full floating-point precision. Rounding belongs only in the UI. */
@@ -60,5 +62,6 @@ export function calculateGrades(components: GradeComponent[], entries: GradeEntr
   } else if (availableRoots.length) {
     subjectGrade = availableRoots.reduce((sum, item) => sum + item.value, 0) / availableRoots.length;
   }
-  return { values, subjectGrade, configuredWeight };
+  const gradedWeight = weightedRoots.reduce((sum, item) => sum + (item.component.weight ?? 0), 0);
+  return { values, subjectGrade, configuredWeight, gradedWeight };
 }

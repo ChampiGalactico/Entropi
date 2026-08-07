@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Badge, Modal } from "../ui";
 import { formatCalendarTime, type CalendarPreferences } from "../../lib/calendarPreferences";
 import { addDays, startOfWeek, toIsoDate } from "./dateUtils";
-import { useCalendarItems, type CalendarItem } from "./useCalendarItems";
+import { entityIdFromCalendarItem, useCalendarItems, type CalendarItem } from "./useCalendarItems";
+import { openEntityDetail } from "../../stores/entityDetailStore";
 
 function fromIso(value: string) {
   const [year, month, day] = value.split("-").map(Number);
@@ -61,7 +62,7 @@ export function MonthView({ month, preferences }: { month: Date; preferences: Ca
     </div>
 
     <Modal open={selectedDate !== null} onClose={() => setSelectedDate(null)} title={selectedTitle}>
-      {agendaRows.length === 0 ? <p className="py-8 text-center text-sm text-text-muted">{t("calendar.noItemsForDay")}</p> : <div className="space-y-2">{agendaRows.map(({ item, child }) => <div key={item.id} className={child ? "relative ml-8 before:absolute before:-left-4 before:-top-2 before:h-7 before:w-4 before:rounded-bl-xl before:border-b before:border-l before:border-border" : ""}><article className={`flex items-center gap-3 rounded-2xl bg-control p-3 ${item.muted ? "opacity-55" : ""}`}><span className="h-10 w-1 shrink-0 rounded-full" style={{ background: item.color }} /><div className="min-w-0 flex-1"><p className="text-[10px] font-semibold" style={{ color: item.color }}>{formatTime(item.startTime)}{item.endTime ? ` – ${formatTime(item.endTime)}` : ""}</p><h3 className="truncate text-sm font-semibold text-text-primary">{item.title}</h3><p className="truncate text-xs text-text-muted">{item.subtitle}{item.location ? ` · ${item.location}` : ""}</p></div><Badge className="shrink-0" color={item.color}>{t(`calendar.kinds.${item.kind}`)}</Badge></article></div>)}</div>}
+      {agendaRows.length === 0 ? <p className="py-8 text-center text-sm text-text-muted">{t("calendar.noItemsForDay")}</p> : <div className="space-y-2">{agendaRows.map(({ item, child }) => <div key={item.id} className={child ? "relative ml-8 before:absolute before:-left-4 before:-top-2 before:h-7 before:w-4 before:rounded-bl-xl before:border-b before:border-l before:border-border" : ""}><article role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className={`flex cursor-pointer items-center gap-3 rounded-2xl bg-control p-3 transition-colors hover:bg-surface-hover ${item.muted ? "opacity-55" : ""}`}><span className="h-10 w-1 shrink-0 rounded-full" style={{ background: item.color }} /><div className="min-w-0 flex-1"><p className="text-[10px] font-semibold" style={{ color: item.color }}>{formatTime(item.startTime)}{item.endTime ? ` – ${formatTime(item.endTime)}` : ""}</p><h3 className="truncate text-sm font-semibold text-text-primary">{item.title}</h3><p className="truncate text-xs text-text-muted">{item.subtitle}{item.location ? ` · ${item.location}` : ""}</p></div><Badge className="shrink-0" color={item.color}>{t(`calendar.kinds.${item.kind}`)}</Badge></article></div>)}</div>}
     </Modal>
   </>;
 }

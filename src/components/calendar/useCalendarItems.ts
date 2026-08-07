@@ -26,6 +26,11 @@ export interface CalendarItem {
   location?: string;
 }
 
+/** CalendarItem.id encodes "<kind>-<entityId>[-<date>]" (sessions repeat, so they append the date). */
+export function entityIdFromCalendarItem(item: CalendarItem): number {
+  return Number(item.id.split("-")[1]);
+}
+
 export function useCalendarItems(startDate: Date, endDate: Date, refreshKey = 0) {
   const [items, setItems] = useState<CalendarItem[]>([]);
   const startIso = toIsoDate(startDate);
@@ -55,9 +60,9 @@ export function useCalendarItems(startDate: Date, endDate: Date, refreshKey = 0)
           rows.push({ id: `session-${session.id}-${dateIso}`, kind: "session", date: dateIso, title: subject.name, subtitle: type?.name, startTime: session.start_time, endTime: session.end_time, color: subject.color, subjectId: subject.id, subjectColor: subject.color, sessionType: type?.name, location: session.location_id ? locationMap.get(session.location_id)?.name : undefined });
         }
       }
-      assessments.forEach((assessment) => { const subject = subjectMap.get(assessment.subject_id); const type = assessmentTypes.find((item) => item.id === assessment.assessment_type_id); rows.push({ id: `assessment-${assessment.id}`, kind: "assessment", date: assessment.date, title: assessment.title, subtitle: subject?.name ?? type?.name, startTime: assessment.start_time, endTime: assessment.end_time, color: subject?.color ?? type?.color ?? "var(--accent)", muted: assessment.status !== "upcoming", subjectId: assessment.subject_id, subjectColor: subject?.color }); });
+      assessments.forEach((assessment) => { const subject = subjectMap.get(assessment.subject_id); const type = assessmentTypes.find((item) => item.id === assessment.assessment_type_id); rows.push({ id: `assessment-${assessment.id}`, kind: "assessment", date: assessment.date, title: assessment.title, subtitle: subject?.name ?? type?.name, startTime: assessment.start_time, endTime: assessment.end_time, color: subject?.color ?? type?.color ?? "var(--accent)", muted: assessment.status !== "upcoming", subjectId: assessment.subject_id, subjectColor: subject?.color, location: assessment.location_id ? locationMap.get(assessment.location_id)?.name : undefined }); });
       tasks.filter((task) => task.due_date).forEach((task) => { const subject = task.subject_id ? subjectMap.get(task.subject_id) : null; const type = taskTypes.find((item) => item.id === task.task_type_id); rows.push({ id: `task-${task.id}`, kind: "task", date: task.due_date!, title: task.title, subtitle: subject?.name ?? type?.name, startTime: task.due_time, endTime: null, color: subject?.color ?? type?.color ?? "var(--accent-secondary)", muted: task.status === "completed" || task.status === "cancelled", subjectId: task.subject_id ?? undefined, subjectColor: subject?.color }); });
-      events.forEach((event) => { const type = eventTypes.find((item) => item.id === event.event_type_id); rows.push({ id: `event-${event.id}`, kind: "event", date: event.date, title: event.title, subtitle: type?.name, startTime: event.start_time, endTime: event.end_time, color: type?.color ?? "var(--accent-secondary)" }); });
+      events.forEach((event) => { const type = eventTypes.find((item) => item.id === event.event_type_id); rows.push({ id: `event-${event.id}`, kind: "event", date: event.date, title: event.title, subtitle: type?.name, startTime: event.start_time, endTime: event.end_time, color: type?.color ?? "var(--accent-secondary)", location: event.location_id ? locationMap.get(event.location_id)?.name : undefined }); });
       setItems(rows);
     });
   }, [startIso, endIso, refreshKey]);

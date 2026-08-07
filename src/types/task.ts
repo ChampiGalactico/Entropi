@@ -12,4 +12,7 @@ export interface Task {
   status: TaskStatus;
   completed_at: string | null;
   created_at: string;
+  /** JSON-encoded TaskRecurrence (see lib/taskRecurrence.ts), or null if the task does not repeat. */
+  recurrence_rule: string | null;
+  recurrence_parent_id: number | null;
 }

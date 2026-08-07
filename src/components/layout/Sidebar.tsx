@@ -93,9 +93,6 @@ export function Sidebar() {
   }
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-full w-[76px] flex-col items-center gap-2 py-5">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-text-primary text-sm font-bold text-base shadow-card">
-        E
-      </div>
       <nav className="absolute top-1/2 flex -translate-y-1/2 flex-col gap-1">
         {navItems.map((item) => (
           <NavLink
@@ -124,6 +121,9 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+      <div className="mt-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-text-primary text-sm font-bold text-base shadow-card">
+        E
+      </div>
     </aside>
   );
 }

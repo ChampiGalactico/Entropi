@@ -312,6 +312,8 @@ body {
   font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   font-size: 0.88em;
   font-weight: 550;
+  font-variant-ligatures: common-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
 }
 
 .entropi-note-page .bn-inline-content u,
@@ -380,6 +382,9 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   background: var(--bg-control);
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-variant-ligatures: common-ligatures contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
 }
 
 @keyframes vida-tab-enter {

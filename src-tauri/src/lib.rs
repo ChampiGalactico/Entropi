@@ -77,6 +77,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0010_recursive_grade_components.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "recurring_tasks",
+            sql: include_str!("../../src/db/migrations/0011_recurring_tasks.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

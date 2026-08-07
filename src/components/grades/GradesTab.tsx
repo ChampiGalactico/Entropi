@@ -170,7 +170,10 @@ export function GradesTab({ subject }: { subject: Subject }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2"><h4 className="font-semibold text-text-primary">{component.name}</h4>{component.weight !== null && <Badge>{component.weight}%</Badge>}{isGroup && <Badge color="var(--accent-secondary)">{t("grades.multiple")}</Badge>}</div>
             {isGroup
-              ? <p className={`mt-1 text-xs ${weightMatches || children.length === 0 ? "text-text-muted" : "text-warning"}`}>{t("grades.childGradeCount", { count: children.length })} · {childrenWeight.toFixed(2)}% / {(component.weight ?? 0).toFixed(2)}%</p>
+              ? <div className="mt-1.5">
+                  <p className={`text-xs ${weightMatches || children.length === 0 ? "text-text-muted" : "text-warning"}`}>{t("grades.childGradeCount", { count: children.length })} · {childrenWeight.toFixed(2)}% / {(component.weight ?? 0).toFixed(2)}%</p>
+                  <div className="mt-1.5 max-w-56"><ProgressBar value={childrenWeight} max={component.weight || 100} color={weightMatches || children.length === 0 ? "var(--accent)" : "var(--warning)"} /></div>
+                </div>
               : <p className="mt-1 text-xs text-text-muted">{[component.date ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(`${component.date}T12:00:00`)) : null, assessment?.title, component.notes].filter(Boolean).join(" · ") || t("grades.noDetails")}</p>}
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1">
@@ -191,7 +194,7 @@ export function GradesTab({ subject }: { subject: Subject }) {
   return <div className="flex flex-col gap-4">
     <div className="grid gap-3 md:grid-cols-[1fr_2fr]">
       <div className="rounded-[1.6rem] border border-border bg-elevated p-5 shadow-card"><p className="text-xs font-medium uppercase tracking-wider text-text-muted">{t("grades.currentGrade")}</p><div className="mt-2 flex items-end gap-2"><span className="text-4xl font-bold text-text-primary">{format(summary.subjectGrade)}</span><span className="mb-1 text-sm text-text-muted">/ {scaleMax}</span></div><p className="mt-2 text-xs text-text-muted">{t("grades.passing", { grade: passing })}</p></div>
-      <div className="rounded-[1.6rem] border border-border bg-control p-5"><div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold text-text-primary">{t("grades.breakdown")}</h3><p className="mt-1 text-xs text-text-muted">{t("grades.breakdownDescription")}</p></div><Button variant="secondary" className="flex items-center gap-1.5" onClick={() => openComponent()}><AddCircleLinear size={16} />{t("grades.addComponent")}</Button></div><div className="mt-4"><div className="mb-2 flex justify-between text-xs text-text-muted"><span>{t("grades.configuredWeight")}</span><span>{summary.configuredWeight}%</span></div><ProgressBar value={summary.configuredWeight} /></div></div>
+      <div className="rounded-[1.6rem] border border-border bg-control p-5"><div className="flex items-center justify-between"><div><h3 className="text-sm font-semibold text-text-primary">{t("grades.breakdown")}</h3><p className="mt-1 text-xs text-text-muted">{t("grades.breakdownDescription")}</p></div><Button variant="secondary" className="flex items-center gap-1.5" onClick={() => openComponent()}><AddCircleLinear size={16} />{t("grades.addComponent")}</Button></div><div className="mt-4"><div className="mb-2 flex justify-between text-xs text-text-muted"><span>{t("grades.configuredWeight")}</span><span>{summary.configuredWeight}%</span></div><ProgressBar value={summary.gradedWeight} max={summary.configuredWeight || 100} /></div></div>
     </div>
     {roots.length === 0 ? <EmptyState title={t("grades.empty")} description={t("grades.emptyDescription")} /> : <div className="space-y-3">{roots.map((component) => renderComponent(component))}</div>}
 

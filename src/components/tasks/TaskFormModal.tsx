@@ -12,8 +12,10 @@ import { TimePicker } from "../ui/TimePicker";
 import { createLookupRow, listLookupRows } from "../../db/queries/lookups";
 import { createTask, updateTask } from "../../db/queries/tasks";
 import { ACCENT_PRESETS } from "../../lib/accentColors";
+import { parseTaskRecurrence, serializeTaskRecurrence, type TaskRecurrence } from "../../lib/taskRecurrence";
 import type { Subject, Task, TaskStatus, TaskType } from "../../types";
 import { notify } from "../ui/Toast";
+import { RecurrenceField } from "./RecurrenceField";
 
 interface TaskFormModalProps {
   open: boolean;
@@ -36,6 +38,7 @@ interface FormState {
   due_time: string;
   priority: number;
   status: TaskStatus;
+  recurrence: TaskRecurrence | null;
 }
 
 function todayIso() {
@@ -44,7 +47,7 @@ function todayIso() {
 }
 
 function emptyForm(lockedSubjectId?: number): FormState {
-  return { title: "", description: "", subject_id: lockedSubjectId ?? null, task_type_id: null, has_due_date: true, due_date: todayIso(), has_due_time: false, due_time: "18:00", priority: 3, status: "pending" };
+  return { title: "", description: "", subject_id: lockedSubjectId ?? null, task_type_id: null, has_due_date: true, due_date: todayIso(), has_due_time: false, due_time: "18:00", priority: 3, status: "pending", recurrence: null };
 }
 
 export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, lockedSubjectId, draft = null }: TaskFormModalProps) {
@@ -68,6 +71,7 @@ export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, l
       due_time: task.due_time ?? "18:00",
       priority: task.priority,
       status: task.status,
+      recurrence: parseTaskRecurrence(task.recurrence_rule),
     } : {
       ...emptyForm(lockedSubjectId),
       title: draft?.title ?? "",
@@ -97,6 +101,8 @@ export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, l
       due_time: form.has_due_date && form.has_due_time ? form.due_time : null,
       priority: form.priority,
       status: form.status,
+      recurrence_rule: form.has_due_date ? serializeTaskRecurrence(form.recurrence) : null,
+      recurrence_parent_id: task?.recurrence_parent_id ?? null,
     };
     if (task) await updateTask(task.id, values);
     else await createTask(values);
@@ -113,7 +119,8 @@ export function TaskFormModal({ open, onClose, onSaved, subjects, task = null, l
         {lockedSubjectId === undefined && <label className="text-xs text-text-secondary">{t("tasks.form.subject")}<div className="mt-1"><Combobox value={form.subject_id === null ? "" : String(form.subject_id)} onChange={(value) => setForm((current) => ({ ...current, subject_id: value ? Number(value) : null }))} options={[{ value: "", label: t("tasks.form.personal") }, ...subjects.map((subject) => ({ value: String(subject.id), label: subject.name, color: subject.color }))]} searchable /></div></label>}
         <label className="text-xs text-text-secondary">{t("tasks.form.description")}<Textarea className="mt-1" rows={3} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></label>
         <div className="flex items-center justify-between"><span className="text-sm text-text-primary">{t("tasks.form.hasDueDate")}</span><Switch checked={form.has_due_date} onChange={(checked) => setForm((current) => ({ ...current, has_due_date: checked }))} /></div>
-        {form.has_due_date && <><DatePicker value={form.due_date} onChange={(due_date) => setForm((current) => ({ ...current, due_date }))} label={t("tasks.form.dueDate")} /><div className="flex items-center justify-between"><span className="text-sm text-text-primary">{t("tasks.form.hasDueTime")}</span><Switch checked={form.has_due_time} onChange={(checked) => setForm((current) => ({ ...current, has_due_time: checked }))} /></div>{form.has_due_time && <TimePicker value={form.due_time} onChange={(due_time) => setForm((current) => ({ ...current, due_time }))} />}</>}
+        {form.has_due_date && <><DatePicker value={form.due_date} onChange={(due_date) => setForm((current) => ({ ...current, due_date }))} label={t("tasks.form.dueDate")} /><div className="flex items-center justify-between"><span className="text-sm text-text-primary">{t("tasks.form.hasDueTime")}</span><Switch checked={form.has_due_time} onChange={(checked) => setForm((current) => ({ ...current, has_due_time: checked }))} /></div>{form.has_due_time && <TimePicker value={form.due_time} onChange={(due_time) => setForm((current) => ({ ...current, due_time }))} />}
+          <RecurrenceField key={task?.id ?? "new"} value={form.recurrence} dueDate={form.due_date} onChange={(recurrence) => setForm((current) => ({ ...current, recurrence }))} /></>}
         <div className="grid grid-cols-2 gap-3">
           <label className="text-xs text-text-secondary">{t("tasks.form.priority")}<div className="mt-1"><Combobox value={String(form.priority)} onChange={(value) => setForm((current) => ({ ...current, priority: Number(value) }))} options={[1,2,3,4,5].map((priority) => ({ value: String(priority), label: t(`tasks.priorities.${priority}`) }))} /></div></label>
           <label className="text-xs text-text-secondary">{t("tasks.form.status")}<div className="mt-1"><Combobox value={form.status} onChange={(value) => setForm((current) => ({ ...current, status: value as TaskStatus }))} options={(["pending", "in_progress", "completed", "cancelled"] as TaskStatus[]).map((status) => ({ value: status, label: t(`tasks.statuses.${status}`) }))} /></div></label>

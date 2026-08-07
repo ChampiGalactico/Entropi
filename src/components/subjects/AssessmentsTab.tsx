@@ -118,8 +118,7 @@ export function AssessmentsTab({ subjectId, initialDraftTitle = "" }: { subjectI
     const sameDay = sessions.filter((session) => session.day_of_week === dayOfWeek);
     const magistralSameDay = sameDay.find((session) => lectureTypeIds.has(session.session_type_id)) ?? null;
     const timedSession = magistralSameDay ?? sameDay[0] ?? null;
-    const locationSession = magistralSameDay ?? sessions.find((session) => lectureTypeIds.has(session.session_type_id)) ?? timedSession;
-    return { timedSession, locationSession };
+    return { timedSession, locationSession: timedSession };
   }
 
   async function removeAssessment(assessment: Assessment) {

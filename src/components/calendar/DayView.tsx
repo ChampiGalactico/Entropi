@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { formatCalendarTime, timeToMinutes, type CalendarPreferences } from "../../lib/calendarPreferences";
 import { toIsoDate } from "./dateUtils";
-import { useCalendarItems } from "./useCalendarItems";
+import { entityIdFromCalendarItem, useCalendarItems } from "./useCalendarItems";
+import { useNowMinutes } from "./useNowMinutes";
+import { openEntityDetail } from "../../stores/entityDetailStore";
 
 const HOUR_HEIGHT = 72;
 const TOP_GUTTER = 14;
@@ -23,6 +25,10 @@ export function DayView({ date, preferences }: { date: Date; preferences: Calend
   const timed = items.filter(
     (item) => item.date === iso && item.startTime && timeToMinutes(item.startTime) < endMinute,
   );
+  const nowMinutes = useNowMinutes();
+  const isToday = iso === toIsoDate(new Date());
+  const showNowLine = isToday && nowMinutes >= startMinute && nowMinutes <= endMinute;
+  const nowTop = TOP_GUTTER + (nowMinutes - startMinute) / 60 * HOUR_HEIGHT;
 
   return <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.75rem] border border-border bg-elevated shadow-card backdrop-blur-2xl">
     <div className="border-b border-border bg-control px-5 py-4">
@@ -36,7 +42,7 @@ export function DayView({ date, preferences }: { date: Date; preferences: Calend
     <div className="mr-[11px] grid grid-cols-[74px_minmax(0,1fr)] border-b border-border bg-surface/50">
       <div className="flex items-center justify-center px-2 py-3 text-[9px] uppercase text-text-muted">{t("calendar.allDay")}</div>
       <div className="min-h-14 space-y-1 border-l border-border p-2">
-        {allDay.map((item) => <div key={item.id} className="rounded-xl px-3 py-1.5 text-xs font-medium" style={{ color: item.color, background: `color-mix(in srgb, ${item.color} 14%, transparent)` }}>{item.title}</div>)}
+        {allDay.map((item) => <div key={item.id} role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-80" style={{ color: item.color, background: `color-mix(in srgb, ${item.color} 14%, transparent)` }}>{item.title}</div>)}
       </div>
     </div>
     <div className="min-h-0 flex-1 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
@@ -45,6 +51,12 @@ export function DayView({ date, preferences }: { date: Date; preferences: Calend
           {hourMarks.map((mark) => <span key={mark} className="absolute right-3 -translate-y-1/2 whitespace-nowrap text-[10px] text-text-muted" style={{ top: TOP_GUTTER + (mark - startMinute) / 60 * HOUR_HEIGHT }}>{formatCalendarTime(`${pad(Math.floor(mark / 60))}:${pad(mark % 60)}`, preferences.timeFormat)}</span>)}
         </div>
         <div className="relative overflow-hidden border-l border-border" style={{ backgroundPositionY: TOP_GUTTER, backgroundImage: `repeating-linear-gradient(to bottom, transparent 0, transparent ${HOUR_HEIGHT - 1}px, var(--border-subtle) ${HOUR_HEIGHT - 1}px, var(--border-subtle) ${HOUR_HEIGHT}px)` }}>
+          {showNowLine && (
+            <div className="pointer-events-none absolute left-0 right-0 z-20 flex items-center" style={{ top: nowTop }}>
+              <span className="-ml-[5px] h-[9px] w-[9px] shrink-0 rounded-full bg-danger" />
+              <span className="h-px flex-1 bg-danger" />
+            </div>
+          )}
           {timed.map((item) => {
             const rawStart = timeToMinutes(item.startTime!);
             const rawEnd = item.endTime ? timeToMinutes(item.endTime) : rawStart + 35;
@@ -53,10 +65,14 @@ export function DayView({ date, preferences }: { date: Date; preferences: Calend
             if (end <= start) return null;
             const top = TOP_GUTTER + (start - startMinute) / 60 * HOUR_HEIGHT;
             const height = Math.max(36, (end - start) / 60 * HOUR_HEIGHT);
-            return <article key={item.id} className={`absolute left-3 right-3 overflow-hidden rounded-2xl border p-3 shadow-sm ${item.muted ? "opacity-50" : ""}`} style={{ top, height, borderColor: `color-mix(in srgb, ${item.color} 45%, transparent)`, background: `color-mix(in srgb, ${item.color} 15%, var(--bg-elevated))` }}>
+            return <article key={item.id} role="button" tabIndex={0} onClick={() => openEntityDetail(item.kind, entityIdFromCalendarItem(item))} className={`absolute left-3 right-3 cursor-pointer overflow-hidden rounded-2xl border p-3 shadow-sm transition-transform hover:scale-[1.01] ${item.muted ? "opacity-50" : ""}`} style={{ top, height, borderColor: `color-mix(in srgb, ${item.color} 45%, transparent)`, background: `color-mix(in srgb, ${item.color} 15%, var(--bg-elevated))` }}>
               <p className="text-[10px] font-semibold" style={{ color: item.color }}>{formatCalendarTime(item.startTime!, preferences.timeFormat)} · {t(`calendar.kinds.${item.kind}`)}</p>
               <h4 className="mt-0.5 truncate text-sm font-semibold text-text-primary">{item.title}</h4>
-              {item.subtitle && <p className="truncate text-xs text-text-muted">{item.subtitle}</p>}
+              {(item.subtitle || item.location) && (
+                <p className="truncate text-xs text-text-muted">
+                  {[item.subtitle, item.location].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </article>;
           })}
         </div>
