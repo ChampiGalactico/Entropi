@@ -23,6 +23,9 @@ import { PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
+import { dispatchSourceReveal } from "./sourceReveal";
+
+const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
 
 function EntropiFormattingToolbar() {
   return <FormattingToolbar>
@@ -180,16 +183,41 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     }
   }
 
+  // If the caret lands right next to an already-rendered inline formula (arrow-key navigation,
+  // not just clicking), swap that single node back to raw "$latex$" text so its source is visible —
+  // mirrors Obsidian. Returns true if something was revealed, so the caller can skip the
+  // convert-on-detach pass for this same selection event.
+  function revealInlineMathAtCaret(): boolean {
+    const pmEditor = (editor as any)._tiptapEditor;
+    const selection = pmEditor?.state?.selection;
+    if (!selection || !selection.empty) return false;
+    const { $from } = selection;
+    const isInlineMath = (node: any) => node?.type?.name === "inlineMath";
+    let target: any = null;
+    let pos = -1;
+    if (isInlineMath($from.nodeBefore)) { target = $from.nodeBefore; pos = $from.pos - $from.nodeBefore.nodeSize; }
+    else if (isInlineMath($from.nodeAfter)) { target = $from.nodeAfter; pos = $from.pos; }
+    if (!target) return false;
+    const textNode = pmEditor.state.schema.text(`$${target.attrs.latex}$`);
+    const tr = pmEditor.state.tr.replaceWith(pos, pos + target.nodeSize, textNode);
+    pmEditor.view.dispatch(tr);
+    return true;
+  }
+
   function handleSelectionChange() {
     if (isSyncingMath.current) return;
     let current: any;
     try { current = editor.getTextCursorPosition().block; } catch { return; }
     if (activeBlockId.current === current.id) {
-      convertCompletedInlineMath(current.id);
+      isSyncingMath.current = true;
+      const revealed = revealInlineMathAtCaret();
+      isSyncingMath.current = false;
+      if (!revealed) convertCompletedInlineMath(current.id);
       return;
     }
     renderMathInBlock(activeBlockId.current);
     activeBlockId.current = current.id;
+    if (SOURCE_BLOCK_TYPES.has(current.type)) dispatchSourceReveal(current.id);
   }
 
   function handleFocus() {

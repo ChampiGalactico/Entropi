@@ -3,6 +3,7 @@ import { createReactBlockSpec } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../hooks/useTheme";
 import { renderMermaid } from "../../lib/mermaidRenderer";
+import { useAutoRevealSource } from "./sourceReveal";
 
 export const DIAGRAM_TEMPLATES = {
   flowchart: "flowchart TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[Do this]\n    B -->|No| D[Do that]",
@@ -24,6 +25,7 @@ function DiagramCanvas({ block, editor }: { block: any; editor: any }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (!editing) setDraft(block.props.code); }, [block.props.code, editing]);
+  useAutoRevealSource(block.id, () => setEditing(true));
 
   useEffect(() => {
     if (editing) return;
@@ -51,7 +53,7 @@ function DiagramCanvas({ block, editor }: { block: any; editor: any }) {
     </div>;
   }
 
-  return <div contentEditable={false} onClick={() => setEditing(true)} className="my-3 w-full min-w-0 max-w-full cursor-text overflow-x-auto rounded-[1.5rem] border border-border bg-control p-4 text-center shadow-card">
+  return <div contentEditable={false} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setEditing(true); }} className="my-3 w-full min-w-0 max-w-full cursor-text overflow-x-auto rounded-[1.5rem] border border-border bg-control p-4 text-center shadow-card">
     {error ? <p className="text-xs text-danger">{t("notes.diagram.error")}: {error}</p> : <div ref={containerRef} className="inline-block max-w-full [&_svg]:mx-auto [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svg ?? "" }} />}
   </div>;
 }

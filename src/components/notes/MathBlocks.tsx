@@ -1,6 +1,7 @@
 import { createReactBlockSpec, createReactInlineContentSpec } from "@blocknote/react";
 import { useEffect, useRef, useState } from "react";
 import { ensureMathJax } from "../../lib/mathJax";
+import { useAutoRevealSource } from "./sourceReveal";
 
 const DEFAULT_DISPLAY_FORMULA = "$$\n\n$$";
 
@@ -41,26 +42,26 @@ export const InlineMath = createReactInlineContentSpec(
   { render: (props) => <InlineFormula inlineContent={props.inlineContent} updateInlineContent={props.updateInlineContent} /> },
 );
 
+function ObsidianFormula({ block, editor }: { block: any; editor: any }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(block.props.latex);
+  useEffect(() => { if (!editing) setDraft(block.props.latex); }, [block.props.latex, editing]);
+  useAutoRevealSource(block.id, () => setEditing(true));
+  function commit() {
+    const next = draft.trim() || DEFAULT_DISPLAY_FORMULA;
+    if (next !== block.props.latex) editor.updateBlock(block, { props: { latex: next } });
+    setEditing(false);
+  }
+  function exitFormula() {
+    commit();
+    const inserted = editor.insertBlocks([{ type: "paragraph" }], block, "after");
+    queueMicrotask(() => { editor.setTextCursorPosition(inserted[0], "start"); editor.focus(); });
+  }
+  if (editing) return <textarea contentEditable={false} autoFocus value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); exitFormula(); } if (event.key === "Escape") { event.preventDefault(); setEditing(false); } }} spellCheck={false} rows={Math.max(3, Math.min(16, draft.split("\n").length + 1))} className="my-1 w-full resize-y bg-transparent px-1 py-2 font-mono text-sm leading-6 text-text-primary outline-none" />;
+  return <button type="button" contentEditable={false} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setEditing(true); }} className="my-1 block w-full cursor-text bg-transparent px-1 py-0.5 text-center text-text-primary"><LatexPreview latex={block.props.latex} display /></button>;
+}
+
 export const MathBlock = createReactBlockSpec(
   { type: "math", propSchema: { latex: { default: DEFAULT_DISPLAY_FORMULA } }, content: "none" },
-  { render: ({ block, editor }) => {
-    function ObsidianFormula() {
-      const [editing, setEditing] = useState(false);
-      const [draft, setDraft] = useState(block.props.latex);
-      useEffect(() => { if (!editing) setDraft(block.props.latex); }, [block.props.latex, editing]);
-      function commit() {
-        const next = draft.trim() || DEFAULT_DISPLAY_FORMULA;
-        if (next !== block.props.latex) editor.updateBlock(block, { props: { latex: next } });
-        setEditing(false);
-      }
-      function exitFormula() {
-        commit();
-        const inserted = (editor as any).insertBlocks([{ type: "paragraph" }], block, "after");
-        queueMicrotask(() => (editor as any).setTextCursorPosition(inserted[0], "start"));
-      }
-      if (editing) return <textarea contentEditable={false} autoFocus value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); exitFormula(); } if (event.key === "Escape") { event.preventDefault(); setEditing(false); } }} spellCheck={false} rows={Math.max(3, Math.min(16, draft.split("\n").length + 1))} className="my-1 w-full resize-y bg-transparent px-1 py-2 font-mono text-sm leading-6 text-text-primary outline-none" />;
-      return <button type="button" contentEditable={false} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setEditing(true); }} className="my-1 block w-full cursor-text bg-transparent px-1 py-0.5 text-center text-text-primary"><LatexPreview latex={block.props.latex} display /></button>;
-    }
-    return <ObsidianFormula />;
-  } },
+  { render: ({ block, editor }) => <ObsidianFormula block={block} editor={editor} /> },
 )();
