@@ -63,16 +63,6 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     onChange(JSON.stringify(editor.document));
   }
 
-  function revealInlineMath(block: any) {
-    if (!Array.isArray(block?.content) || !block.content.some((item: any) => item.type === "inlineMath")) return;
-    const content = block.content.map((item: any) => item.type === "inlineMath"
-      ? { type: "text", text: `$${item.props.latex}$`, styles: {} }
-      : item);
-    isSyncingMath.current = true;
-    editor.updateBlock(block, { content } as any);
-    isSyncingMath.current = false;
-  }
-
   function renderMathInBlock(blockId: string | null) {
     if (!blockId) return;
     isSyncingMath.current = true;
@@ -200,15 +190,12 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     }
     renderMathInBlock(activeBlockId.current);
     activeBlockId.current = current.id;
-    revealInlineMath(current);
   }
 
   function handleFocus() {
     if (activeBlockId.current !== null) return;
     try {
-      const current = editor.getTextCursorPosition().block as any;
-      activeBlockId.current = current.id;
-      revealInlineMath(current);
+      activeBlockId.current = editor.getTextCursorPosition().block.id;
     } catch { /* Custom blocks do not always expose a text cursor. */ }
   }
 
