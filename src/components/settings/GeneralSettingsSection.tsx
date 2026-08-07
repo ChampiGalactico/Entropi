@@ -11,7 +11,9 @@ import { useLanguage } from "../../hooks/useLanguage";
 import { CalendarSettingsSection } from "./CalendarSettingsSection";
 import { NotesSettingsSection } from "./NotesSettingsSection";
 import { SpellcheckSettingsSection } from "./SpellcheckSettingsSection";
+import { Button } from "../ui/Button";
 import { notify } from "../ui/Toast";
+import { useUpdateStore } from "../../stores/updateStore";
 
 export function GeneralSettingsSection() {
   const { t } = useTranslation();
@@ -21,6 +23,8 @@ export function GeneralSettingsSection() {
   const [autostartEnabled, setAutostartEnabled] = useState(false);
   const [autostartBusy, setAutostartBusy] = useState(true);
   const [autostartAvailable, setAutostartAvailable] = useState(true);
+  const updateStatus = useUpdateStore((state) => state.status);
+  const checkForUpdates = useUpdateStore((state) => state.check);
 
   useEffect(() => {
     void isEnabled()
@@ -28,6 +32,13 @@ export function GeneralSettingsSection() {
       .catch(() => setAutostartAvailable(false))
       .finally(() => setAutostartBusy(false));
   }, []);
+
+  async function handleCheckForUpdates() {
+    await checkForUpdates();
+    const status = useUpdateStore.getState().status;
+    if (status === "up-to-date") notify.info(t("update.upToDate"));
+    else if (status === "error") notify.error(t("update.checkError"));
+  }
 
   async function changeAutostart(checked: boolean) {
     setAutostartBusy(true);
@@ -105,6 +116,19 @@ export function GeneralSettingsSection() {
             disabled={autostartBusy || !autostartAvailable}
             onChange={(checked) => void changeAutostart(checked)}
           />
+        </SettingsRow>
+
+        <SettingsRow
+          label={t("settings.general.checkForUpdates")}
+          description={t("settings.general.checkForUpdatesHint")}
+        >
+          <Button
+            variant="secondary"
+            disabled={updateStatus === "checking"}
+            onClick={() => void handleCheckForUpdates()}
+          >
+            {t(updateStatus === "checking" ? "settings.general.checkingForUpdates" : "settings.general.checkForUpdatesAction")}
+          </Button>
         </SettingsRow>
       </div>
 

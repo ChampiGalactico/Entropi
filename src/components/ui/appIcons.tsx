@@ -25,6 +25,7 @@ export const CheckCircleLinear = icon("CheckCircleLinear");
 export const ChecklistMinimalisticLinear = icon("ChecklistMinimalisticLinear");
 export const ClockCircleLinear = icon("ClockCircleLinear");
 export const CloseCircleLinear = icon("CloseCircleLinear");
+export const DownloadMinimalisticLinear = icon("DownloadMinimalisticLinear");
 export const GlobalLinear = icon("GlobalLinear");
 export const Home2Linear = icon("Home2Linear");
 export const LightbulbBoltLinear = icon("LightbulbBoltLinear");

@@ -4,13 +4,18 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { ToastViewport } from "../ui/Toast";
 import { ConfirmDialogViewport } from "../ui/ConfirmDialog";
+import { UpdateBanner } from "../ui/UpdateBanner";
 import { EntityDetailModal } from "../shared/EntityDetailModal";
 import { useNavigationHistoryStore } from "../../stores/navigationHistoryStore";
+import { useUpdateStore } from "../../stores/updateStore";
 
 export function AppLayout() {
   const location = useLocation();
   const track = useNavigationHistoryStore((state) => state.track);
   useEffect(() => { track(location.key, `${location.pathname}${location.search}`); }, [location.key, location.pathname, location.search, track]);
+
+  const checkForUpdates = useUpdateStore((state) => state.check);
+  useEffect(() => { void checkForUpdates(true); }, [checkForUpdates]);
 
   return (
     <div className="h-screen overflow-hidden bg-transparent">
@@ -18,6 +23,7 @@ export function AppLayout() {
       <TopBar />
       <ToastViewport />
       <ConfirmDialogViewport />
+      <UpdateBanner />
       <EntityDetailModal />
       <main className="ml-[76px] mt-[72px] h-[calc(100vh-72px)] overflow-y-auto px-7 pb-8 pt-3">
         <Outlet />

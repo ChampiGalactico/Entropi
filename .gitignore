@@ -16,6 +16,8 @@ dist-ssr
 # Tauri / Rust
 src-tauri/target
 src-tauri/gen
+src-tauri/updater.key
+src-tauri/updater.key.pub
 
 # Claude Code local settings
 .claude/settings.local.json

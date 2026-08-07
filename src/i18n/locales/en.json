@@ -552,6 +552,15 @@
     "restored": "Restored successfully",
     "error": "The action could not be completed"
   },
+  "update": {
+    "availableTitle": "New version available: {{version}}",
+    "readyTitle": "Update ready to install",
+    "downloadAndInstall": "Download and install",
+    "restartNow": "Restart now",
+    "dismiss": "Dismiss",
+    "upToDate": "You're on the latest version",
+    "checkError": "Could not check for updates"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Lookup tables, locations, grading, and theming config will live here.",
@@ -576,7 +585,11 @@
       "autostartDesktopOnly": "This option is only available in the desktop application.",
       "autostartEnabled": "Automatic startup enabled",
       "autostartDisabled": "Automatic startup disabled",
-      "autostartError": "Automatic startup could not be changed"
+      "autostartError": "Automatic startup could not be changed",
+      "checkForUpdates": "Check for updates",
+      "checkForUpdatesHint": "Checks whether a new version of Entropi is available.",
+      "checkForUpdatesAction": "Check now",
+      "checkingForUpdates": "Checking..."
     },
     "calendar": {
       "title": "Calendar",

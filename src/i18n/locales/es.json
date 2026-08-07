@@ -552,6 +552,15 @@
     "restored": "Restaurado correctamente",
     "error": "No se pudo completar la acción"
   },
+  "update": {
+    "availableTitle": "Nueva versión disponible: {{version}}",
+    "readyTitle": "Actualización lista para instalar",
+    "downloadAndInstall": "Descargar e instalar",
+    "restartNow": "Reiniciar ahora",
+    "dismiss": "Cerrar aviso",
+    "upToDate": "Ya tienes la última versión",
+    "checkError": "No se pudo comprobar si hay actualizaciones"
+  },
   "settings": {
     "title": "Configuración",
     "subtitle": "Las tablas de referencia, ubicaciones, calificación y temas aparecerán aquí.",
@@ -576,7 +585,11 @@
       "autostartDesktopOnly": "Esta opción solo está disponible en la aplicación de escritorio.",
       "autostartEnabled": "Inicio automático activado",
       "autostartDisabled": "Inicio automático desactivado",
-      "autostartError": "No se pudo cambiar el inicio automático"
+      "autostartError": "No se pudo cambiar el inicio automático",
+      "checkForUpdates": "Buscar actualizaciones",
+      "checkForUpdatesHint": "Comprueba si hay una nueva versión de Entropi disponible.",
+      "checkForUpdatesAction": "Buscar ahora",
+      "checkingForUpdates": "Buscando..."
     },
     "calendar": {
       "title": "Calendario",
