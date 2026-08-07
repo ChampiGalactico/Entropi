@@ -321,6 +321,33 @@ body {
   text-underline-offset: 0.16em;
 }
 
+.entropi-misspelled {
+  text-decoration: wavy underline;
+  text-decoration-color: var(--danger);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+.entropi-spellcheck-overlay {
+  position: relative;
+}
+
+.entropi-spellcheck-overlay-text {
+  position: absolute !important;
+  inset: 0;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  pointer-events: none;
+  color: transparent !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.entropi-spellcheck-overlay-text-single {
+  white-space: pre !important;
+}
+
 .entropi-note-page .bn-editor {
   min-height: 60vh;
   padding-inline: 0;

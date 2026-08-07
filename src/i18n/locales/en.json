@@ -557,6 +557,11 @@
       "autosaveDelayHint": "Saves after this amount of idle time; every change restarts the timer.",
       "seconds": "seconds"
     },
+    "spellcheck": {
+      "title": "Spellcheck",
+      "languages": "Active languages",
+      "languagesHint": "Words that don't exist in any of these languages will be underlined."
+    },
     "lookup": {
       "sessionTypes": "Session Types",
       "assessmentTypes": "Assessment Types",

@@ -10,6 +10,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useLanguage } from "../../hooks/useLanguage";
 import { CalendarSettingsSection } from "./CalendarSettingsSection";
 import { NotesSettingsSection } from "./NotesSettingsSection";
+import { SpellcheckSettingsSection } from "./SpellcheckSettingsSection";
 import { notify } from "../ui/Toast";
 
 export function GeneralSettingsSection() {
@@ -108,6 +109,7 @@ export function GeneralSettingsSection() {
       </div>
 
       <CalendarSettingsSection />
+      <SpellcheckSettingsSection />
       <NotesSettingsSection />
       <GradingConfigSection />
     </div>

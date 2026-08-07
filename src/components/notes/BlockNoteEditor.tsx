@@ -26,6 +26,10 @@ import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
 import { dispatchSourceReveal } from "./sourceReveal";
+import { createSpellcheckExtension, setEditorSpellers } from "./spellcheckExtension";
+import { useSpellcheckers } from "../../hooks/useSpellcheck";
+
+const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
 
@@ -60,9 +64,22 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
-  const editor = useCreateBlockNote({ schema: noteSchema, initialContent: initialContent as any, dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en }, []);
+  const editor = useCreateBlockNote({
+    schema: noteSchema,
+    initialContent: initialContent as any,
+    dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en,
+    _tiptapOptions: {
+      extensions: [spellcheckExtension],
+      editorProps: { attributes: { spellcheck: "false" } },
+    },
+  }, []);
   const activeBlockId = useRef<string | null>(null);
   const isSyncingMath = useRef(false);
+  const spellers = useSpellcheckers();
+
+  useEffect(() => {
+    setEditorSpellers((editor as any)._tiptapEditor, spellers);
+  }, [editor, spellers]);
 
   function serialize() {
     onChange(JSON.stringify(editor.document));

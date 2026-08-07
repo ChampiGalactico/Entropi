@@ -557,6 +557,11 @@
       "autosaveDelayHint": "Guarda después de este tiempo sin escribir; cada cambio reinicia el temporizador.",
       "seconds": "segundos"
     },
+    "spellcheck": {
+      "title": "Corrección ortográfica",
+      "languages": "Idiomas activos",
+      "languagesHint": "Las palabras que no existan en ninguno de estos idiomas se subrayarán."
+    },
     "lookup": {
       "sessionTypes": "Tipos de Sesión",
       "assessmentTypes": "Tipos de Evaluación",
