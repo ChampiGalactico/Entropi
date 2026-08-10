@@ -34,6 +34,7 @@ export function NoteEditorPage() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const printAreaRef = useRef<HTMLElement>(null);
+  const editorContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     void Promise.all([getNote(noteId), listAllSubjects(), listTasks({}), listAllAssessments(), listNotes(), listNoteLinks(noteId)]).then(([noteRow, subjectRows, taskRows, assessmentRows, noteRows, linkRows]) => {
@@ -91,12 +92,15 @@ export function NoteEditorPage() {
   const lastEditedLabel = t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note?.updated_at ?? Date.now())) });
 
   async function exportPdf() {
-    if (!printAreaRef.current || exportingPdf) return;
+    if (!editorContentRef.current || exportingPdf) return;
     setExportingPdf(true);
+    notify.info(t("notes.exportInProgress"));
     try {
-      await exportNoteToPdf({ element: printAreaRef.current, title: title.trim() || t("notes.untitled"), lastEditedLabel });
-    } catch {
-      notify.error(t("notes.exportError"));
+      const result = await exportNoteToPdf({ blocksJson: content, domRoot: editorContentRef.current, title: title.trim() || t("notes.untitled"), lastEditedLabel });
+      if (result.saved) notify.success(t("notes.exportSuccess"));
+    } catch (error) {
+      console.error("[exportPdf] failed", error);
+      notify.error(`${t("notes.exportError")}: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setExportingPdf(false);
     }
@@ -109,7 +113,9 @@ export function NoteEditorPage() {
       <main ref={printAreaRef} id="entropi-print-area" className="min-w-0 px-4 pb-20 md:px-10">
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
-        <BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} />
+        <div ref={editorContentRef}>
+          <BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} />
+        </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
       </main>
       <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />

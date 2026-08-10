@@ -83,6 +83,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0011_recurring_tasks.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 12,
+            description: "note_folders",
+            sql: include_str!("../../src/db/migrations/0012_note_folders.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 13,
+            description: "note_folder_nesting",
+            sql: include_str!("../../src/db/migrations/0013_note_folder_nesting.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -103,6 +115,8 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:entropi.db", migrations())
