@@ -34,6 +34,7 @@ export const MapPointLinear = icon("MapPointLinear");
 export const MoonLinear = icon("MoonLinear");
 export const NotebookLinear = icon("NotebookLinear");
 export const PenLinear = icon("PenLinear");
+export const PrinterLinear = icon("PrinterLinear");
 export const QuestionCircleLinear = icon("QuestionCircleLinear");
 export const SettingsLinear = icon("SettingsLinear");
 export const SquareAcademicCapLinear = icon("SquareAcademicCapLinear");

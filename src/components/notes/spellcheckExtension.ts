@@ -10,26 +10,36 @@ export const spellcheckPluginKey = new PluginKey<SpellcheckState>("entropi-spell
 
 interface SpellcheckState {
   spellers: Speller[];
+  ignoredWords: ReadonlySet<string>;
   decorations: DecorationSet;
 }
 
-function buildDecorations(doc: ProseMirrorNode, spellers: Speller[]): DecorationSet {
+interface SpellcheckMeta {
+  spellers: Speller[];
+  ignoredWords: ReadonlySet<string>;
+}
+
+function buildDecorations(doc: ProseMirrorNode, spellers: Speller[], ignoredWords: ReadonlySet<string>): DecorationSet {
   if (spellers.length === 0) return DecorationSet.empty;
   const decorations: Decoration[] = [];
   doc.descendants((node, pos) => {
     if (!node.isText || !node.text) return;
-    for (const range of findMisspelledRanges(node.text, spellers)) {
+    for (const range of findMisspelledRanges(node.text, spellers, ignoredWords)) {
       decorations.push(Decoration.inline(pos + range.start, pos + range.end, { class: "entropi-misspelled" }));
     }
   });
   return DecorationSet.create(doc, decorations);
 }
 
-/** Sets the active spellcheck dictionaries for a BlockNote/Tiptap editor instance. */
-export function setEditorSpellers(tiptapEditor: { state: any; view: any } | null | undefined, spellers: Speller[]) {
+/** Sets the active spellcheck dictionaries and ignore list for a BlockNote/Tiptap editor instance. */
+export function setEditorSpellers(
+  tiptapEditor: { state: any; view: any } | null | undefined,
+  spellers: Speller[],
+  ignoredWords: ReadonlySet<string>,
+) {
   if (!tiptapEditor) return;
   const { state, view } = tiptapEditor;
-  view.dispatch(state.tr.setMeta(spellcheckPluginKey, spellers));
+  view.dispatch(state.tr.setMeta(spellcheckPluginKey, { spellers, ignoredWords } satisfies SpellcheckMeta));
 }
 
 export function createSpellcheckExtension() {
@@ -40,12 +50,13 @@ export function createSpellcheckExtension() {
         new Plugin<SpellcheckState>({
           key: spellcheckPluginKey,
           state: {
-            init: () => ({ spellers: [], decorations: DecorationSet.empty }),
+            init: () => ({ spellers: [], ignoredWords: new Set(), decorations: DecorationSet.empty }),
             apply(tr, old, _oldEditorState, newEditorState) {
-              const metaSpellers = tr.getMeta(spellcheckPluginKey) as Speller[] | undefined;
-              const spellers = metaSpellers ?? old.spellers;
-              if (metaSpellers || tr.docChanged) {
-                return { spellers, decorations: buildDecorations(newEditorState.doc, spellers) };
+              const meta = tr.getMeta(spellcheckPluginKey) as SpellcheckMeta | undefined;
+              const spellers = meta?.spellers ?? old.spellers;
+              const ignoredWords = meta?.ignoredWords ?? old.ignoredWords;
+              if (meta || tr.docChanged) {
+                return { spellers, ignoredWords, decorations: buildDecorations(newEditorState.doc, spellers, ignoredWords) };
               }
               return old;
             },

@@ -435,6 +435,8 @@
     "saved": "Guardado",
     "unsaved": "Cambios sin guardar",
     "savedToast": "Nota guardada",
+    "lastEdited": "Última edición: {{date}}",
+    "print": "Imprimir",
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",
@@ -610,7 +612,9 @@
     "spellcheck": {
       "title": "Corrección ortográfica",
       "languages": "Idiomas activos",
-      "languagesHint": "Las palabras que no existan en ninguno de estos idiomas se subrayarán."
+      "languagesHint": "Las palabras que no existan en ninguno de estos idiomas se subrayarán.",
+      "addToDictionary": "Añadir \"{{word}}\" al diccionario",
+      "ignoreWord": "Omitir \"{{word}}\""
     },
     "lookup": {
       "sessionTypes": "Tipos de Sesión",

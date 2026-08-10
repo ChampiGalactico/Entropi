@@ -440,3 +440,113 @@ body {
 .check-path.is-checked {
   stroke-dashoffset: 0;
 }
+
+/* Note printing (window.print / "save as PDF"): render only #entropi-print-area, keeping the
+   note's on-screen fonts and colors as-is (this is not a stripped-down "reader mode" — it should
+   look like the editor, minus the app chrome and per-block editing controls). The page itself is
+   plain white paper — only the thin header/footer bands get a dark accent background. */
+@media print {
+  @page {
+    margin: 1.8cm 1.6cm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #entropi-print-area,
+  #entropi-print-area * {
+    visibility: visible;
+  }
+
+  #entropi-print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: #ffffff !important;
+  }
+
+  #entropi-print-area .entropi-print-title {
+    border: none !important;
+  }
+
+  #entropi-print-area .bn-editor {
+    padding: 0 !important;
+  }
+
+  #entropi-print-area .bn-block-content[data-content-type="heading"] {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  #entropi-print-area img,
+  #entropi-print-area canvas,
+  #entropi-print-area .entropi-math-display,
+  #entropi-print-area table {
+    break-inside: avoid;
+  }
+
+  #entropi-print-area .entropi-misspelled {
+    text-decoration: none !important;
+  }
+
+  /* Per-block editing chrome — drag handles, the side "+" menu, the drawing toolbar, the
+     mermaid-source "Done" bar — has no place on a printed page; only the block's own content does.
+     Note: this intentionally does NOT hide all <button> elements, since a rendered display-math
+     block is itself a <button> (click-to-edit) and must stay visible when printed. */
+  #entropi-print-area .bn-side-menu,
+  #entropi-print-area .bn-drag-handle,
+  #entropi-print-area .entropi-drawing-toolbar,
+  #entropi-print-area .entropi-diagram-toolbar {
+    display: none !important;
+  }
+
+  /* Header/footer bands: plain elements in the normal document flow (NOT position:fixed) — one
+     right before the title, one right after the note's content. A fixed-position band was tried
+     and dropped: print engines anchor "fixed" inconsistently relative to page breaks, so it ended
+     up drifting mid-page and covering note text instead of staying out of the way. Being regular
+     flow content guarantees zero overlap, at the cost of only appearing once (start/end of the
+     document) rather than repeating on every physical page. Bleeds edge-to-edge (negative margin
+     matching the @page side margin) so it reads like a native running header, not a content card —
+     this sits *below* the browser's own print header/date line (that one is drawn by the browser
+     outside the page content and can't be styled or removed from here; the user disables it via
+     the print dialog's "Headers and footers" option). */
+  #entropi-print-area .entropi-print-band {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-left: -1.6cm;
+    margin-right: -1.6cm;
+    padding: 0.25rem 1.6cm;
+    background: rgba(107, 114, 128, 0.12) !important;
+    color: #6b7280 !important;
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: 7.5pt;
+    letter-spacing: 0.02em;
+  }
+
+  #entropi-print-area .entropi-print-band-header {
+    margin-top: -0.9cm;
+    margin-bottom: 1.1rem;
+  }
+
+  #entropi-print-area .entropi-print-band-footer {
+    margin-top: 1.5rem;
+    margin-bottom: -0.9cm;
+  }
+
+  #entropi-print-area .entropi-print-band strong {
+    color: inherit;
+    font-weight: 600;
+  }
+}

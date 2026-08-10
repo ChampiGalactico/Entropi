@@ -216,7 +216,7 @@ function DrawingCanvas({ block, editor }: { block: any; editor: any }) {
   }
 
   return <div contentEditable={false} className="my-3 w-full min-w-0 max-w-full overflow-visible rounded-[1.5rem] border border-border bg-control shadow-card">
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
+    <div className="entropi-drawing-toolbar flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
       <div className="flex flex-wrap items-center gap-1">
         <div className="relative">
           <button type="button" aria-label={t("notes.drawing.tools.pen")} onClick={() => { setPenMenuOpen((open) => !open); setShapeMenuOpen(false); setEraserMenuOpen(false); }} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${tool === "pen" ? "bg-accent text-white" : "bg-surface-hover text-text-secondary"}`}><SolarIcon name={penStyle === "marker" ? "PenNewRoundLinear" : penStyle === "fountain" ? "Pen2Linear" : "PenLinear"} size={18} /></button>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowLeftLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { AltArrowDownLinear, AltArrowLeftLinear, PrinterLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { Button, Checkbox, IconButton, notify } from "../components/ui";
@@ -57,6 +57,7 @@ export function NoteEditorPage() {
     if (!note || !title.trim()) return;
     await updateNote(note.id, { title: title.trim(), content, linked_entity_type: null, linked_entity_id: null });
     await replaceNoteLinks(note.id, [...selected].map((key) => { const [entity_type, entityId] = key.split(":"); return { entity_type: entity_type as LinkedEntityType, entity_id: Number(entityId) }; }));
+    setNote((current) => (current ? { ...current, updated_at: new Date().toISOString() } : current));
     setSaved(true);
     if (showFeedback) notify.success(t("notes.savedToast"));
   }, [content, note, selected, t, title]);
@@ -86,9 +87,14 @@ export function NoteEditorPage() {
 
   if (!note) return null;
   return <div className="mx-auto max-w-7xl">
-    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
+    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span><span className="hidden text-xs text-text-muted sm:inline">· {t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note.updated_at)) })}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={t("notes.print")} icon={<PrinterLinear size={17} />} onClick={() => window.print()} /><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <main className="min-w-0 px-4 pb-20 md:px-10"><input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus /><BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} /></main>
+      <main id="entropi-print-area" className="min-w-0 px-4 pb-20 md:px-10">
+        <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
+        <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
+        <BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} />
+        <div className="entropi-print-band entropi-print-band-footer hidden"><span>{t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note.updated_at)) })}</span><span>Entropi</span></div>
+      </main>
       <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />
     </div>
     <NoteHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />

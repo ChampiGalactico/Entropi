@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import { en, es } from "@blocknote/core/locales";
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from "@blocknote/core/extensions";
@@ -27,7 +27,8 @@ import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
 import { dispatchSourceReveal } from "./sourceReveal";
 import { createSpellcheckExtension, setEditorSpellers } from "./spellcheckExtension";
-import { useSpellcheckers } from "../../hooks/useSpellcheck";
+import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
+import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -76,10 +77,19 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const activeBlockId = useRef<string | null>(null);
   const isSyncingMath = useRef(false);
   const spellers = useSpellcheckers();
+  const { ignoredWords, ignoreWord } = useIgnoredWords();
+  const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
 
   useEffect(() => {
-    setEditorSpellers((editor as any)._tiptapEditor, spellers);
-  }, [editor, spellers]);
+    setEditorSpellers((editor as any)._tiptapEditor, spellers, ignoredWords);
+  }, [editor, spellers, ignoredWords]);
+
+  function handleContextMenu(event: React.MouseEvent) {
+    const target = (event.target as HTMLElement).closest?.(".entropi-misspelled");
+    if (!target?.textContent) return;
+    event.preventDefault();
+    setSpellcheckMenu({ word: target.textContent, x: event.clientX, y: event.clientY });
+  }
 
   function serialize() {
     onChange(JSON.stringify(editor.document));
@@ -292,13 +302,28 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     })),
   ], [editor, t]);
   return (
-    <div className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}>
+    <div
+      className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
+      onContextMenu={handleContextMenu}
+    >
       <MantineProvider forceColorScheme={mode}>
         <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
           <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
       </MantineProvider>
+      {spellcheckMenu && (
+        <SpellcheckMenu
+          word={spellcheckMenu.word}
+          x={spellcheckMenu.x}
+          y={spellcheckMenu.y}
+          onIgnore={() => {
+            void ignoreWord(spellcheckMenu.word);
+            setSpellcheckMenu(null);
+          }}
+          onClose={() => setSpellcheckMenu(null)}
+        />
+      )}
     </div>
   );
 }

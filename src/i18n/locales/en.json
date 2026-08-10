@@ -435,6 +435,8 @@
     "saved": "Saved",
     "unsaved": "Unsaved changes",
     "savedToast": "Note saved",
+    "lastEdited": "Last edited: {{date}}",
+    "print": "Print",
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",
@@ -610,7 +612,9 @@
     "spellcheck": {
       "title": "Spellcheck",
       "languages": "Active languages",
-      "languagesHint": "Words that don't exist in any of these languages will be underlined."
+      "languagesHint": "Words that don't exist in any of these languages will be underlined.",
+      "addToDictionary": "Add \"{{word}}\" to dictionary",
+      "ignoreWord": "Ignore \"{{word}}\""
     },
     "lookup": {
       "sessionTypes": "Session Types",

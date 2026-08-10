@@ -46,14 +46,29 @@ export function useSpellcheckers() {
   return spellers;
 }
 
-/** Misspelled word ranges in `text` against the user's active spellcheck languages. */
+/** Words the user chose to never flag again, persisted, plus the action to add one. */
+export function useIgnoredWords() {
+  const ignoredWords = useSpellcheckStore((s) => s.ignoredWords);
+  const hydrated = useSpellcheckStore((s) => s.hydrated);
+  const hydrate = useSpellcheckStore((s) => s.hydrate);
+  const ignoreWord = useSpellcheckStore((s) => s.ignoreWord);
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
+
+  return { ignoredWords, hydrated, ignoreWord };
+}
+
+/** Misspelled word ranges in `text` against the user's active spellcheck languages and ignore list. */
 export function useMisspelledRanges(text: string): MisspelledRange[] {
   const spellers = useSpellcheckers();
+  const ignoredWords = useSpellcheckStore((s) => s.ignoredWords);
   const [ranges, setRanges] = useState<MisspelledRange[]>([]);
 
   useEffect(() => {
-    setRanges(findMisspelledRanges(text, spellers));
-  }, [text, spellers]);
+    setRanges(findMisspelledRanges(text, spellers, ignoredWords));
+  }, [text, spellers, ignoredWords]);
 
   return ranges;
 }

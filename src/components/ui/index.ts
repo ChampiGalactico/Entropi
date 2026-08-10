@@ -23,3 +23,4 @@ export * from "./Tabs";
 export * from "./EmptyState";
 export * from "./Toast";
 export * from "./ConfirmDialog";
+export * from "./SpellcheckMenu";

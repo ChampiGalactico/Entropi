@@ -45,7 +45,7 @@ function DiagramCanvas({ block, editor }: { block: any; editor: any }) {
 
   if (editing) {
     return <div contentEditable={false} className="my-3 w-full min-w-0 max-w-full rounded-[1.5rem] border border-border bg-control shadow-card">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+      <div className="entropi-diagram-toolbar flex items-center justify-between gap-2 border-b border-border px-3 py-2">
         <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">{t("notes.diagram.slashTitle")}</span>
         <button type="button" onClick={commit} className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-white">{t("notes.diagram.done")}</button>
       </div>

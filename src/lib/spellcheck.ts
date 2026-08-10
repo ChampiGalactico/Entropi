@@ -42,7 +42,11 @@ export interface MisspelledRange {
   word: string;
 }
 
-export function findMisspelledRanges(text: string, spellers: Speller[]): MisspelledRange[] {
+export function findMisspelledRanges(
+  text: string,
+  spellers: Speller[],
+  ignoredWords?: ReadonlySet<string>,
+): MisspelledRange[] {
   if (spellers.length === 0 || !text) return [];
   const ranges: MisspelledRange[] = [];
   WORD_PATTERN.lastIndex = 0;
@@ -50,6 +54,7 @@ export function findMisspelledRanges(text: string, spellers: Speller[]): Misspel
   while ((match = WORD_PATTERN.exec(text))) {
     const word = match[0];
     if (word.length < 2) continue;
+    if (ignoredWords?.has(word.toLowerCase())) continue;
     const known = spellers.some((speller) => speller.correct(word));
     if (!known) ranges.push({ start: match.index, end: match.index + word.length, word });
   }

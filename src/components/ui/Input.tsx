@@ -1,5 +1,6 @@
-import { useRef, type InputHTMLAttributes } from "react";
-import { useMisspelledRanges } from "../../hooks/useSpellcheck";
+import { useRef, useState, type InputHTMLAttributes } from "react";
+import { useIgnoredWords, useMisspelledRanges } from "../../hooks/useSpellcheck";
+import { SpellcheckMenu, type SpellcheckMenuTarget } from "./SpellcheckMenu";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
@@ -12,6 +13,17 @@ export function Input({ className = "", spellCheck, value, type, ...rest }: Inpu
   const isSpellcheckable = spellCheck !== false && (type === undefined || type === "text");
   const text = isSpellcheckable && typeof value === "string" ? value : "";
   const ranges = useMisspelledRanges(text);
+  const { ignoreWord } = useIgnoredWords();
+  const [menu, setMenu] = useState<SpellcheckMenuTarget | null>(null);
+
+  function handleContextMenu(event: React.MouseEvent<HTMLInputElement>) {
+    if (ranges.length === 0) return;
+    const pos = event.currentTarget.selectionStart ?? -1;
+    const range = ranges.find((entry) => pos >= entry.start && pos <= entry.end);
+    if (!range) return;
+    event.preventDefault();
+    setMenu({ word: range.word, x: event.clientX, y: event.clientY });
+  }
 
   function syncScroll() {
     if (overlayRef.current && inputRef.current) {
@@ -44,6 +56,10 @@ export function Input({ className = "", spellCheck, value, type, ...rest }: Inpu
           syncScroll();
           rest.onScroll?.(event);
         }}
+        onContextMenu={(event) => {
+          handleContextMenu(event);
+          rest.onContextMenu?.(event);
+        }}
         {...rest}
       />
       <div
@@ -61,6 +77,18 @@ export function Input({ className = "", spellCheck, value, type, ...rest }: Inpu
           ),
         )}
       </div>
+      {menu && (
+        <SpellcheckMenu
+          word={menu.word}
+          x={menu.x}
+          y={menu.y}
+          onIgnore={() => {
+            void ignoreWord(menu.word);
+            setMenu(null);
+          }}
+          onClose={() => setMenu(null)}
+        />
+      )}
     </div>
   );
 }
