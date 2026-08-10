@@ -29,10 +29,26 @@ import { dispatchSourceReveal } from "./sourceReveal";
 import { createSpellcheckExtension, setEditorSpellers } from "./spellcheckExtension";
 import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
 import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
+import { notify } from "../ui";
 
 const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
+
+// No server to upload to in a local-first app — files are embedded as base64 data URLs directly
+// in the note's own JSON, so pasting a copied image or picking one from disk works fully offline
+// with nothing to keep in sync or clean up. Capped well under SQLite's practical row-size comfort
+// zone so one huge photo can't bloat a note (and, downstream, its PDF export) unreasonably.
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error("file read failed"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function EntropiFormattingToolbar() {
   return <FormattingToolbar>
@@ -69,11 +85,22 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     schema: noteSchema,
     initialContent: initialContent as any,
     dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en,
+    uploadFile: async (file: File) => {
+      if (file.size > MAX_UPLOAD_BYTES) {
+        notify.error(t("notes.upload.tooLarge"));
+        throw new Error("file too large");
+      }
+      return readFileAsDataUrl(file);
+    },
     _tiptapOptions: {
       extensions: [spellcheckExtension],
       editorProps: { attributes: { spellcheck: "false" } },
     },
-  }, []);
+    // Recreate the editor when the app's language changes — BlockNote's slash-menu titles/aliases
+    // (e.g. "Heading" vs "Título") come from the `dictionary` passed at construction time, so an
+    // empty dependency array here left it permanently stuck on whatever language was active the
+    // moment this note was first opened, even after switching the app to another language.
+  }, [i18n.resolvedLanguage]);
   const activeBlockId = useRef<string | null>(null);
   const isSyncingMath = useRef(false);
   const spellers = useSpellcheckers();

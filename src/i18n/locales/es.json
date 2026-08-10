@@ -123,7 +123,22 @@
     "views": { "month": "Mensual", "week": "Semanal", "day": "Diaria" },
     "kinds": { "session": "Clase", "assessment": "Evaluación", "task": "Tarea", "event": "Evento" },
     "more": "más",
-    "noItemsForDay": "No hay elementos programados para este día."
+    "noItemsForDay": "No hay elementos programados para este día.",
+    "lookupDefaults": {
+      "magistral": "Magistral",
+      "complementaria": "Complementaria",
+      "laboratorio": "Laboratorio",
+      "quiz": "Quiz",
+      "parcial": "Parcial",
+      "final": "Final",
+      "sustentacion": "Sustentación",
+      "classPrep": "Preparación de clase",
+      "homework": "Tarea",
+      "project": "Proyecto",
+      "personal": "Personal",
+      "meeting": "Reunión",
+      "webinar": "Webinar"
+    }
   },
   "subjects": {
     "title": "Materias",
@@ -438,7 +453,11 @@
     "lastEdited": "Última edición: {{date}}",
     "print": "Imprimir",
     "exportPdf": "Exportar a PDF",
+    "exportInProgress": "Generando PDF...",
+    "exportSuccess": "PDF guardado",
     "exportError": "No se pudo generar el PDF",
+    "upload": { "tooLarge": "La imagen es demasiado grande (máximo 8 MB)" },
+    "video": { "placeholder": "Pega un enlace de YouTube, Vimeo o un video (Enter para confirmar)" },
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",
@@ -452,6 +471,21 @@
       "showLess": "Ver menos"
     },
     "references": { "details": "Más detalles en" },
+    "folders": {
+      "title": "Carpetas",
+      "add": "Nueva carpeta",
+      "addSubfolder": "Nueva subcarpeta",
+      "addTitle": "Nueva carpeta",
+      "addSubfolderTitle": "Nueva subcarpeta",
+      "editTitle": "Editar carpeta",
+      "all": "Todas las notas",
+      "unfiled": "Sin carpeta",
+      "none": "Sin carpeta",
+      "searchPlaceholder": "Buscar notas por título...",
+      "noMatches": "Ninguna nota coincide con este filtro.",
+      "noteCount_one": "{{count}} nota",
+      "noteCount_other": "{{count}} notas"
+    },
     "slashGroup": "Ingeniería y física",
     "drawing": {
       "add": "Añadir lienzo",
@@ -524,7 +558,49 @@
       "shortcutsTitle": "Atajos útiles",
       "saveShortcut": "Guardar la nota inmediatamente.",
       "doubleClick": "Doble clic",
-      "editInline": "Editar una fórmula inline existente."
+      "editInline": "Editar una fórmula inline existente.",
+      "copyHint": "Toca cualquier ejemplo para copiar su código.",
+      "copied": "Copiado al portapapeles",
+      "copyError": "No se pudo copiar",
+      "docsLink": "Ver documentación completa",
+      "tabs": { "basic": "Básico", "latex": "LaTeX", "mermaid": "Mermaid" },
+      "basic": {
+        "intro": { "title": "Cómo insertar bloques", "description": "Escribe / en una línea vacía para abrir la biblioteca de bloques, o usa los atajos de Markdown de abajo." },
+        "diagramCommand": "Inserta un diagrama de Mermaid (flowchart, secuencia, clases, estados, Gantt...).",
+        "blocksTitle": "Bloques básicos",
+        "blocksDescription": "Escribe el atajo al inicio de una línea vacía para convertirla en ese tipo de bloque.",
+        "blocks": {
+          "heading1": { "title": "Título 1", "description": "El título más grande de la nota." },
+          "heading2": { "title": "Título 2", "description": "Subtítulo de sección." },
+          "heading3": { "title": "Título 3", "description": "Subtítulo menor." },
+          "bulletList": { "title": "Lista con viñetas", "description": "Ideal para enumerar ideas sin orden específico." },
+          "numberedList": { "title": "Lista numerada", "description": "Para pasos o elementos con un orden." },
+          "checklist": { "title": "Lista de tareas", "description": "Casillas que puedes marcar como completadas." },
+          "quote": { "title": "Cita", "description": "Resalta una frase o referencia." },
+          "codeBlock": { "title": "Bloque de código", "description": "Con resaltado de sintaxis por lenguaje." },
+          "divider": { "title": "Divisor", "description": "Una línea horizontal para separar secciones." }
+        }
+      },
+      "vectorNotationTitle": "Norma y producto interno",
+      "vectorNotationDescription": "Notación común para trabajar con vectores: magnitud, producto punto, producto cruz y vectores unitarios.",
+      "mermaid": {
+        "intro": "Los diagramas se escriben con la sintaxis de Mermaid. Usa /diagrama en el editor y pega o escribe el código; Entropi lo renderiza automáticamente.",
+        "syntaxTitle": "Sintaxis útil",
+        "syntaxDescription": "Fragmentos comunes que puedes combinar dentro de cualquier diagrama.",
+        "notes": {
+          "flowchartShapes": "Formas de nodos",
+          "flowchartArrows": "Tipos de flecha",
+          "classRelations": "Relaciones entre clases"
+        },
+        "flowchart": { "title": "Diagrama de flujo (vertical)", "description": "flowchart TD dibuja de arriba hacia abajo. Usa [ ] para pasos y { } para decisiones." },
+        "flowchartLR": { "title": "Diagrama de flujo (horizontal)", "description": "flowchart LR dibuja de izquierda a derecha — útil para procesos con muchos pasos." },
+        "sequence": { "title": "Diagrama de secuencia", "description": "Muestra el orden de mensajes entre participantes. ->> es una llamada, -->> una respuesta." },
+        "classDiagram": { "title": "Diagrama de clases", "description": "Atributos, métodos y relaciones de herencia/composición entre clases." },
+        "erDiagram": { "title": "Diagrama entidad-relación", "description": "Ideal para modelar tablas de una base de datos y sus relaciones (uno a muchos, muchos a muchos...)." },
+        "state": { "title": "Diagrama de estados", "description": "Estados posibles de un sistema y las transiciones entre ellos." },
+        "gantt": { "title": "Diagrama de Gantt", "description": "Cronograma de tareas con fechas y dependencias." },
+        "pie": { "title": "Gráfico circular", "description": "Distribución porcentual de categorías." }
+      }
     }
   },
   "search": {

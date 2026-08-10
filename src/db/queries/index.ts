@@ -9,6 +9,7 @@ export * from "./events";
 export * from "./learningTopics";
 export * from "./weeklyPlans";
 export * from "./notes";
+export * from "./noteFolders";
 export * from "./grades";
 export * from "./config";
 export * from "./appSettings";

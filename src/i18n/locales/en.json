@@ -123,7 +123,22 @@
     "views": { "month": "Monthly", "week": "Weekly", "day": "Daily" },
     "kinds": { "session": "Class", "assessment": "Assessment", "task": "Task", "event": "Event" },
     "more": "more",
-    "noItemsForDay": "There are no items scheduled for this day."
+    "noItemsForDay": "There are no items scheduled for this day.",
+    "lookupDefaults": {
+      "magistral": "Lecture",
+      "complementaria": "Tutorial",
+      "laboratorio": "Lab",
+      "quiz": "Quiz",
+      "parcial": "Midterm",
+      "final": "Final",
+      "sustentacion": "Defense",
+      "classPrep": "Class Prep",
+      "homework": "Homework",
+      "project": "Project",
+      "personal": "Personal",
+      "meeting": "Meeting",
+      "webinar": "Webinar"
+    }
   },
   "subjects": {
     "title": "Subjects",
@@ -438,7 +453,11 @@
     "lastEdited": "Last edited: {{date}}",
     "print": "Print",
     "exportPdf": "Export to PDF",
+    "exportInProgress": "Generating PDF...",
+    "exportSuccess": "PDF saved",
     "exportError": "Could not generate the PDF",
+    "upload": { "tooLarge": "The image is too large (8 MB max)" },
+    "video": { "placeholder": "Paste a YouTube, Vimeo, or video link (Enter to confirm)" },
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",
@@ -452,6 +471,21 @@
       "showLess": "Show less"
     },
     "references": { "details": "More details in" },
+    "folders": {
+      "title": "Folders",
+      "add": "New folder",
+      "addSubfolder": "New subfolder",
+      "addTitle": "New folder",
+      "addSubfolderTitle": "New subfolder",
+      "editTitle": "Edit folder",
+      "all": "All notes",
+      "unfiled": "Unfiled",
+      "none": "No folder",
+      "searchPlaceholder": "Search notes by title...",
+      "noMatches": "No notes match this filter.",
+      "noteCount_one": "{{count}} note",
+      "noteCount_other": "{{count}} notes"
+    },
     "slashGroup": "Engineering and physics",
     "drawing": {
       "add": "Add canvas",
@@ -524,7 +558,49 @@
       "shortcutsTitle": "Useful shortcuts",
       "saveShortcut": "Save the note immediately.",
       "doubleClick": "Double-click",
-      "editInline": "Edit an existing inline formula."
+      "editInline": "Edit an existing inline formula.",
+      "copyHint": "Tap any example to copy its code.",
+      "copied": "Copied to clipboard",
+      "copyError": "Could not copy",
+      "docsLink": "View full documentation",
+      "tabs": { "basic": "Basics", "latex": "LaTeX", "mermaid": "Mermaid" },
+      "basic": {
+        "intro": { "title": "How to insert blocks", "description": "Type / on an empty line to open the block library, or use the Markdown shortcuts below." },
+        "diagramCommand": "Insert a Mermaid diagram (flowchart, sequence, class, state, Gantt...).",
+        "blocksTitle": "Basic blocks",
+        "blocksDescription": "Type the shortcut at the start of an empty line to turn it into that block type.",
+        "blocks": {
+          "heading1": { "title": "Heading 1", "description": "The note's largest heading." },
+          "heading2": { "title": "Heading 2", "description": "Section subheading." },
+          "heading3": { "title": "Heading 3", "description": "Minor subheading." },
+          "bulletList": { "title": "Bullet list", "description": "Good for listing ideas with no specific order." },
+          "numberedList": { "title": "Numbered list", "description": "For steps or items with an order." },
+          "checklist": { "title": "Checklist", "description": "Checkboxes you can mark as done." },
+          "quote": { "title": "Quote", "description": "Highlights a phrase or reference." },
+          "codeBlock": { "title": "Code block", "description": "With syntax highlighting per language." },
+          "divider": { "title": "Divider", "description": "A horizontal rule to separate sections." }
+        }
+      },
+      "vectorNotationTitle": "Norm and inner product",
+      "vectorNotationDescription": "Common notation for working with vectors: magnitude, dot product, cross product, and unit vectors.",
+      "mermaid": {
+        "intro": "Diagrams are written using Mermaid's syntax. Use /diagram in the editor and paste or type the code; Entropi renders it automatically.",
+        "syntaxTitle": "Handy syntax",
+        "syntaxDescription": "Common snippets you can combine inside any diagram.",
+        "notes": {
+          "flowchartShapes": "Node shapes",
+          "flowchartArrows": "Arrow types",
+          "classRelations": "Relationships between classes"
+        },
+        "flowchart": { "title": "Flowchart (vertical)", "description": "flowchart TD draws top-to-bottom. Use [ ] for steps and { } for decisions." },
+        "flowchartLR": { "title": "Flowchart (horizontal)", "description": "flowchart LR draws left-to-right — useful for processes with many steps." },
+        "sequence": { "title": "Sequence diagram", "description": "Shows the order of messages between participants. ->> is a call, -->> a reply." },
+        "classDiagram": { "title": "Class diagram", "description": "Attributes, methods, and inheritance/composition relationships between classes." },
+        "erDiagram": { "title": "Entity-relationship diagram", "description": "Great for modeling database tables and their relationships (one-to-many, many-to-many...)." },
+        "state": { "title": "State diagram", "description": "A system's possible states and the transitions between them." },
+        "gantt": { "title": "Gantt chart", "description": "A task schedule with dates and dependencies." },
+        "pie": { "title": "Pie chart", "description": "Percentage breakdown of categories." }
+      }
     }
   },
   "search": {

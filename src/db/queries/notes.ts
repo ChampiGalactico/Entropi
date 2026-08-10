@@ -67,21 +67,21 @@ export async function getNote(id: number): Promise<Note | null> {
 }
 
 export async function createNote(
-  values: Omit<Note, "id" | "created_at" | "updated_at">,
+  values: Omit<Note, "id" | "created_at" | "updated_at" | "folder_id"> & { folder_id?: number | null },
 ): Promise<number> {
   const db = await getDb();
   const now = new Date().toISOString();
   const result = await db.execute(
-    `INSERT INTO notes (title, content, linked_entity_type, linked_entity_id, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $5)`,
-    [values.title, values.content, values.linked_entity_type, values.linked_entity_id, now],
+    `INSERT INTO notes (title, content, linked_entity_type, linked_entity_id, folder_id, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $6)`,
+    [values.title, values.content, values.linked_entity_type, values.linked_entity_id, values.folder_id ?? null, now],
   );
   return result.lastInsertId as number;
 }
 
 export async function updateNote(
   id: number,
-  values: Omit<Note, "id" | "created_at" | "updated_at">,
+  values: Omit<Note, "id" | "created_at" | "updated_at" | "folder_id">,
 ): Promise<void> {
   const db = await getDb();
   await db.execute(
@@ -96,6 +96,11 @@ export async function updateNote(
       id,
     ],
   );
+}
+
+export async function moveNoteToFolder(id: number, folderId: number | null): Promise<void> {
+  const db = await getDb();
+  await db.execute("UPDATE notes SET folder_id = $1 WHERE id = $2", [folderId, id]);
 }
 
 export async function deleteNote(id: number): Promise<void> {

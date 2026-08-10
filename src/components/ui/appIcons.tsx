@@ -15,11 +15,13 @@ function icon(name: string) {
 }
 
 export const AddCircleLinear = icon("AddCircleLinear");
+export const AddFolderLinear = icon("AddFolderLinear");
 export const AltArrowDownLinear = icon("AltArrowDownLinear");
 export const AltArrowLeftLinear = icon("AltArrowLeftLinear");
 export const AltArrowRightLinear = icon("AltArrowRightLinear");
 export const ArchiveMinimalisticLinear = icon("ArchiveMinimalisticLinear");
 export const BookLinear = icon("BookLinear");
+export const FolderLinear = icon("FolderLinear");
 export const CalendarLinear = icon("CalendarLinear");
 export const CheckCircleLinear = icon("CheckCircleLinear");
 export const ChecklistMinimalisticLinear = icon("ChecklistMinimalisticLinear");

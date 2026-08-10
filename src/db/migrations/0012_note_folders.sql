@@ -1,0 +1,10 @@
+CREATE TABLE note_folders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL DEFAULT '#6366f1',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE notes ADD COLUMN folder_id INTEGER REFERENCES note_folders(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_notes_folder ON notes(folder_id);

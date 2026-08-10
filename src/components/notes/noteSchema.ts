@@ -2,6 +2,7 @@ import { BlockNoteSchema, createCodeBlockSpec, defaultBlockSpecs, defaultInlineC
 import { DiagramBlock } from "./DiagramBlock";
 import { DrawingBlock } from "./DrawingBlock";
 import { InlineMath, MathBlock } from "./MathBlocks";
+import { VideoBlock } from "./VideoBlock";
 
 const languages = {
   javascript: { name: "JavaScript", aliases: ["js", "jsx"] },
@@ -52,6 +53,7 @@ export const noteSchema = BlockNoteSchema.create({
     drawing: DrawingBlock,
     math: MathBlock,
     diagram: DiagramBlock,
+    video: VideoBlock,
   },
   inlineContentSpecs: { ...defaultInlineContentSpecs, inlineMath: InlineMath },
 });
