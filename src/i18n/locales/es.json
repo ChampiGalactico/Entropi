@@ -437,6 +437,8 @@
     "savedToast": "Nota guardada",
     "lastEdited": "Última edición: {{date}}",
     "print": "Imprimir",
+    "exportPdf": "Exportar a PDF",
+    "exportError": "No se pudo generar el PDF",
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",

@@ -437,6 +437,8 @@
     "savedToast": "Note saved",
     "lastEdited": "Last edited: {{date}}",
     "print": "Print",
+    "exportPdf": "Export to PDF",
+    "exportError": "Could not generate the PDF",
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",
