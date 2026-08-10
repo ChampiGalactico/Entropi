@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { listAssessmentsInRange } from "../../db/queries/assessments";
 import { listEventsInRange } from "../../db/queries/events";
 import { listLookupRows } from "../../db/queries/lookups";
@@ -7,6 +8,7 @@ import { listTasks } from "../../db/queries/tasks";
 import { listLocations } from "../../db/queries/locations";
 import type { AssessmentType, EventType, SessionType, TaskType } from "../../types";
 import { addDays, toIsoDate } from "./dateUtils";
+import { translateLookupName } from "../../lib/lookupTranslations";
 
 export type CalendarItemKind = "session" | "assessment" | "task" | "event";
 
@@ -33,6 +35,7 @@ export function entityIdFromCalendarItem(item: CalendarItem): number {
 
 export function useCalendarItems(startDate: Date, endDate: Date, refreshKey = 0) {
   const [items, setItems] = useState<CalendarItem[]>([]);
+  const { t, i18n } = useTranslation();
   const startIso = toIsoDate(startDate);
   const endIso = toIsoDate(endDate);
 
@@ -42,7 +45,13 @@ export function useCalendarItems(startDate: Date, endDate: Date, refreshKey = 0)
       listTasks({ dueDateFrom: startIso, dueDateTo: endIso }), listEventsInRange(startIso, endIso),
       listLookupRows<SessionType>("session_types"), listLookupRows<AssessmentType>("assessment_types"),
       listLookupRows<TaskType>("task_types"), listLookupRows<EventType>("event_types"),
-    ]).then(([subjects, sessions, locations, assessments, tasks, events, sessionTypes, assessmentTypes, taskTypes, eventTypes]) => {
+    ]).then(([subjects, sessions, locations, assessments, tasks, events, sessionTypesRaw, assessmentTypesRaw, taskTypesRaw, eventTypesRaw]) => {
+      // Only the built-in seeded names (Magistral, Quiz, Homework...) get translated — anything the
+      // user renamed or added themselves in Settings is free text and stays exactly as typed.
+      const sessionTypes = sessionTypesRaw.map((item) => ({ ...item, name: translateLookupName(item.name, t) }));
+      const assessmentTypes = assessmentTypesRaw.map((item) => ({ ...item, name: translateLookupName(item.name, t) }));
+      const taskTypes = taskTypesRaw.map((item) => ({ ...item, name: translateLookupName(item.name, t) }));
+      const eventTypes = eventTypesRaw.map((item) => ({ ...item, name: translateLookupName(item.name, t) }));
       const subjectMap = new Map(subjects.map((subject) => [subject.id, subject]));
       const locationMap = new Map(locations.map((location) => [location.id, location]));
       const rows: CalendarItem[] = [];
@@ -65,7 +74,7 @@ export function useCalendarItems(startDate: Date, endDate: Date, refreshKey = 0)
       events.forEach((event) => { const type = eventTypes.find((item) => item.id === event.event_type_id); rows.push({ id: `event-${event.id}`, kind: "event", date: event.date, title: event.title, subtitle: type?.name, startTime: event.start_time, endTime: event.end_time, color: type?.color ?? "var(--accent-secondary)", location: event.location_id ? locationMap.get(event.location_id)?.name : undefined }); });
       setItems(rows);
     });
-  }, [startIso, endIso, refreshKey]);
+  }, [startIso, endIso, refreshKey, t, i18n.resolvedLanguage]);
 
   return items;
 }

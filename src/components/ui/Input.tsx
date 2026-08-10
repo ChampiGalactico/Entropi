@@ -40,10 +40,11 @@ export function Input({ className = "", spellCheck, value, type, ...rest }: Inpu
   }
   if (cursor < text.length) segments.push({ text: text.slice(cursor), misspelled: false });
 
-  if (ranges.length === 0) {
-    return <input ref={inputRef} className={`${FIELD_CLASS} ${className}`} spellCheck={false} value={value} type={type} {...rest} />;
-  }
-
+  // Always render the same wrapper + <input> tree shape regardless of `ranges.length` — branching
+  // between a bare <input> and a <div><input>+overlay> here used to remount the input on every
+  // keystroke that changed whether any word was misspelled, which threw away focus and native
+  // input state (hence the "resizes and loses focus while typing" bug). Only the overlay itself
+  // is conditional now; the input stays put.
   return (
     <div className={`entropi-spellcheck-overlay ${className}`}>
       <input
@@ -62,21 +63,23 @@ export function Input({ className = "", spellCheck, value, type, ...rest }: Inpu
         }}
         {...rest}
       />
-      <div
-        ref={overlayRef}
-        aria-hidden="true"
-        className={`entropi-spellcheck-overlay-text entropi-spellcheck-overlay-text-single ${FIELD_CLASS}`}
-      >
-        {segments.map((segment, index) =>
-          segment.misspelled ? (
-            <span key={index} className="entropi-misspelled">
-              {segment.text}
-            </span>
-          ) : (
-            <span key={index}>{segment.text}</span>
-          ),
-        )}
-      </div>
+      {ranges.length > 0 && (
+        <div
+          ref={overlayRef}
+          aria-hidden="true"
+          className={`entropi-spellcheck-overlay-text entropi-spellcheck-overlay-text-single ${FIELD_CLASS}`}
+        >
+          {segments.map((segment, index) =>
+            segment.misspelled ? (
+              <span key={index} className="entropi-misspelled">
+                {segment.text}
+              </span>
+            ) : (
+              <span key={index}>{segment.text}</span>
+            ),
+          )}
+        </div>
+      )}
       {menu && (
         <SpellcheckMenu
           word={menu.word}

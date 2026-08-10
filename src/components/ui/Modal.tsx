@@ -38,7 +38,12 @@ export function Modal({ open, onClose, title, children, maxWidthClass = "max-w-l
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/30 p-4 backdrop-blur-md"
-      onClick={onClose}
+      // mousedown (not click) so this only fires when the press itself starts on the backdrop —
+      // a click here would also fire after a mousedown that started inside the dialog (e.g.
+      // selecting text in a field) and ended with mouseup outside it, since the browser's
+      // synthetic "click" event targets the nearest common ancestor of the two, closing the
+      // modal on what was meant to be a text selection, not a dismiss.
+      onMouseDown={onClose}
     >
       <div
         ref={dialogRef}
@@ -46,7 +51,7 @@ export function Modal({ open, onClose, title, children, maxWidthClass = "max-w-l
         aria-modal="true"
         aria-labelledby={title ? "modal-title" : undefined}
         className={`my-auto max-h-[calc(100vh-2rem)] w-full ${maxWidthClass} overflow-x-hidden overflow-y-auto rounded-[2rem] border border-border bg-elevated p-6 shadow-modal backdrop-blur-3xl`}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {title && <h2 id="modal-title" className="mb-4 text-lg font-semibold text-text-primary">{title}</h2>}
         {children}
