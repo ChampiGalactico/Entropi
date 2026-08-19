@@ -9,6 +9,7 @@ import {
   CreateLinkButton,
   FormattingToolbar,
   FormattingToolbarController,
+  SideMenuController,
   SuggestionMenuController,
   TextAlignButton,
   getDefaultReactSlashMenuItems,
@@ -31,6 +32,7 @@ import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
 import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
 import { notify } from "../ui";
 import { CodeLanguageSelects } from "./CodeLanguageSelects";
+import { EntropiBlockSideMenu } from "./EntropiBlockSideMenu";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -352,8 +354,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       onContextMenu={handleContextMenu}
     >
       <MantineProvider forceColorScheme={mode}>
-        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
+        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
           <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
+          <SideMenuController sideMenu={EntropiBlockSideMenu} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
       </MantineProvider>

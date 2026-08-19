@@ -458,6 +458,13 @@
     "exportError": "Could not generate the PDF",
     "upload": { "tooLarge": "The image is too large (8 MB max)" },
     "video": { "placeholder": "Paste a YouTube, Vimeo, or video link (Enter to confirm)" },
+    "blockMenu": {
+      "delete": "Delete block",
+      "textColor": "Text color",
+      "backgroundColor": "Background color",
+      "headerRow": "Header row",
+      "headerColumn": "Header column"
+    },
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",

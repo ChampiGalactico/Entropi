@@ -458,6 +458,13 @@
     "exportError": "No se pudo generar el PDF",
     "upload": { "tooLarge": "La imagen es demasiado grande (máximo 8 MB)" },
     "video": { "placeholder": "Pega un enlace de YouTube, Vimeo o un video (Enter para confirmar)" },
+    "blockMenu": {
+      "delete": "Eliminar bloque",
+      "textColor": "Color del texto",
+      "backgroundColor": "Color del fondo",
+      "headerRow": "Fila de encabezado",
+      "headerColumn": "Columna de encabezado"
+    },
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",
