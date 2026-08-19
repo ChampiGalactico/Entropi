@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowLeftLinear, DownloadMinimalisticLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { AltArrowDownLinear, AltArrowLeftLinear, AltArrowRightLinear, DownloadMinimalisticLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { Button, Checkbox, IconButton, notify } from "../components/ui";
@@ -33,6 +33,7 @@ export function NoteEditorPage() {
   const [autosaveSeconds, setAutosaveSeconds] = useState(DEFAULT_NOTE_AUTOSAVE_SECONDS);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [linksPanelOpen, setLinksPanelOpen] = useState(() => localStorage.getItem("entropi-note-links-panel") !== "hidden");
   const printAreaRef = useRef<HTMLElement>(null);
   const editorContentRef = useRef<HTMLDivElement>(null);
 
@@ -89,6 +90,13 @@ export function NoteEditorPage() {
 
   async function remove() { if (!note || !(await confirmDelete({ itemName: note.title }))) return; await deleteNote(note.id); notify.success(t("feedback.deleted")); navigate(-1); }
 
+  function toggleLinksPanel() {
+    setLinksPanelOpen((open) => {
+      localStorage.setItem("entropi-note-links-panel", open ? "hidden" : "visible");
+      return !open;
+    });
+  }
+
   const lastEditedLabel = t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note?.updated_at ?? Date.now())) });
 
   async function exportPdf() {
@@ -108,8 +116,8 @@ export function NoteEditorPage() {
 
   if (!note) return null;
   return <div className="mx-auto max-w-7xl">
-    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span><span className="hidden text-xs text-text-muted sm:inline">· {lastEditedLabel}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={17} />} onClick={() => void exportPdf()} disabled={exportingPdf} /><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span><span className="hidden text-xs text-text-muted sm:inline">· {lastEditedLabel}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={linksPanelOpen ? t("notes.links.hidePanel") : t("notes.links.showPanel")} icon={linksPanelOpen ? <AltArrowRightLinear size={17} /> : <AltArrowLeftLinear size={17} />} onClick={toggleLinksPanel} /><IconButton label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={17} />} onClick={() => void exportPdf()} disabled={exportingPdf} /><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
+    <div className={`grid gap-8 ${linksPanelOpen ? "lg:grid-cols-[minmax(0,1fr)_280px]" : "grid-cols-1"}`}>
       <main ref={printAreaRef} id="entropi-print-area" className="min-w-0 px-4 pb-20 md:px-10">
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
@@ -118,7 +126,7 @@ export function NoteEditorPage() {
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
       </main>
-      <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />
+      {linksPanelOpen && <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />}
     </div>
     <NoteHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
   </div>;

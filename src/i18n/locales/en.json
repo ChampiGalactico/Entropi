@@ -461,6 +461,8 @@
     "links": {
       "title": "Link to",
       "description": "A note can be connected to multiple items.",
+      "showPanel": "Show relationships",
+      "hidePanel": "Hide relationships",
       "none": "This is a standalone note with no relationships.",
       "clear": "Clear all",
       "subjects": "Subjects",

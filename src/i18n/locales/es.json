@@ -461,6 +461,8 @@
     "links": {
       "title": "Relacionar con",
       "description": "Una nota puede estar conectada con varios elementos.",
+      "showPanel": "Mostrar relaciones",
+      "hidePanel": "Ocultar relaciones",
       "none": "Esta nota es independiente y no está relacionada con nada.",
       "clear": "Quitar todas",
       "subjects": "Materias",
