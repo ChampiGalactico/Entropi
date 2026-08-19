@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AddCircleLinear, AddFolderLinear, FolderLinear, MagniferLinear, PenLinear, TrashBinTrashLinear } from "../ui/appIcons";
 import { Badge, Button, ColorPickerPopover, Combobox, EmptyState, IconButton, Input, Modal, notify } from "../ui";
@@ -13,6 +13,12 @@ import type { Assessment, Note, NoteFolder, NoteLink, Subject, Task } from "../.
 
 const UNFILED = "unfiled" as const;
 type FolderFilter = "all" | typeof UNFILED | number;
+
+function folderFilterFromParam(value: string | null): FolderFilter {
+  if (value === UNFILED) return UNFILED;
+  const folderId = Number(value);
+  return Number.isInteger(folderId) && folderId > 0 ? folderId : "all";
+}
 
 interface FolderFormState { name: string; color: string; parentId: number | null }
 const emptyFolderForm = (parentId: number | null = null): FolderFormState => ({ name: "", color: "#6366f1", parentId });
@@ -60,18 +66,29 @@ function collectDescendantIds(folders: NoteFolder[], rootId: number): Set<number
 export function NotesPanel({ subjectId }: { subjectId?: number }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
   const [folders, setFolders] = useState<NoteFolder[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [links, setLinks] = useState<Record<number, NoteLink[]>>({});
-  const [activeFolder, setActiveFolder] = useState<FolderFilter>("all");
+  const [activeFolder, setActiveFolderState] = useState<FolderFilter>(() => folderFilterFromParam(searchParams.get("folder")));
   const [search, setSearch] = useState("");
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<NoteFolder | null>(null);
   const [folderForm, setFolderForm] = useState<FolderFormState>(emptyFolderForm());
   const [dragOverTarget, setDragOverTarget] = useState<FolderFilter | null>(null);
+
+  function setActiveFolder(folder: FolderFilter) {
+    setActiveFolderState(folder);
+    const next = new URLSearchParams(searchParams);
+    if (folder === "all") next.delete("folder");
+    else next.set("folder", String(folder));
+    // The selected folder is page state, so replace the current library entry. Opening a note
+    // then pushes a new entry and Back restores this exact folder instead of the default view.
+    setSearchParams(next, { replace: true });
+  }
 
   async function reload() {
     const [noteRows, folderRows, subjectRows, taskRows, assessmentRows] = await Promise.all([
