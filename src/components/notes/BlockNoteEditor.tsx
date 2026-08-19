@@ -124,6 +124,18 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     onChange(JSON.stringify(editor.document));
   }
 
+  function handleEditorChange() {
+    serialize();
+    if (isSyncingMath.current) return;
+    // Text input does not consistently emit BlockNote's selection-change event. Run the live
+    // conversion after the document update as well, so the space typed after a closing `$`
+    // reliably turns the source into an inline formula.
+    queueMicrotask(() => {
+      if (isSyncingMath.current) return;
+      try { convertCompletedInlineMath(editor.getTextCursorPosition().block.id); } catch { /* Custom blocks may not expose a text cursor. */ }
+    });
+  }
+
   function renderMathInBlock(blockId: string | null) {
     if (!blockId) return;
     isSyncingMath.current = true;
@@ -225,7 +237,10 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       let match: RegExpExecArray | null;
       while ((match = pattern.exec(text))) {
         const matchEnd = cursor + match.index + match[0].length;
-        if (matchEnd >= caret) continue;
+        // Some browser/ProseMirror combinations report the caret immediately before a trailing
+        // collapsible space even though that space has already been inserted into the document.
+        const followedByWhitespace = /\s/.test(fullText.charAt(matchEnd));
+        if (matchEnd > caret || (matchEnd === caret && !followedByWhitespace)) continue;
         if (match.index > lastIndex) content.push({ ...item, text: text.slice(lastIndex, match.index) });
         if (match[0].startsWith("$$")) content.push({ ...item, text: match[0] });
         else { content.push({ type: "inlineMath", props: { latex: match[0].slice(1, -1) } }); changed = true; }
@@ -337,7 +352,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       onContextMenu={handleContextMenu}
     >
       <MantineProvider forceColorScheme={mode}>
-        <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
+        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
           <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
