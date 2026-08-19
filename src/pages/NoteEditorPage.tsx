@@ -13,6 +13,7 @@ import { listTasks } from "../db/queries/tasks";
 import type { LinkedEntityType, Note, Subject, Task, Assessment } from "../types";
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
+import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
 
 interface LinkOption { type: LinkedEntityType; id: number; label: string; group: string }
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
@@ -34,6 +35,8 @@ export function NoteEditorPage() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [linksPanelOpen, setLinksPanelOpen] = useState(() => localStorage.getItem("entropi-note-links-panel") !== "hidden");
+  const setTopBarStatus = useNoteEditorStatusStore((state) => state.setStatus);
+  const clearTopBarStatus = useNoteEditorStatusStore((state) => state.clearStatus);
   const printAreaRef = useRef<HTMLElement>(null);
   const editorContentRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +73,12 @@ export function NoteEditorPage() {
   useEffect(() => {
     void getNoteAutosaveSeconds().then(setAutosaveSeconds);
   }, []);
+
+  useEffect(() => {
+    if (note) setTopBarStatus(note.id, saved);
+  }, [note, saved, setTopBarStatus]);
+
+  useEffect(() => () => clearTopBarStatus(noteId), [clearTopBarStatus, noteId]);
 
   useEffect(() => {
     if (!note || saved || !title.trim()) return;

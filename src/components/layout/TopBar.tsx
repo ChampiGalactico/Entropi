@@ -4,6 +4,7 @@ import { SunLinear, MoonLinear, AltArrowLeftLinear, AltArrowRightLinear } from "
 import { IconButton } from "../ui/IconButton";
 import { useTheme } from "../../hooks/useTheme";
 import { useNavigationHistoryStore } from "../../stores/navigationHistoryStore";
+import { useNoteEditorStatusStore } from "../../stores/noteEditorStatusStore";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { GlobalSearch } from "./GlobalSearch";
 
@@ -13,11 +14,14 @@ export function TopBar() {
   const navigate = useNavigate();
   const canGoBack = useNavigationHistoryStore((state) => state.canGoBack);
   const canGoForward = useNavigationHistoryStore((state) => state.canGoForward);
+  const activeNoteId = useNoteEditorStatusStore((state) => state.activeNoteId);
+  const noteSaved = useNoteEditorStatusStore((state) => state.saved);
 
   return (
     <header className="fixed left-[76px] right-0 top-0 z-30 flex h-[72px] items-center gap-2 px-7">
       <IconButton label={t("topbar.goBack")} disabled={!canGoBack} onClick={() => navigate(-1)} icon={<AltArrowLeftLinear size={18} />} />
       <IconButton label={t("topbar.goForward")} disabled={!canGoForward} onClick={() => navigate(1)} icon={<AltArrowRightLinear size={18} />} />
+      {activeNoteId !== null && <span className="ml-2 flex items-center gap-2 whitespace-nowrap text-xs text-text-muted"><span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${noteSaved ? "bg-success" : "bg-warning"}`} />{noteSaved ? t("notes.saved") : t("notes.unsaved")}</span>}
       <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-1">
