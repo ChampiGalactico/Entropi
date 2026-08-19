@@ -30,6 +30,7 @@ import { createSpellcheckExtension, setEditorSpellers } from "./spellcheckExtens
 import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
 import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
 import { notify } from "../ui";
+import { CodeLanguageSelects } from "./CodeLanguageSelects";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -106,6 +107,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const spellers = useSpellcheckers();
   const { ignoredWords, ignoreWord } = useIgnoredWords();
   const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
+  const editorRootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setEditorSpellers((editor as any)._tiptapEditor, spellers, ignoredWords);
@@ -330,6 +332,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   ], [editor, t]);
   return (
     <div
+      ref={editorRootRef}
       className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
       onContextMenu={handleContextMenu}
     >
@@ -339,6 +342,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
       </MantineProvider>
+      <CodeLanguageSelects editorRootRef={editorRootRef} />
       {spellcheckMenu && (
         <SpellcheckMenu
           word={spellcheckMenu.word}

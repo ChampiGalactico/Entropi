@@ -18,12 +18,13 @@ const languages = {
   json: { name: "JSON" },
   sql: { name: "SQL" },
   bash: { name: "Bash", aliases: ["sh", "shell"] },
+  asm: { name: "Assembly", aliases: ["assembly", "s", "nasm", "x86asm"] },
   text: { name: "Plain text", aliases: ["txt", "plaintext"] },
 };
 
 function tokenizeLine(line: string) {
   const tokens: Array<{ content: string; color: string }> = [];
-  const matcher = /(\/\/.*$|#.*$|\/\*.*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|(\b(?:const|let|var|function|class|interface|type|import|export|from|return|if|else|for|while|switch|case|break|continue|new|async|await|try|catch|throw|public|private|protected|static|fn|struct|enum|impl|def|lambda|True|False|None|SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|JOIN|AND|OR|NULL)\b)|(\b\d+(?:\.\d+)?\b)|(<\/?[A-Za-z][^>]*>)|([A-Za-z_$][\w$]*(?=\s*\())/g;
+  const matcher = /(\/\/.*$|#.*$|\/\*.*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|(\b(?:const|let|var|function|class|interface|type|import|export|from|return|if|else|for|while|switch|case|break|continue|new|async|await|try|catch|throw|public|private|protected|static|fn|struct|enum|impl|def|lambda|True|False|None|SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|JOIN|AND|OR|NULL|mov|push|pop|lea|call|ret|cmp|test|jmp|je|jne|jz|jnz|add|sub|mul|imul|div|idiv|inc|dec|xor|not|shl|shr|int|syscall|section|global|extern|byte|word|dword|qword|rax|rbx|rcx|rdx|rsi|rdi|rsp|rbp|eax|ebx|ecx|edx|esi|edi|esp|ebp)\b)|(\b\d+(?:\.\d+)?\b)|(<\/?[A-Za-z][^>]*>)|([A-Za-z_$][\w$]*(?=\s*\())/g;
   let cursor = 0; let match: RegExpExecArray | null;
   while ((match = matcher.exec(line))) {
     if (match.index > cursor) tokens.push({ content: line.slice(cursor, match.index), color: "var(--text-primary)" });
