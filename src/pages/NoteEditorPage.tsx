@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowLeftLinear, AltArrowRightLinear, DownloadMinimalisticLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { AltArrowDownLinear, AltArrowLeftLinear, AltArrowRightLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { Button, Checkbox, IconButton, notify } from "../components/ui";
@@ -116,23 +116,32 @@ export function NoteEditorPage() {
 
   if (!note) return null;
   return <div className="mx-auto max-w-7xl">
-    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span><span className="hidden text-xs text-text-muted sm:inline">· {lastEditedLabel}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={linksPanelOpen ? t("notes.links.hidePanel") : t("notes.links.showPanel")} icon={linksPanelOpen ? <AltArrowRightLinear size={17} /> : <AltArrowLeftLinear size={17} />} onClick={toggleLinksPanel} /><IconButton label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={17} />} onClick={() => void exportPdf()} disabled={exportingPdf} /><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
-    <div className={`grid gap-8 ${linksPanelOpen ? "lg:grid-cols-[minmax(0,1fr)_280px]" : "grid-cols-1"}`}>
-      <main ref={printAreaRef} id="entropi-print-area" className="min-w-0 px-4 pb-20 md:px-10">
+    <main ref={printAreaRef} id="entropi-print-area" className={`min-w-0 px-4 pb-20 pr-16 transition-[margin] duration-200 md:px-10 md:pr-20 ${linksPanelOpen ? "xl:mr-[21rem]" : ""}`}>
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
         <div ref={editorContentRef}>
           <BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} />
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
-      </main>
-      {linksPanelOpen && <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />}
-    </div>
+    </main>
+    {linksPanelOpen && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl"><RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={toggleLinksPanel} /></div>}
+    <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
+      <IconButton tooltipPlacement="left" label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} />
+      <div className="my-2 h-px w-5 bg-border" />
+      <IconButton tooltipPlacement="left" label={`${t("settings.lookup.save")} · ${saved ? t("notes.saved") : t("notes.unsaved")} · Ctrl+S`} icon={<DisketteLinear size={18} />} active={!saved} onClick={() => void save(true)} />
+      <span aria-hidden="true" className={`mt-1 h-1.5 w-1.5 rounded-full ${saved ? "bg-success" : "bg-warning"}`} />
+      <div className="flex-1" />
+      <IconButton tooltipPlacement="left" label={linksPanelOpen ? t("notes.links.hidePanel") : t("notes.links.showPanel")} icon={<LinkCircleLinear size={18} />} active={linksPanelOpen} onClick={toggleLinksPanel} />
+      <IconButton tooltipPlacement="left" label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={18} />} onClick={() => setHelpOpen(true)} />
+      <IconButton tooltipPlacement="left" label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={18} />} onClick={() => void exportPdf()} disabled={exportingPdf} />
+      <div className="my-2 h-px w-5 bg-border" />
+      <IconButton tooltipPlacement="left" label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={17} />} className="hover:!bg-danger/15 hover:!text-danger" onClick={() => void remove()} />
+    </aside>
     <NoteHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
   </div>;
 }
 
-function RelatedLinksPanel({ options, selected, onToggle, onClear }: { options: LinkOption[]; selected: Set<string>; onToggle: (option: LinkOption) => void; onClear: () => void }) {
+function RelatedLinksPanel({ options, selected, onToggle, onClear, onClose }: { options: LinkOption[]; selected: Set<string>; onToggle: (option: LinkOption) => void; onClear: () => void; onClose: () => void }) {
   const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
@@ -140,10 +149,10 @@ function RelatedLinksPanel({ options, selected, onToggle, onClear }: { options: 
   function toggleGroup(group: string) {
     setCollapsed((current) => { const next = new Set(current); if (next.has(group)) next.delete(group); else next.add(group); return next; });
   }
-  return <aside className="h-fit rounded-[1.75rem] border border-border bg-control p-5 lg:sticky lg:top-20">
-    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.links.title")}</h2>{selected.size > 0 && <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={onClear}>{t("notes.links.clear")}</Button>}</div>
+  return <aside className="flex h-full flex-col p-5">
+    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.links.title")}</h2><div className="flex items-center gap-1">{selected.size > 0 && <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={onClear}>{t("notes.links.clear")}</Button>}<IconButton tooltipPlacement="left" label={t("notes.links.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} /></div></div>
     <p className="mt-1 text-xs text-text-muted">{selected.size === 0 ? t("notes.links.none") : t("notes.links.description")}</p>
-    <div className="mt-5 max-h-[calc(100vh-220px)] space-y-2 overflow-y-auto pr-1">{groups.map((group) => {
+    <div className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">{groups.map((group) => {
       const groupOptions = options.filter((option) => option.group === group).sort((a, b) => Number(selected.has(linkKey(b.type, b.id))) - Number(selected.has(linkKey(a.type, a.id))));
       const visible = visibleCounts[group] ?? 6;
       const isCollapsed = collapsed.has(group);

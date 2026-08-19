@@ -517,6 +517,11 @@ body {
     visibility: hidden;
   }
 
+  .entropi-note-utility-rail,
+  .entropi-note-relations-drawer {
+    display: none !important;
+  }
+
   #entropi-print-area,
   #entropi-print-area * {
     visibility: visible;
