@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowLeftLinear, AltArrowRightLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { AltArrowDownLinear, AltArrowRightLinear, CloseCircleLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { Button, Checkbox, IconButton, notify } from "../components/ui";
@@ -135,7 +135,7 @@ export function NoteEditorPage() {
     </main>
     {linksPanelOpen && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl"><RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={toggleLinksPanel} /></div>}
     <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
-      <IconButton tooltipPlacement="left" label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} />
+      <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />
       <div className="my-2 h-px w-5 bg-border" />
       <IconButton tooltipPlacement="left" label={`${t("settings.lookup.save")} · ${saved ? t("notes.saved") : t("notes.unsaved")} · Ctrl+S`} icon={<DisketteLinear size={18} />} active={!saved} onClick={() => void save(true)} />
       <span aria-hidden="true" className={`mt-1 h-1.5 w-1.5 rounded-full ${saved ? "bg-success" : "bg-warning"}`} />

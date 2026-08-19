@@ -447,6 +447,7 @@
     "noteTitle": "Title",
     "untitled": "Untitled",
     "back": "Back",
+    "close": "Close note",
     "saved": "Saved",
     "unsaved": "Unsaved changes",
     "savedToast": "Note saved",

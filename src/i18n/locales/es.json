@@ -447,6 +447,7 @@
     "noteTitle": "Título",
     "untitled": "Sin título",
     "back": "Volver",
+    "close": "Cerrar nota",
     "saved": "Guardado",
     "unsaved": "Cambios sin guardar",
     "savedToast": "Nota guardada",
