@@ -425,15 +425,24 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     // Existing notes are normalized once when the editor opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const slashMenuItems = useMemo(() => [
-    ...getDefaultReactSlashMenuItems(editor),
+  const slashMenuItems = useMemo(() => {
+    const containerTypes = new Set(["quote", "callout", "toggleListItem"]);
+    const withAutomaticContainerNesting = (onItemClick: () => void) => () => {
+      const cursor = editor.getTextCursorPosition();
+      const shouldNest = !editor.getParentBlock(cursor.block) && !!cursor.prevBlock && containerTypes.has(cursor.prevBlock.type);
+      onItemClick();
+      if (shouldNest && editor.canNestBlock()) editor.nestBlock();
+    };
+
+    return [
+    ...getDefaultReactSlashMenuItems(editor).map((item) => ({ ...item, onItemClick: withAutomaticContainerNesting(item.onItemClick) })),
     {
       title: t("notes.math.slashTitle"),
       subtext: t("notes.math.slashDescription"),
       aliases: ["formula", "latex", "math", "ecuacion", "matematicas"],
       group: t("notes.slashGroup"),
       icon: <SolarIcon name="CalculatorLinear" size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "math" }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "math" })),
     },
     {
       title: t("notes.drawing.slashTitle"),
@@ -441,7 +450,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       aliases: ["canvas", "dibujo", "lienzo", "draw"],
       group: t("notes.slashGroup"),
       icon: <PenLinear size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" })),
     },
     {
       title: t("notes.callout.slashTitle"),
@@ -449,7 +458,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       aliases: ["callout", "alert", "info", "aviso", "nota", "destacado"],
       group: t("notes.callout.slashGroup"),
       icon: <SolarIcon name="ChatRoundDotsLinear" size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } })),
     },
     {
       title: t("notes.columns.slashTitle"),
@@ -457,7 +466,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       aliases: ["columns", "columnas", "layout", "grid", "rejilla"],
       group: t("notes.columns.slashGroup"),
       icon: <Widget2Linear size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "columns", props: { columns: 2 } }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "columns", props: { columns: 2 } })),
     },
     ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
       title: t(`notes.diagram.templates.${template}.title`),
@@ -465,9 +474,10 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       aliases: ["diagram", "diagrama", "mermaid", template],
       group: t("notes.slashGroup"),
       icon: <SolarIcon name="RoutingLinear" size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "diagram", props: { code: DIAGRAM_TEMPLATES[template] } }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "diagram", props: { code: DIAGRAM_TEMPLATES[template] } })),
     })),
-  ], [editor, t]);
+  ];
+  }, [editor, t]);
   return (
     <div
       ref={editorRootRef}
