@@ -9,7 +9,7 @@ import {
   type SideMenuProps,
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
-import { BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
+import { AltArrowLeftLinear, AltArrowRightLinear, BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
 
 export interface BlockBookmarkDraft {
   blockId: string;
@@ -72,6 +72,22 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
   const supportsTextColor = typeof props?.textColor === "string";
   const supportsBackgroundColor = typeof props?.backgroundColor === "string";
 
+  function moveIntoPreviousBlock() {
+    if (!block) return;
+    try {
+      editor.setTextCursorPosition(block, "end");
+      if (editor.canNestBlock()) editor.nestBlock();
+    } catch { /* Non-text blocks keep their node selection; BlockNote can still nest them by drag. */ }
+  }
+
+  function moveOutOfContainer() {
+    if (!block) return;
+    try {
+      editor.setTextCursorPosition(block, "end");
+      if (editor.canUnnestBlock()) editor.unnestBlock();
+    } catch { /* See moveIntoPreviousBlock. */ }
+  }
+
   return <Components.Generic.Menu.Dropdown className="bn-menu-dropdown bn-drag-handle-menu entropi-block-menu">
     {onBookmarkBlock && block && <Components.Generic.Menu.Item onClick={() => {
       onBookmarkBlock({
@@ -81,6 +97,9 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
         plainText: blockPlainText(block),
       });
     }} icon={<BookmarkLinear size={16} />} className="entropi-block-menu-bookmark">{t("notes.blockMenu.bookmark")}</Components.Generic.Menu.Item>}
+    <div className="entropi-block-menu-separator" />
+    {block && <Components.Generic.Menu.Item onClick={moveIntoPreviousBlock} icon={<AltArrowRightLinear size={16} />}>{t("notes.blockMenu.nest")}</Components.Generic.Menu.Item>}
+    {block && <Components.Generic.Menu.Item onClick={moveOutOfContainer} icon={<AltArrowLeftLinear size={16} />}>{t("notes.blockMenu.unnest")}</Components.Generic.Menu.Item>}
     <div className="entropi-block-menu-separator" />
     {block && <Components.Generic.Menu.Item onClick={() => editor.removeBlocks([block])} icon={<TrashBinTrashLinear size={16} />} className="entropi-block-menu-delete">{t("notes.blockMenu.delete")}</Components.Generic.Menu.Item>}
     {(supportsTextColor || supportsBackgroundColor) && <div className="entropi-block-color-palettes" onMouseDown={(event) => event.stopPropagation()}>

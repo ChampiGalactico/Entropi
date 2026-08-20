@@ -467,6 +467,8 @@
     "blockMenu": {
       "delete": "Eliminar bloque",
       "bookmark": "Guardar bloque en bookmarks",
+      "nest": "Anidar en el bloque anterior",
+      "unnest": "Sacar del bloque contenedor",
       "textColor": "Color del texto",
       "backgroundColor": "Color del fondo",
       "headerRow": "Fila de encabezado",

@@ -466,6 +466,64 @@ body {
   z-index: 12;
 }
 
+/* BlockNote already stores arbitrary child blocks beneath any block. Present quote parents and
+   their children as one continuous container so headings, display math, lists, and media read as
+   genuinely nested content instead of unrelated indented siblings. */
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group) {
+  margin-block: 0.35rem;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 72%, var(--text-muted));
+  border-radius: 0 1rem 1rem 0;
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-surface));
+  padding: 0.35rem 0.8rem 0.7rem 0.65rem;
+}
+
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-content[data-content-type="quote"] blockquote {
+  border-left: 0;
+  padding-left: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-group {
+  margin-left: 0.8rem;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  padding-left: 0.55rem;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group) {
+  --nested-callout-strong: #3b82f6;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="gray"]):has(> .bn-block-group) { --nested-callout-strong: #94a3b8; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="blue"]):has(> .bn-block-group) { --nested-callout-strong: #3b82f6; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="purple"]):has(> .bn-block-group) { --nested-callout-strong: #a855f7; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="green"]):has(> .bn-block-group) { --nested-callout-strong: #22c55e; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="yellow"]):has(> .bn-block-group) { --nested-callout-strong: #eab308; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="orange"]):has(> .bn-block-group) { --nested-callout-strong: #f97316; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="red"]):has(> .bn-block-group) { --nested-callout-strong: #ef4444; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="pink"]):has(> .bn-block-group) { --nested-callout-strong: #ec4899; }
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group)
+  > .react-renderer .entropi-callout {
+  margin-bottom: 0;
+  border-bottom-color: transparent;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group)
+  > .bn-block-group {
+  width: 100%;
+  margin-left: 0;
+  border: 1px solid color-mix(in srgb, var(--nested-callout-strong) 38%, var(--border-subtle));
+  border-top: 0;
+  border-radius: 0 0 1rem 1rem;
+  background: color-mix(in srgb, var(--nested-callout-strong) 12%, var(--bg-surface));
+  padding: 0.1rem 0.75rem 0.7rem 2.35rem;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--nested-callout-strong) 85%, transparent);
+}
+
 .entropi-note-page .bn-side-menu {
   z-index: 30 !important;
   pointer-events: auto !important;
