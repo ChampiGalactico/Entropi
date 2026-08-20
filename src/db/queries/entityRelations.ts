@@ -1,5 +1,5 @@
 import { getDb } from "../connection";
-import type { EntityRelation, EntityType, RelationOrigin } from "../../types";
+import type { EntityRelation, EntityType, RelationOrigin, ResolvedEntityRelation } from "../../types";
 
 export interface RelationEndpoint {
   type: EntityType;
@@ -24,6 +24,47 @@ export async function listEntityRelations(type: EntityType, id: number): Promise
      ORDER BY created_at ASC, id ASC`,
     [type, id],
   );
+}
+
+export async function listResolvedNoteRelations(noteId: number): Promise<ResolvedEntityRelation[]> {
+  const db = await getDb();
+  return db.select<ResolvedEntityRelation[]>(
+    `WITH RECURSIVE folder_ancestors(id) AS (
+       SELECT folder_id FROM notes WHERE id = $1 AND folder_id IS NOT NULL
+       UNION ALL
+       SELECT nf.parent_id FROM note_folders nf
+       JOIN folder_ancestors fa ON nf.id = fa.id
+       WHERE nf.parent_id IS NOT NULL
+     ),
+     resolved AS (
+       SELECT
+         CASE WHEN er.source_type = 'note' AND er.source_id = $1 THEN er.target_type ELSE er.source_type END AS entity_type,
+         CASE WHEN er.source_type = 'note' AND er.source_id = $1 THEN er.target_id ELSE er.source_id END AS entity_id,
+         er.relation_kind,
+         'manual' AS origin,
+         er.id AS relation_id,
+         NULL AS inherited_from_folder_id
+       FROM entity_relations er
+       WHERE er.relation_kind = 'related_to' AND er.origin = 'manual'
+         AND ((er.source_type = 'note' AND er.source_id = $1)
+           OR (er.target_type = 'note' AND er.target_id = $1))
+
+       UNION ALL
+
+       SELECT er.target_type, er.target_id, er.relation_kind, 'inherited', er.id, er.source_id
+       FROM entity_relations er
+       JOIN folder_ancestors fa ON fa.id = er.source_id
+       WHERE er.source_type = 'note_folder' AND er.relation_kind = 'context_of'
+     )
+     SELECT * FROM resolved
+     ORDER BY CASE origin WHEN 'inherited' THEN 0 ELSE 1 END, entity_type, entity_id`,
+    [noteId],
+  );
+}
+
+export async function listNoteSubjectContextIds(noteId: number): Promise<number[]> {
+  const relations = await listResolvedNoteRelations(noteId);
+  return [...new Set(relations.filter((relation) => relation.entity_type === "subject").map((relation) => relation.entity_id))];
 }
 
 export async function addEntityRelation(

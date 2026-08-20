@@ -43,7 +43,24 @@ export async function listNoteReferencesForEntityType(entityType: "task" | "asse
 export async function listNotesForSubject(subjectId: number): Promise<Note[]> {
   const db = await getDb();
   return db.select<Note[]>(
-    `WITH note_relations(note_id, entity_type, entity_id) AS (
+    `WITH RECURSIVE
+     folder_ancestors(folder_id, ancestor_id) AS (
+       SELECT id, id FROM note_folders
+       UNION ALL
+       SELECT fa.folder_id, nf.parent_id
+       FROM folder_ancestors fa
+       JOIN note_folders nf ON nf.id = fa.ancestor_id
+       WHERE nf.parent_id IS NOT NULL
+     ),
+     inherited_subject_notes(note_id) AS (
+       SELECT n.id FROM notes n
+       JOIN folder_ancestors fa ON fa.folder_id = n.folder_id
+       JOIN entity_relations er
+         ON er.source_type = 'note_folder' AND er.source_id = fa.ancestor_id
+        AND er.target_type = 'subject' AND er.target_id = $1
+        AND er.relation_kind = 'context_of'
+     ),
+     note_relations(note_id, entity_type, entity_id) AS (
        SELECT
          CASE WHEN source_type = 'note' THEN source_id ELSE target_id END,
          CASE WHEN source_type = 'note' THEN target_type ELSE source_type END,
@@ -52,11 +69,12 @@ export async function listNotesForSubject(subjectId: number): Promise<Note[]> {
        WHERE relation_kind = 'related_to' AND (source_type = 'note' OR target_type = 'note')
      )
      SELECT DISTINCT n.* FROM notes n
-     JOIN note_relations nr ON nr.note_id = n.id
+     LEFT JOIN note_relations nr ON nr.note_id = n.id
      LEFT JOIN tasks t ON nr.entity_type = 'task' AND t.id = nr.entity_id
      LEFT JOIN assessments a ON nr.entity_type = 'assessment' AND a.id = nr.entity_id
      WHERE (nr.entity_type = 'subject' AND nr.entity_id = $1)
         OR t.subject_id = $1 OR a.subject_id = $1
+        OR n.id IN (SELECT note_id FROM inherited_subject_notes)
      ORDER BY n.updated_at DESC`,
     [subjectId],
   );

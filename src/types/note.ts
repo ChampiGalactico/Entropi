@@ -37,3 +37,12 @@ export interface EntityRelation {
   origin: RelationOrigin;
   created_at: string;
 }
+
+export interface ResolvedEntityRelation {
+  entity_type: EntityType;
+  entity_id: number;
+  relation_kind: string;
+  origin: "manual" | "inherited";
+  relation_id: number;
+  inherited_from_folder_id: number | null;
+}

@@ -6,7 +6,7 @@ import { Badge, Button, ColorPickerPopover, Combobox, EmptyState, IconButton, In
 import { confirmDelete } from "../ui/ConfirmDialog";
 import { listAllAssessments, listAssessmentsBySubject } from "../../db/queries/assessments";
 import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, moveNoteToFolder, replaceNoteLinks } from "../../db/queries/notes";
-import { createNoteFolder, deleteNoteFolder, listNoteFolders, updateNoteFolder } from "../../db/queries/noteFolders";
+import { createNoteFolder, deleteNoteFolder, getSubjectNoteFolderId, listNoteFolders, updateNoteFolder } from "../../db/queries/noteFolders";
 import { listAllSubjects } from "../../db/queries/subjects";
 import { listTasks } from "../../db/queries/tasks";
 import type { Assessment, Note, NoteFolder, NoteLink, Subject, Task } from "../../types";
@@ -145,9 +145,10 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
   }, [notes, activeFolder, search, isSearchingAll]);
 
   async function createBlank() {
-    const folder_id = typeof activeFolder === "number" ? activeFolder : null;
+    const folder_id = typeof activeFolder === "number"
+      ? activeFolder
+      : subjectId === undefined ? null : await getSubjectNoteFolderId(subjectId);
     const id = await createNote({ title: t("notes.untitled"), content: null, linked_entity_type: null, linked_entity_id: null, folder_id });
-    if (subjectId !== undefined) await replaceNoteLinks(id, [{ entity_type: "subject", entity_id: subjectId }]);
     navigate(`/notes/${id}`);
   }
 
