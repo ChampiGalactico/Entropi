@@ -470,6 +470,7 @@
       "addChild": "Add block inside",
       "nest": "Nest under previous block",
       "unnest": "Move out of container",
+      "extractColumn": "Move out of columns",
       "textColor": "Text color",
       "backgroundColor": "Background color",
       "headerRow": "Header row",

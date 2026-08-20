@@ -11,6 +11,34 @@ function parseWidths(value: unknown, count: number): number[] {
   return Array.from({ length: count }, (_, index) => Number.isFinite(parsed[index]) && parsed[index] > 0 ? parsed[index] : 1);
 }
 
+function removeNestedBlock(blocks: any[], blockId: string): { blocks: any[]; removed: any | null } {
+  let removed: any | null = null;
+  const next = blocks.flatMap((item) => {
+    if (item?.id === blockId) {
+      removed = item;
+      return [];
+    }
+    if (!removed && Array.isArray(item?.children)) {
+      const nested = removeNestedBlock(item.children, blockId);
+      if (nested.removed) {
+        removed = nested.removed;
+        return [{ ...item, children: nested.blocks }];
+      }
+    }
+    return [item];
+  });
+  return { blocks: next, removed };
+}
+
+function hasMeaningfulBlocks(blocks: any[]): boolean {
+  return blocks.some((item) => {
+    if (!item || typeof item !== "object") return false;
+    if (item.type !== "paragraph") return true;
+    const text = Array.isArray(item.content) ? item.content.map((part: any) => part?.text ?? "").join("") : String(item.content ?? "");
+    return !!text.trim() || (Array.isArray(item.children) && hasMeaningfulBlocks(item.children));
+  });
+}
+
 function Columns({ block, editor }: { block: any; editor: any }) {
   const { t } = useTranslation();
   const features = useContext(NoteEditorFeaturesContext);
@@ -34,6 +62,33 @@ function Columns({ block, editor }: { block: any; editor: any }) {
     const next = [...columnDocuments];
     next[index] = value;
     editor.updateBlock(block, { props: { columns: next.length, data: JSON.stringify(next) } });
+  }
+
+  function extractFromColumn(index: number, selectedBlock: any) {
+    let parsed: any[];
+    try { parsed = JSON.parse(columnDocuments[index]); } catch { return; }
+    if (!Array.isArray(parsed)) return;
+    const result = removeNestedBlock(parsed, selectedBlock.id);
+    if (!result.removed) return;
+    const nextDocuments = [...columnDocuments];
+    const nextWidths = parseWidths(block.props.widths, count);
+    if (hasMeaningfulBlocks(result.blocks)) {
+      nextDocuments[index] = JSON.stringify(result.blocks);
+    } else {
+      nextDocuments.splice(index, 1);
+      nextWidths.splice(index, 1);
+    }
+
+    if (nextDocuments.length <= 1) {
+      let remaining: any[] = [];
+      try { remaining = nextDocuments.length ? JSON.parse(nextDocuments[0]) : []; } catch { /* Keep only the extracted block. */ }
+      const meaningfulRemaining = Array.isArray(remaining) && hasMeaningfulBlocks(remaining) ? remaining : [];
+      editor.replaceBlocks([block], [...meaningfulRemaining, result.removed]);
+      return;
+    }
+
+    editor.updateBlock(block, { props: { columns: nextDocuments.length, data: JSON.stringify(nextDocuments), widths: nextWidths.join(",") } });
+    editor.insertBlocks([result.removed], block, "after");
   }
 
   function persistWidths(next: number[]) {
@@ -111,6 +166,7 @@ function Columns({ block, editor }: { block: any; editor: any }) {
             editable={editable}
             onAddToGlossary={features.onAddToGlossary}
             onBookmarkBlock={features.onBookmarkBlock}
+            onExtractFromColumn={(selectedBlock) => extractFromColumn(index, selectedBlock)}
             acceptedWords={features.acceptedWords}
           />
         </div>

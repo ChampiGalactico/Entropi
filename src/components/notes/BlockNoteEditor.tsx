@@ -112,7 +112,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = false, editable = true, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; embedded?: boolean; editable?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = false, editable = true, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, onExtractFromColumn, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; embedded?: boolean; editable?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; onExtractFromColumn?: (block: any) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -157,9 +157,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
   }, [onAddToGlossary]);
   const bookmarkSideMenu = useMemo(() => function BookmarkSideMenu(props: any) {
-    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
-  }, [onBookmarkBlock]);
-  const nestedFeatures = useMemo(() => ({ onAddToGlossary, onBookmarkBlock, acceptedWords }), [acceptedWords, onAddToGlossary, onBookmarkBlock]);
+    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} onExtractFromColumn={onExtractFromColumn} />;
+  }, [onBookmarkBlock, onExtractFromColumn]);
+  const nestedFeatures = useMemo(() => ({ onAddToGlossary, onBookmarkBlock, onExtractFromColumn, acceptedWords }), [acceptedWords, onAddToGlossary, onBookmarkBlock, onExtractFromColumn]);
 
   useEffect(() => {
     const root = editorRootRef.current;
@@ -673,7 +673,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
         <MantineProvider forceColorScheme={mode}>
           <BlockNoteView editor={editor} theme={mode} editable={editable} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
             {editable && <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />}
-            {editable && <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />}
+            {editable && <SideMenuController sideMenu={bookmarkSideMenu} portalElement={embedded ? undefined : document.body} />}
             {editable && <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />}
           </BlockNoteView>
         </MantineProvider>

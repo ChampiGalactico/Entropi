@@ -470,6 +470,7 @@
       "addChild": "Agregar bloque dentro",
       "nest": "Anidar en el bloque anterior",
       "unnest": "Sacar del bloque contenedor",
+      "extractColumn": "Sacar de columnas",
       "textColor": "Color del texto",
       "backgroundColor": "Color del fondo",
       "headerRow": "Fila de encabezado",

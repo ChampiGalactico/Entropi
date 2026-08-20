@@ -9,6 +9,7 @@ export interface NestedGlossaryDraft {
 export interface NoteEditorFeatures {
   onAddToGlossary?: (draft: NestedGlossaryDraft) => void;
   onBookmarkBlock?: (draft: BlockBookmarkDraft) => void;
+  onExtractFromColumn?: (block: any) => void;
   acceptedWords: string[];
 }
 
