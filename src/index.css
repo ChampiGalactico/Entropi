@@ -396,6 +396,31 @@ body {
   padding-inline: 0;
 }
 
+/* Nested blocks create overlapping indentation gutters. Keep the active block and its side menu
+   above sibling gutters, and give the drag handle a forgiving hit area so it does not disappear
+   while the pointer crosses from nested content to the six-dot control. */
+.entropi-note-page .bn-block-outer,
+.entropi-note-page .bn-block-group {
+  overflow: visible !important;
+}
+
+.entropi-note-page .bn-block-outer:hover,
+.entropi-note-page .bn-block-outer:focus-within {
+  position: relative;
+  z-index: 12;
+}
+
+.entropi-note-page .bn-side-menu {
+  z-index: 30 !important;
+  pointer-events: auto !important;
+}
+
+.entropi-note-page .bn-drag-handle {
+  min-height: 2rem;
+  min-width: 2rem;
+  pointer-events: auto !important;
+}
+
 .entropi-note-page .bn-editor,
 .vida-blocknote .bn-editor {
   font-family: var(--font-app, "Inter", system-ui, sans-serif);
