@@ -1,6 +1,7 @@
 import { getDb } from "../connection";
 import type { LinkedEntityType, Note, NoteLink } from "../../types";
 import { replaceManualRelations } from "./entityRelations";
+import { reindexGlossaryNote } from "./glossary";
 
 export interface EntityNoteReference { entity_id: number; note_id: number; title: string }
 
@@ -140,11 +141,13 @@ export async function updateNote(
       id,
     ],
   );
+  await reindexGlossaryNote(id);
 }
 
 export async function moveNoteToFolder(id: number, folderId: number | null): Promise<void> {
   const db = await getDb();
   await db.execute("UPDATE notes SET folder_id = $1 WHERE id = $2", [folderId, id]);
+  await reindexGlossaryNote(id);
 }
 
 export async function deleteNote(id: number): Promise<void> {
