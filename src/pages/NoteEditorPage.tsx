@@ -132,7 +132,7 @@ export function NoteEditorPage() {
   }
 
   function openGlossaryLocation(targetNoteId: number, blockId: string | null) {
-    const search = blockId ? `?block=${encodeURIComponent(blockId)}` : "";
+    const search = blockId && blockId !== "__note__" ? `?block=${encodeURIComponent(blockId)}&focus=${Date.now()}` : "";
     navigate(`/notes/${targetNoteId}${search}`);
   }
 
@@ -200,7 +200,7 @@ export function NoteEditorPage() {
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
         <div ref={editorContentRef}>
-          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} acceptedWords={glossaryWords} onAddToGlossary={addSelectionToGlossary} onBookmarkBlock={bookmarkBlock} onChange={(value) => { setContent(value); setSaved(false); }} />
+          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} revealKey={searchParams.get("focus")} acceptedWords={glossaryWords} onAddToGlossary={addSelectionToGlossary} onBookmarkBlock={bookmarkBlock} onChange={(value) => { setContent(value); setSaved(false); }} />
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
     </main>

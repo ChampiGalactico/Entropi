@@ -11,7 +11,7 @@ export function KnowledgePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [tab, setTab] = useState<KnowledgeTab>("bookmarks");
-  const openLocation = (noteId: number, blockId: string | null) => navigate(`/notes/${noteId}${blockId && blockId !== "__note__" ? `?block=${encodeURIComponent(blockId)}` : ""}`);
+  const openLocation = (noteId: number, blockId: string | null) => navigate(`/notes/${noteId}${blockId && blockId !== "__note__" ? `?block=${encodeURIComponent(blockId)}&focus=${Date.now()}` : ""}`);
 
   return <div className="mx-auto flex h-full max-w-5xl flex-col">
     <div><h1 className="text-2xl font-bold text-text-primary">{t("knowledge.title")}</h1><p className="mt-1 text-sm text-text-muted">{t("knowledge.subtitle")}</p></div>

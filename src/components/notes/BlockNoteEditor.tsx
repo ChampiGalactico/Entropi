@@ -100,7 +100,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -147,17 +147,52 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
 
   useEffect(() => {
     if (!revealBlockId) return;
-    const frame = window.requestAnimationFrame(() => {
-      const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(revealBlockId) : revealBlockId.replace(/["\\]/g, "\\$&");
+    let frame = 0;
+    let highlightTimer = 0;
+    let removeTimer = 0;
+    let attempts = 0;
+    const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(revealBlockId) : revealBlockId.replace(/["\\]/g, "\\$&");
+
+    function reveal() {
       const element = editorRootRef.current?.querySelector<HTMLElement>(`[data-id="${escapedId}"]`);
+      if (!element && attempts < 30) {
+        attempts += 1;
+        frame = window.requestAnimationFrame(reveal);
+        return;
+      }
       if (!element) return;
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-      element.classList.remove("entropi-block-reveal");
-      void element.offsetWidth;
-      element.classList.add("entropi-block-reveal");
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [revealBlockId]);
+
+      let scrollParent: HTMLElement | null = element.parentElement;
+      while (scrollParent) {
+        const overflowY = window.getComputedStyle(scrollParent).overflowY;
+        if (/(auto|scroll)/.test(overflowY) && scrollParent.scrollHeight > scrollParent.clientHeight) break;
+        scrollParent = scrollParent.parentElement;
+      }
+      if (scrollParent) {
+        const parentRect = scrollParent.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const top = scrollParent.scrollTop + elementRect.top - parentRect.top - scrollParent.clientHeight * 0.3;
+        scrollParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      } else {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      const spotlight = element.closest<HTMLElement>(".bn-block-outer") ?? element;
+      spotlight.classList.remove("entropi-block-reveal");
+      highlightTimer = window.setTimeout(() => {
+        void spotlight.offsetWidth;
+        spotlight.classList.add("entropi-block-reveal");
+        removeTimer = window.setTimeout(() => spotlight.classList.remove("entropi-block-reveal"), 2800);
+      }, 180);
+    }
+
+    frame = window.requestAnimationFrame(reveal);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(highlightTimer);
+      window.clearTimeout(removeTimer);
+    };
+  }, [revealBlockId, revealKey]);
 
   useEffect(() => {
     setEditorSpellers((editor as any)._tiptapEditor, spellers, spellcheckExceptions);

@@ -663,13 +663,14 @@ body {
   }
 }
 @keyframes entropi-block-reveal {
-  0%, 100% { outline-color: transparent; background-color: transparent; }
-  20%, 70% { outline-color: color-mix(in srgb, var(--accent) 70%, transparent); background-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+  0% { outline-color: transparent; background-color: transparent; box-shadow: 0 0 0 0 transparent; transform: scale(0.995); }
+  16%, 68% { outline-color: color-mix(in srgb, var(--accent) 82%, transparent); background-color: color-mix(in srgb, var(--accent) 17%, transparent); box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--accent) 9%, transparent); transform: scale(1); }
+  100% { outline-color: transparent; background-color: transparent; box-shadow: 0 0 0 0.8rem transparent; transform: scale(1); }
 }
 
 .entropi-block-reveal {
-  animation: entropi-block-reveal 1.8s ease-out;
-  border-radius: 0.5rem;
+  animation: entropi-block-reveal 2.6s ease-out;
+  border-radius: 0.75rem;
   outline: 2px solid transparent;
-  outline-offset: 0.25rem;
+  outline-offset: 0.2rem;
 }
