@@ -2,6 +2,7 @@ export * from "./lookups";
 export * from "./locations";
 export * from "./semesters";
 export * from "./subjects";
+export * from "./entityRelations";
 export * from "./professors";
 export * from "./assessments";
 export * from "./tasks";

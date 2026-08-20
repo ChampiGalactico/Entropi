@@ -1,4 +1,4 @@
-import type { LinkedEntityType } from "./common";
+import type { EntityType, LinkedEntityType } from "./common";
 
 export interface Note {
   id: number;
@@ -23,4 +23,17 @@ export interface NoteLink {
   note_id: number;
   entity_type: LinkedEntityType;
   entity_id: number;
+}
+
+export type RelationOrigin = "manual" | "system";
+
+export interface EntityRelation {
+  id: number;
+  source_type: EntityType;
+  source_id: number;
+  target_type: EntityType;
+  target_id: number;
+  relation_kind: string;
+  origin: RelationOrigin;
+  created_at: string;
 }
