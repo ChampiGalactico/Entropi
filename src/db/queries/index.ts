@@ -4,6 +4,7 @@ export * from "./semesters";
 export * from "./subjects";
 export * from "./entityRelations";
 export * from "./glossary";
+export * from "./bookmarks";
 export * from "./professors";
 export * from "./assessments";
 export * from "./tasks";
