@@ -9,7 +9,7 @@ import {
   type SideMenuProps,
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
-import { AltArrowLeftLinear, AltArrowRightLinear, BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
+import { AddCircleLinear, AltArrowLeftLinear, AltArrowRightLinear, BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
 
 export interface BlockBookmarkDraft {
   blockId: string;
@@ -90,6 +90,15 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
     } catch { /* Non-text blocks keep their node selection; BlockNote can still nest them by drag. */ }
   }
 
+  function addChildBlock() {
+    if (!block) return;
+    try {
+      const [child] = editor.insertBlocks([{ type: "paragraph" }], block, "after");
+      editor.setTextCursorPosition(child, "start");
+      if (editor.canNestBlock()) editor.nestBlock();
+    } catch { /* Containers that reject children keep their original content unchanged. */ }
+  }
+
   function moveOutOfContainer() {
     if (!block) return;
     try {
@@ -108,6 +117,7 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
       });
     }} icon={<BookmarkLinear size={16} />} className="entropi-block-menu-bookmark">{t("notes.blockMenu.bookmark")}</Components.Generic.Menu.Item>}
     <div className="entropi-block-menu-separator" />
+    {block && <Components.Generic.Menu.Item onClick={addChildBlock} icon={<AddCircleLinear size={16} />}>{t("notes.blockMenu.addChild")}</Components.Generic.Menu.Item>}
     {block && <Components.Generic.Menu.Item onClick={moveIntoPreviousBlock} icon={<AltArrowRightLinear size={16} />}>{t("notes.blockMenu.nest")}</Components.Generic.Menu.Item>}
     {block && <Components.Generic.Menu.Item onClick={moveOutOfContainer} icon={<AltArrowLeftLinear size={16} />}>{t("notes.blockMenu.unnest")}</Components.Generic.Menu.Item>}
     <div className="entropi-block-menu-separator" />

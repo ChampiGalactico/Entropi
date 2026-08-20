@@ -467,6 +467,7 @@
     "blockMenu": {
       "delete": "Delete block",
       "bookmark": "Save block to bookmarks",
+      "addChild": "Add block inside",
       "nest": "Nest under previous block",
       "unnest": "Move out of container",
       "textColor": "Text color",
