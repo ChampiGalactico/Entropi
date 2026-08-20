@@ -90,11 +90,72 @@ function EntropiFormattingToolbar({ onAddToGlossary }: { onAddToGlossary?: (draf
   </FormattingToolbar>;
 }
 
+type SerializedBlock = Record<string, unknown> & {
+  type?: string;
+  props?: Record<string, unknown>;
+  children?: unknown[];
+};
+
+function parseColumnDocument(value: unknown): SerializedBlock[] {
+  if (typeof value !== "string") return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed as SerializedBlock[] : [];
+  } catch {
+    return [];
+  }
+}
+
+function getLegacyColumnDocuments(props: Record<string, unknown> | undefined): string[] {
+  if (!props) return [];
+
+  if (typeof props.data === "string") {
+    try {
+      const parsed: unknown = JSON.parse(props.data);
+      if (Array.isArray(parsed)) return parsed.filter((item): item is string => typeof item === "string");
+    } catch { /* Fall through to the original fixed-column format. */ }
+  }
+
+  const requestedCount = typeof props.columns === "number" ? props.columns : Number(props.columns);
+  const count = Number.isFinite(requestedCount) ? Math.max(2, Math.min(4, requestedCount)) : 2;
+  return Array.from({ length: count }, (_, index) => props[`column${index + 1}`])
+    .filter((item): item is string => typeof item === "string");
+}
+
+function containsLegacyColumns(blocks: SerializedBlock[]): boolean {
+  return blocks.some((block) => block.type === "columns"
+    || (Array.isArray(block.children) && containsLegacyColumns(block.children as SerializedBlock[])));
+}
+
+function flattenLegacyColumns(blocks: SerializedBlock[]): SerializedBlock[] {
+  return blocks.flatMap((block) => {
+    if (block.type === "columns") {
+      return getLegacyColumnDocuments(block.props)
+        .flatMap((document) => flattenLegacyColumns(parseColumnDocument(document)));
+    }
+
+    if (!Array.isArray(block.children)) return [block];
+    return [{ ...block, children: flattenLegacyColumns(block.children as SerializedBlock[]) }];
+  });
+}
+
+function valueContainsLegacyColumns(value: string | null): boolean {
+  if (!value) return false;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && containsLegacyColumns(parsed as SerializedBlock[]);
+  } catch {
+    return false;
+  }
+}
+
 function parseBlocks(value: string | null): PartialBlock[] | undefined {
   if (!value) return undefined;
   try {
     const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed as PartialBlock[] : [{ type: "paragraph", content: value }];
+    return Array.isArray(parsed)
+      ? flattenLegacyColumns(parsed as SerializedBlock[]) as PartialBlock[]
+      : [{ type: "paragraph", content: value }];
   } catch {
     // Keep notes created before BlockNote was introduced editable.
     return [{ type: "paragraph", content: value }];
@@ -104,6 +165,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
 export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
+  const hadLegacyColumns = useMemo(() => valueContainsLegacyColumns(value), [value]);
   const initialContent = useMemo(() => parseBlocks(value), [value]);
   const editor = useCreateBlockNote({
     schema: noteSchema,
@@ -452,7 +514,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
     const ids = (editor.document as any[]).map((block) => block.id);
     ids.forEach((id) => renderMathInBlock(id));
     const after = JSON.stringify(editor.document);
-    if (after !== before) onChange(after);
+    if (after !== before || hadLegacyColumns) onChange(after);
     // Existing notes are normalized once when the editor opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
