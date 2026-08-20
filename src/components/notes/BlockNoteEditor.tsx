@@ -22,7 +22,7 @@ import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { BookLinear, PenLinear } from "../ui/appIcons";
+import { BookLinear, PenLinear, Widget2Linear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
@@ -34,6 +34,7 @@ import { notify } from "../ui";
 import { CodeLanguageSelects } from "./CodeLanguageSelects";
 import { EntropiBlockSideMenu, type BlockBookmarkDraft } from "./EntropiBlockSideMenu";
 import { getSpellingSuggestions } from "../../lib/spellcheck";
+import { NoteEditorFeaturesContext } from "./NoteEditorFeaturesContext";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -100,7 +101,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = false, editable = true, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; embedded?: boolean; editable?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -144,6 +145,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   const bookmarkSideMenu = useMemo(() => function BookmarkSideMenu(props: any) {
     return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
   }, [onBookmarkBlock]);
+  const nestedFeatures = useMemo(() => ({ onAddToGlossary, onBookmarkBlock, acceptedWords }), [acceptedWords, onAddToGlossary, onBookmarkBlock]);
 
   useEffect(() => {
     if (!revealBlockId) return;
@@ -449,6 +451,14 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
       icon: <SolarIcon name="ChatRoundDotsLinear" size={18} />,
       onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } }),
     },
+    {
+      title: t("notes.columns.slashTitle"),
+      subtext: t("notes.columns.slashDescription"),
+      aliases: ["columns", "columnas", "layout", "grid", "rejilla"],
+      group: t("notes.columns.slashGroup"),
+      icon: <Widget2Linear size={18} />,
+      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "columns", props: { columns: 2 } }),
+    },
     ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
       title: t(`notes.diagram.templates.${template}.title`),
       subtext: t(`notes.diagram.templates.${template}.description`),
@@ -461,16 +471,18 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   return (
     <div
       ref={editorRootRef}
-      className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
+      className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : embedded ? "entropi-column-editor min-h-24" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
       onContextMenu={handleContextMenu}
     >
-      <MantineProvider forceColorScheme={mode}>
-        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
-          <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />
-          <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />
-          <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
-        </BlockNoteView>
-      </MantineProvider>
+      <NoteEditorFeaturesContext.Provider value={nestedFeatures}>
+        <MantineProvider forceColorScheme={mode}>
+          <BlockNoteView editor={editor} theme={mode} editable={editable} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
+            {editable && <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />}
+            {editable && <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />}
+            {editable && <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />}
+          </BlockNoteView>
+        </MantineProvider>
+      </NoteEditorFeaturesContext.Provider>
       <CodeLanguageSelects editorRootRef={editorRootRef} />
       {spellcheckMenu && (
         <SpellcheckMenu

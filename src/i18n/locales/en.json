@@ -603,6 +603,13 @@
       "color": "Color",
       "tones": { "gray": "Gray", "blue": "Blue", "purple": "Purple", "green": "Green", "yellow": "Yellow", "orange": "Orange", "red": "Red", "pink": "Pink" }
     },
+    "columns": {
+      "slashTitle": "Columns",
+      "slashDescription": "Split this section into independent, nestable columns.",
+      "slashGroup": "Layout",
+      "count": "Columns",
+      "useCount": "Use {{count}} columns"
+    },
     "drawing": {
       "add": "Add canvas",
       "slashTitle": "Drawing canvas",

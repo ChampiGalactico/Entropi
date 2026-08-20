@@ -42,6 +42,15 @@ export function extractGlossaryTextBlocks(content: string | null): TextBlock[] {
         const text = inlineText(block.content).trim();
         if (text) result.push({ id, text });
       }
+      if (type === "columns" && block.props && typeof block.props === "object") {
+        for (const [key, value] of Object.entries(block.props as Record<string, unknown>)) {
+          if (!/^column\d+$/.test(key) || typeof value !== "string") continue;
+          try {
+            const nested = JSON.parse(value);
+            if (Array.isArray(nested)) walk(nested);
+          } catch { /* Keep indexing the remaining columns if one serialized value is malformed. */ }
+        }
+      }
       if (Array.isArray(block.children)) walk(block.children);
     }
   }

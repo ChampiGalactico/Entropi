@@ -60,6 +60,16 @@ function blockPlainText(value: unknown): string {
   const content = blockPlainText(item.content);
   if (content) return content;
   const props = item.props as Record<string, unknown> | undefined;
+  if (item.type === "columns" && props) {
+    return Object.entries(props)
+      .filter(([key, entry]) => /^column\d+$/.test(key) && typeof entry === "string")
+      .map(([, entry]) => {
+        try { return blockPlainText(JSON.parse(String(entry))); } catch { return ""; }
+      })
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
   return [props?.latex, props?.code, props?.caption, props?.name].find((entry) => typeof entry === "string") as string | undefined ?? "";
 }
 

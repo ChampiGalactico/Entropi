@@ -603,6 +603,13 @@
       "color": "Color",
       "tones": { "gray": "Gris", "blue": "Azul", "purple": "Morado", "green": "Verde", "yellow": "Amarillo", "orange": "Naranja", "red": "Rojo", "pink": "Rosa" }
     },
+    "columns": {
+      "slashTitle": "Columnas",
+      "slashDescription": "Divide esta sección en columnas independientes y anidables.",
+      "slashGroup": "Diseño",
+      "count": "Columnas",
+      "useCount": "Usar {{count}} columnas"
+    },
     "drawing": {
       "add": "Añadir lienzo",
       "slashTitle": "Canvas de dibujo",
