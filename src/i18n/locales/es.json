@@ -492,6 +492,7 @@
       "types": {
         "all": "Todo",
         "note": "Nota",
+        "semester": "Semestre",
         "subject": "Materia",
         "task": "Tarea",
         "assessment": "Evaluación",

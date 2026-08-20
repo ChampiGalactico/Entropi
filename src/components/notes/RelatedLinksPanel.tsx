@@ -26,7 +26,7 @@ function endpointFromKey(key: string): { type: LinkedEntityType; id: number } {
 
 function EntityIcon({ type, color }: { type: LinkedEntityType; color?: string | null }) {
   const props = { size: 16, color: color ?? "var(--text-secondary)" };
-  if (type === "subject") return <SquareAcademicCapLinear {...props} />;
+  if (type === "semester" || type === "subject") return <SquareAcademicCapLinear {...props} />;
   if (type === "task") return <ChecklistMinimalisticLinear {...props} />;
   if (type === "assessment") return <BookLinear {...props} />;
   if (type === "event") return <CalendarLinear {...props} />;
@@ -135,6 +135,7 @@ export function RelatedLinksPanel({ noteId, selected, resolved, onToggle, onClea
   const filters: Array<{ value: RelationCandidateFilter; label: string }> = [
     { value: "all", label: t("notes.links.types.all") },
     { value: "note", label: t("notes.links.types.note") },
+    { value: "semester", label: t("notes.links.types.semester") },
     { value: "subject", label: t("notes.links.types.subject") },
     { value: "task", label: t("notes.links.types.task") },
     { value: "assessment", label: t("notes.links.types.assessment") },

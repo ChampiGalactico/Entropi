@@ -492,6 +492,7 @@
       "types": {
         "all": "All",
         "note": "Note",
+        "semester": "Semester",
         "subject": "Subject",
         "task": "Task",
         "assessment": "Assessment",

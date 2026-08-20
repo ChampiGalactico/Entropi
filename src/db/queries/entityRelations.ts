@@ -44,6 +44,8 @@ const relationCandidatesSql = `WITH RECURSIVE
     SELECT subject_id FROM note_folder_subjects WHERE note_id = $1
   ),
   candidates(type, id, label, subtitle, color, context_subject_id) AS (
+    SELECT 'semester', sm.id, sm.name, sm.start_date || ' – ' || sm.end_date, NULL, NULL FROM semesters sm
+    UNION ALL
     SELECT 'subject', s.id, s.name, s.code, s.color, s.id FROM subjects s
     UNION ALL
     SELECT 'task', t.id, t.title, s.name, s.color, t.subject_id
