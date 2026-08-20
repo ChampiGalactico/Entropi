@@ -66,6 +66,24 @@
   --info: #60a5fa;
 }
 
+:root,
+:root[data-theme="light"] {
+  --bg-menu-solid: #f7f8fc;
+  --bg-menu-hover: #e9edf5;
+}
+
+:root[data-theme="dark"] {
+  --bg-menu-solid: #24262d;
+  --bg-menu-hover: #30333d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-menu-solid: #24262d;
+    --bg-menu-hover: #30333d;
+  }
+}
+
 /* BlockNote's color-swatch icons (.bn-color-icon) read their color from --bn-colors-highlights-*
    custom properties that BlockNote scopes to .bn-root. The formatting toolbar is portaled to
    document.body (see FormattingToolbarController in BlockNoteEditor.tsx, needed so its dropdowns
@@ -326,11 +344,49 @@ body {
   width: 15rem !important;
   max-height: min(80vh, 32rem) !important;
   overflow-y: auto !important;
-  border: 1px solid var(--border-subtle) !important;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 28%, var(--border-subtle)) !important;
   border-radius: 1rem !important;
-  background: var(--bg-elevated) !important;
+  background: var(--bg-menu-solid) !important;
   padding: 0.4rem !important;
-  box-shadow: var(--shadow-modal) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--text-primary) 4%, transparent) !important;
+  backdrop-filter: none !important;
+}
+
+.entropi-block-menu [role="menuitem"] {
+  margin-block: 0.1rem;
+  border-radius: 0.65rem !important;
+  transition: background-color 130ms ease, color 130ms ease, transform 130ms ease !important;
+}
+
+.entropi-block-menu [role="menuitem"]:hover,
+.entropi-block-menu [role="menuitem"]:focus-visible,
+.entropi-block-menu [data-hovered] {
+  background: var(--bg-menu-hover) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(2px);
+  outline: none !important;
+}
+
+.entropi-block-menu .entropi-block-menu-bookmark:hover,
+.entropi-block-menu .entropi-block-menu-bookmark:focus-visible {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-menu-solid)) !important;
+  color: var(--accent) !important;
+}
+
+.entropi-block-menu .entropi-block-menu-delete {
+  color: var(--danger) !important;
+}
+
+.entropi-block-menu .entropi-block-menu-delete:hover,
+.entropi-block-menu .entropi-block-menu-delete:focus-visible {
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg-menu-solid)) !important;
+  color: var(--danger) !important;
+}
+
+.entropi-block-menu-separator {
+  height: 1px;
+  margin: 0.35rem 0.25rem;
+  background: color-mix(in srgb, var(--text-muted) 22%, transparent);
 }
 
 .entropi-block-color-palettes {

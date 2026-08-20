@@ -1,6 +1,5 @@
 import { SideMenuExtension } from "@blocknote/core/extensions";
 import {
-  RemoveBlockItem,
   SideMenu,
   TableColumnHeaderItem,
   TableRowHeaderItem,
@@ -10,7 +9,7 @@ import {
   type SideMenuProps,
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
-import { BookmarkLinear } from "../ui/appIcons";
+import { BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
 
 export interface BlockBookmarkDraft {
   blockId: string;
@@ -81,8 +80,9 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
         blockSnapshot: JSON.stringify(block),
         plainText: blockPlainText(block),
       });
-    }} icon={<BookmarkLinear size={16} />}>{t("notes.blockMenu.bookmark")}</Components.Generic.Menu.Item>}
-    <RemoveBlockItem>{t("notes.blockMenu.delete")}</RemoveBlockItem>
+    }} icon={<BookmarkLinear size={16} />} className="entropi-block-menu-bookmark">{t("notes.blockMenu.bookmark")}</Components.Generic.Menu.Item>}
+    <div className="entropi-block-menu-separator" />
+    {block && <Components.Generic.Menu.Item onClick={() => editor.removeBlocks([block])} icon={<TrashBinTrashLinear size={16} />} className="entropi-block-menu-delete">{t("notes.blockMenu.delete")}</Components.Generic.Menu.Item>}
     {(supportsTextColor || supportsBackgroundColor) && <div className="entropi-block-color-palettes" onMouseDown={(event) => event.stopPropagation()}>
       {supportsTextColor && <ColorPalette kind="textColor" value={String(props?.textColor)} onChange={(color) => editor.updateBlock(block!, { props: { textColor: color } })} />}
       {supportsBackgroundColor && <ColorPalette kind="backgroundColor" value={String(props?.backgroundColor)} onChange={(color) => editor.updateBlock(block!, { props: { backgroundColor: color } })} />}
