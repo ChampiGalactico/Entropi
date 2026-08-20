@@ -80,6 +80,16 @@ export function BookmarksPanel({ noteId, draft, onDraftConsumed, onSaveNote, onO
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [query, selectedId]);
 
+  useEffect(() => {
+    function refresh(event: Event) {
+      const collectionId = (event as CustomEvent<{ collectionId?: number }>).detail?.collectionId;
+      void reloadCollections(collectionId ?? selectedId ?? undefined);
+      if (collectionId !== undefined) void listBookmarks(collectionId, query).then(setBookmarks);
+    }
+    window.addEventListener("entropi-bookmarks-changed", refresh);
+    return () => window.removeEventListener("entropi-bookmarks-changed", refresh);
+  }, [noteId, query, selectedId]);
+
   function startCreate() {
     setForm({ name: "", icon: "🔖", color: COLORS[0], scope_folder_id: scopes.find((scope) => scope.folder_id !== null)?.folder_id ?? null });
     setEditing("new");

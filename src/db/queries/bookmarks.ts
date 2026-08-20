@@ -45,6 +45,18 @@ export async function listBookmarkCollectionsForNote(noteId: number): Promise<Bo
 
 export async function listBookmarkScopeOptions(noteId: number): Promise<BookmarkScopeOption[]> {
   const db = await getDb();
+  if (noteId <= 0) {
+    const rows = await db.select<Array<{ folder_id: number; name: string; depth: number }>>(
+      `WITH RECURSIVE paths(id, name, depth) AS (
+         SELECT id, name, 0 FROM note_folders WHERE parent_id IS NULL
+         UNION ALL
+         SELECT nf.id, paths.name || ' › ' || nf.name, paths.depth + 1
+         FROM note_folders nf JOIN paths ON nf.parent_id = paths.id
+       )
+       SELECT id AS folder_id, name, depth FROM paths ORDER BY name COLLATE NOCASE`,
+    );
+    return [{ folder_id: null, name: "Global", depth: 1000000 }, ...rows];
+  }
   const rows = await db.select<Array<{ folder_id: number; name: string; depth: number }>>(
     `${activeFoldersCte}
      SELECT a.id AS folder_id, nf.name, a.depth

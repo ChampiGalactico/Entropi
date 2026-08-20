@@ -159,6 +159,7 @@ export function NoteEditorPage() {
     if (!collection) { notify.error(t("notes.bookmarks.saveError")); return; }
     await saveBookmark(collection.id, draft);
     localStorage.setItem(LAST_BOOKMARK_COLLECTION_KEY, String(collection.id));
+    window.dispatchEvent(new CustomEvent("entropi-bookmarks-changed", { detail: { collectionId: collection.id } }));
     notify.success(t("notes.bookmarks.savedIn", { collection: collection.name }));
   }, [noteId, t]);
 
