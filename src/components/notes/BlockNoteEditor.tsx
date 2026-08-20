@@ -80,7 +80,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -110,6 +110,20 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const { ignoredWords, ignoreWord } = useIgnoredWords();
   const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!revealBlockId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(revealBlockId) : revealBlockId.replace(/["\\]/g, "\\$&");
+      const element = editorRootRef.current?.querySelector<HTMLElement>(`[data-id="${escapedId}"]`);
+      if (!element) return;
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.classList.remove("entropi-block-reveal");
+      void element.offsetWidth;
+      element.classList.add("entropi-block-reveal");
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [revealBlockId]);
 
   useEffect(() => {
     setEditorSpellers((editor as any)._tiptapEditor, spellers, ignoredWords);

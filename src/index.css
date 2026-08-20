@@ -621,3 +621,14 @@ body {
     font-weight: 600;
   }
 }
+@keyframes entropi-block-reveal {
+  0%, 100% { outline-color: transparent; background-color: transparent; }
+  20%, 70% { outline-color: color-mix(in srgb, var(--accent) 70%, transparent); background-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+}
+
+.entropi-block-reveal {
+  animation: entropi-block-reveal 1.8s ease-out;
+  border-radius: 0.5rem;
+  outline: 2px solid transparent;
+  outline-offset: 0.25rem;
+}
