@@ -11,6 +11,7 @@ import { useLanguage } from "../../hooks/useLanguage";
 import { CalendarSettingsSection } from "./CalendarSettingsSection";
 import { NotesSettingsSection } from "./NotesSettingsSection";
 import { SpellcheckSettingsSection } from "./SpellcheckSettingsSection";
+import { TypographySettingsSection } from "./TypographySettingsSection";
 import { Button } from "../ui/Button";
 import { notify } from "../ui/Toast";
 import { useUpdateStore } from "../../stores/updateStore";
@@ -97,6 +98,8 @@ export function GeneralSettingsSection() {
           />
         </SettingsRow>
       </div>
+
+      <TypographySettingsSection />
 
       <div className="flex flex-col">
         <h3 className="pb-1 text-sm font-semibold text-text-primary">

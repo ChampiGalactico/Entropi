@@ -681,6 +681,24 @@
       "checkForUpdatesAction": "Check now",
       "checkingForUpdates": "Checking..."
     },
+    "typography": {
+      "title": "Typography",
+      "description": "Import your own fonts and switch between them whenever you want.",
+      "upload": "Import fonts",
+      "uploading": "Importing...",
+      "uploaded_one": "Imported {{count}} font",
+      "uploaded_other": "Imported {{count}} fonts",
+      "uploadError": "The font could not be imported",
+      "invalidFile": "{{name}} is not a supported font or exceeds 12 MB",
+      "appFont": "Application font",
+      "appFontHint": "Used by the interface and normal note text.",
+      "codeFont": "Monospaced font",
+      "codeFontHint": "Used by inline code, code blocks, and technical fields.",
+      "useMonoForApp": "Use monospace throughout the application",
+      "useMonoForAppHint": "Makes the interface and notes use the code font too.",
+      "defaultSans": "Inter (default)",
+      "defaultMono": "Cascadia Code / system"
+    },
     "calendar": {
       "title": "Calendar",
       "description": "Configure the visible range and how times are displayed.",

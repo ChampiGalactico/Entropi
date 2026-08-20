@@ -681,6 +681,24 @@
       "checkForUpdatesAction": "Buscar ahora",
       "checkingForUpdates": "Buscando..."
     },
+    "typography": {
+      "title": "Tipografía",
+      "description": "Importa tus propias fuentes y cambia entre ellas cuando quieras.",
+      "upload": "Importar fuentes",
+      "uploading": "Importando...",
+      "uploaded_one": "Se importó {{count}} tipografía",
+      "uploaded_other": "Se importaron {{count}} tipografías",
+      "uploadError": "No se pudo importar la tipografía",
+      "invalidFile": "{{name}} no es una fuente compatible o supera 12 MB",
+      "appFont": "Tipografía de la aplicación",
+      "appFontHint": "Se aplica a la interfaz y al texto normal de las notas.",
+      "codeFont": "Tipografía monoespaciada",
+      "codeFontHint": "Se aplica al código inline, bloques de código y campos técnicos.",
+      "useMonoForApp": "Usar monoespaciada en toda la aplicación",
+      "useMonoForAppHint": "Hace que la interfaz y las notas también utilicen la tipografía de código.",
+      "defaultSans": "Inter (predeterminada)",
+      "defaultMono": "Cascadia Code / sistema"
+    },
     "calendar": {
       "title": "Calendario",
       "description": "Configura el rango visible y cómo se muestran las horas.",

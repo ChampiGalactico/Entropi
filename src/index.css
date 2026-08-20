@@ -198,7 +198,9 @@ body {
   margin: 0;
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-variant-ligatures: common-ligatures contextual discretionary-ligatures;
+  font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
   -webkit-font-smoothing: antialiased;
   transition: background-color 300ms, color 300ms;
   overflow: hidden;
@@ -208,6 +210,9 @@ body {
 }
 
 :root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, ui-monospace, monospace;
+  --font-app: var(--font-sans);
   transition: background-color 300ms, --accent 300ms;
 }
 
@@ -329,7 +334,7 @@ body {
   -webkit-box-decoration-break: clone;
   padding: 0.12em 0.38em;
   color: color-mix(in srgb, var(--accent-secondary) 76%, var(--text-primary));
-  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono, "Cascadia Code", Consolas, monospace);
   font-size: 0.88em;
   font-weight: 550;
   font-variant-ligatures: common-ligatures contextual;
@@ -375,6 +380,13 @@ body {
   padding-inline: 0;
 }
 
+.entropi-note-page .bn-editor,
+.vida-blocknote .bn-editor {
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-variant-ligatures: common-ligatures contextual discretionary-ligatures;
+  font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
+}
+
 .entropi-math {
   font-family: "Times New Roman", Cambria, serif;
   letter-spacing: 0.01em;
@@ -402,7 +414,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   background: var(--bg-control);
-  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono, "Cascadia Code", Consolas, monospace);
   font-variant-ligatures: common-ligatures contextual;
   font-feature-settings: "calt" 1, "liga" 1;
 }

@@ -5,7 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-app)", "Inter", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "Cascadia Code", "Consolas", "monospace"],
       },
       colors: {
         base: "var(--bg-base)",
