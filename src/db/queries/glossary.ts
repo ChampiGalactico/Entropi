@@ -17,6 +17,28 @@ interface GlossaryVocabularyRow {
   scope_depth: number;
 }
 
+async function assertScopedVocabularyIsUnique(
+  db: Awaited<ReturnType<typeof getDb>>,
+  values: GlossaryEntryInput,
+  excludedEntryId = -1,
+): Promise<void> {
+  const desired = new Set([values.term, ...values.aliases].map(normalizeGlossaryTerm).filter(Boolean));
+  if (desired.size === 0) return;
+  const existing = await db.select<Array<{ normalized_value: string }>>(
+    `SELECT normalized_term AS normalized_value
+     FROM glossary_entries
+     WHERE COALESCE(scope_folder_id, 0) = COALESCE($1, 0) AND id <> $2
+     UNION ALL
+     SELECT ga.normalized_alias
+     FROM glossary_aliases ga JOIN glossary_entries ge ON ge.id = ga.entry_id
+     WHERE COALESCE(ge.scope_folder_id, 0) = COALESCE($1, 0) AND ge.id <> $2`,
+    [values.scope_folder_id, excludedEntryId],
+  );
+  if (existing.some((row) => desired.has(row.normalized_value))) {
+    throw new Error("duplicate-glossary-vocabulary");
+  }
+}
+
 const activeEntriesCte = `WITH RECURSIVE ancestors(id, depth) AS (
   SELECT folder_id, 0 FROM notes WHERE id = $1 AND folder_id IS NOT NULL
   UNION ALL
@@ -99,6 +121,7 @@ export async function createGlossaryEntry(values: GlossaryEntryInput): Promise<n
   const db = await getDb();
   const normalized = normalizeGlossaryTerm(values.term);
   if (!normalized) throw new Error("empty-glossary-term");
+  await assertScopedVocabularyIsUnique(db, values);
   const result = await db.execute(
     `INSERT INTO glossary_entries
       (term, normalized_term, definition, scope_folder_id, source_note_id, source_block_id, updated_at)
@@ -116,6 +139,7 @@ export async function updateGlossaryEntry(id: number, values: GlossaryEntryInput
   const previous = await db.select<Array<{ scope_folder_id: number | null }>>("SELECT scope_folder_id FROM glossary_entries WHERE id = $1", [id]);
   const normalized = normalizeGlossaryTerm(values.term);
   if (!normalized) throw new Error("empty-glossary-term");
+  await assertScopedVocabularyIsUnique(db, values, id);
   await db.execute(
     `UPDATE glossary_entries SET term = $1, normalized_term = $2, definition = $3,
        scope_folder_id = $4, source_note_id = $5, source_block_id = $6, updated_at = CURRENT_TIMESTAMP

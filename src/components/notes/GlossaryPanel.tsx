@@ -155,7 +155,7 @@ export function GlossaryPanel({ noteId, onClose, onOpenLocation, draft = null, o
       await openDetail(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      notify.error(message.includes("UNIQUE") ? t("notes.glossary.duplicate") : t("notes.glossary.saveError"));
+      notify.error(message.includes("UNIQUE") || message.includes("duplicate-glossary-vocabulary") ? t("notes.glossary.duplicate") : t("notes.glossary.saveError"));
     } finally {
       setSaving(false);
     }
