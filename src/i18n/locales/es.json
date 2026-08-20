@@ -511,6 +511,7 @@
       "none": "Sin carpeta",
       "searchPlaceholder": "Buscar notas por título...",
       "noMatches": "Ninguna nota coincide con este filtro.",
+      "managedDeleteError": "Esta carpeta, o una de sus subcarpetas, pertenece a una materia y no se puede eliminar.",
       "noteCount_one": "{{count}} nota",
       "noteCount_other": "{{count}} notas"
     },

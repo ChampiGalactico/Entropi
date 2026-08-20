@@ -220,7 +220,13 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
   async function removeFolder(folder: NoteFolder) {
     if (!(await confirmDelete({ itemName: folder.name }))) return;
     const removedIds = collectDescendantIds(folders, folder.id);
-    await deleteNoteFolder(folder.id);
+    try {
+      await deleteNoteFolder(folder.id);
+    } catch (error) {
+      if (error instanceof Error && error.message === "managed-subject-folder") notify.error(t("notes.folders.managedDeleteError"));
+      else throw error;
+      return;
+    }
     if (typeof activeFolder === "number" && removedIds.has(activeFolder)) setActiveFolder("all");
     notify.success(t("feedback.deleted"));
     await reload();
@@ -258,7 +264,7 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
               <span className="hidden shrink-0 items-center group-hover/row:flex">
                 <IconButton label={t("notes.folders.addSubfolder")} icon={<AddFolderLinear size={12} />} onClick={() => openCreateFolder(folder.id)} className="p-1" />
                 <IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={12} />} onClick={() => openEditFolder(folder)} className="p-1" />
-                <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={12} />} onClick={() => void removeFolder(folder)} className="p-1" />
+                {folder.managed_context_id === null && <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={12} />} onClick={() => void removeFolder(folder)} className="p-1" />}
               </span>
             </div>
           ))}

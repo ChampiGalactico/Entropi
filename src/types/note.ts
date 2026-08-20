@@ -17,6 +17,8 @@ export interface NoteFolder {
   color: string;
   parent_id: number | null;
   created_at: string;
+  managed_context_type: EntityType | null;
+  managed_context_id: number | null;
 }
 
 export interface NoteLink {

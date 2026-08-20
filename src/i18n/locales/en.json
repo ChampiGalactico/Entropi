@@ -511,6 +511,7 @@
       "none": "No folder",
       "searchPlaceholder": "Search notes by title...",
       "noMatches": "No notes match this filter.",
+      "managedDeleteError": "This folder, or one of its subfolders, belongs to a subject and cannot be deleted.",
       "noteCount_one": "{{count}} note",
       "noteCount_other": "{{count}} notes"
     },
