@@ -1,5 +1,3 @@
-import { readNoteColumnDocuments } from "./noteColumns";
-
 interface TextBlock {
   id: string;
   text: string;
@@ -43,14 +41,6 @@ export function extractGlossaryTextBlocks(content: string | null): TextBlock[] {
       if (id && !NON_PROSE_BLOCKS.has(type)) {
         const text = inlineText(block.content).trim();
         if (text) result.push({ id, text });
-      }
-      if (type === "columns" && block.props && typeof block.props === "object") {
-        for (const value of readNoteColumnDocuments(block.props as Record<string, unknown>)) {
-          try {
-            const nested = JSON.parse(value);
-            if (Array.isArray(nested)) walk(nested);
-          } catch { /* Keep indexing the remaining columns if one serialized value is malformed. */ }
-        }
       }
       if (Array.isArray(block.children)) walk(block.children);
     }

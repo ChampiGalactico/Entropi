@@ -22,7 +22,7 @@ import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { BookLinear, PenLinear, Widget2Linear } from "../ui/appIcons";
+import { BookLinear, PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
@@ -34,22 +34,11 @@ import { notify } from "../ui";
 import { CodeLanguageSelects } from "./CodeLanguageSelects";
 import { EntropiBlockSideMenu, type BlockBookmarkDraft } from "./EntropiBlockSideMenu";
 import { getSpellingSuggestions } from "../../lib/spellcheck";
-import { NoteEditorFeaturesContext } from "./NoteEditorFeaturesContext";
-import { readNoteColumnDocuments } from "../../lib/noteColumns";
 
 const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
 const AUTO_NEST_CONTAINER_TYPES = new Set(["quote", "callout", "toggleListItem"]);
-
-type ColumnDropPreview = {
-  targetId: string;
-  side: "left" | "right";
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-};
 
 // No server to upload to in a local-first app — files are embedded as base64 data URLs directly
 // in the note's own JSON, so pasting a copied image or picking one from disk works fully offline
@@ -112,7 +101,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = false, editable = true, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, onExtractFromColumn, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; embedded?: boolean; editable?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; onExtractFromColumn?: (block: any) => void; acceptedWords?: string[] }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -149,156 +138,13 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     return words;
   }, [acceptedWords, ignoredWords]);
   const [spellcheckMenu, setSpellcheckMenu] = useState<(SpellcheckMenuTarget & { from: number; to: number; suggestions: string[] }) | null>(null);
-  const [columnDropPreview, setColumnDropPreview] = useState<ColumnDropPreview | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
-  const draggedBlockIdRef = useRef<string | null>(null);
-  const columnDropPreviewRef = useRef<ColumnDropPreview | null>(null);
   const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
     return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
   }, [onAddToGlossary]);
   const bookmarkSideMenu = useMemo(() => function BookmarkSideMenu(props: any) {
-    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} onExtractFromColumn={onExtractFromColumn} />;
-  }, [onBookmarkBlock, onExtractFromColumn]);
-  const nestedFeatures = useMemo(() => ({ onAddToGlossary, onBookmarkBlock, onExtractFromColumn, acceptedWords }), [acceptedWords, onAddToGlossary, onBookmarkBlock, onExtractFromColumn]);
-
-  useEffect(() => {
-    const root = editorRootRef.current;
-    if (!root || !editable) return;
-
-    function clearColumnDrop() {
-      draggedBlockIdRef.current = null;
-      columnDropPreviewRef.current = null;
-      setColumnDropPreview(null);
-    }
-
-    function blockIdFromDrag(event: DragEvent) {
-      const bridgedId = event.dataTransfer?.getData("application/x-entropi-block-id");
-      if (bridgedId && editor.getBlock(bridgedId)) return bridgedId;
-      const html = event.dataTransfer?.getData("blocknote/html") || event.dataTransfer?.getData("text/html") || "";
-      if (html) {
-        const parsed = new DOMParser().parseFromString(html, "text/html");
-        const id = parsed.querySelector<HTMLElement>("[data-id]")?.dataset.id;
-        if (id && editor.getBlock(id)) return id;
-      }
-      const selected = (editor as any).getSelectionCutBlocks?.() as Array<{ id?: string }> | undefined;
-      const id = selected?.[0]?.id;
-      return id && editor.getBlock(id) ? id : null;
-    }
-
-    function ownedBlockElements(mainEditor: HTMLElement) {
-      const elements = Array.from(mainEditor.querySelectorAll<HTMLElement>(".bn-block-outer"));
-      return elements.filter((element) => element.closest(".bn-editor") === mainEditor && !!element.querySelector<HTMLElement>("[data-id]")?.dataset.id);
-    }
-
-    function findDropTarget(event: DragEvent, draggedId: string, mainEditor: HTMLElement) {
-      const candidates = ownedBlockElements(mainEditor)
-        .map((element) => ({ element, id: element.querySelector<HTMLElement>("[data-id]")?.dataset.id, rect: element.getBoundingClientRect() }))
-        .filter((candidate): candidate is { element: HTMLElement; id: string; rect: DOMRect } => !!candidate.id && candidate.id !== draggedId)
-        .sort((a, b) => Math.abs(event.clientY - (a.rect.top + a.rect.height / 2)) - Math.abs(event.clientY - (b.rect.top + b.rect.height / 2)));
-      const target = candidates[0];
-      if (!target || event.clientY < target.rect.top - 28 || event.clientY > target.rect.bottom + 28) return null;
-
-      const dragged = editor.getBlock(draggedId);
-      const targetBlock = editor.getBlock(target.id);
-      if (!dragged || !targetBlock) return null;
-      const draggedParent = editor.getParentBlock(dragged)?.id ?? null;
-      const targetParent = editor.getParentBlock(targetBlock)?.id ?? null;
-      if (draggedParent !== targetParent) return null;
-
-      const edge = Math.max(72, Math.min(240, target.rect.width * 0.28));
-      const side = event.clientX <= target.rect.left + edge ? "left" : event.clientX >= target.rect.right - edge ? "right" : null;
-      if (!side) return null;
-      return { targetId: target.id, side, top: target.rect.top, left: target.rect.left, width: target.rect.width, height: target.rect.height } satisfies ColumnDropPreview;
-    }
-
-    const onDragStart = (event: DragEvent) => {
-      draggedBlockIdRef.current = blockIdFromDrag(event);
-    };
-    const onDragOver = (event: DragEvent) => {
-      const draggedId = draggedBlockIdRef.current;
-      const mainEditor = root.querySelector<HTMLElement>(".bn-editor");
-      if (!draggedId || !mainEditor || !(event.target instanceof Node) || !root.contains(event.target)) return;
-      const preview = findDropTarget(event, draggedId, mainEditor);
-      if (!preview) {
-        if (columnDropPreviewRef.current) {
-          columnDropPreviewRef.current = null;
-          setColumnDropPreview(null);
-        }
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
-      const current = columnDropPreviewRef.current;
-      if (!current || current.targetId !== preview.targetId || current.side !== preview.side || current.top !== preview.top || current.left !== preview.left || current.width !== preview.width || current.height !== preview.height) {
-        columnDropPreviewRef.current = preview;
-        setColumnDropPreview(preview);
-      }
-    };
-    const onDrop = (event: DragEvent) => {
-      const preview = columnDropPreviewRef.current;
-      const draggedId = draggedBlockIdRef.current;
-      if (!preview || !draggedId) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const dragged = editor.getBlock(draggedId);
-      const target = editor.getBlock(preview.targetId);
-      clearColumnDrop();
-      if (!dragged || !target) return;
-      if (target.type === "columns") {
-        const props = target.props as Record<string, unknown>;
-        const currentDocuments = readNoteColumnDocuments(props);
-        const count = currentDocuments.length;
-        const nextDocuments = [...currentDocuments];
-        const currentWidths = Array.from({ length: count }, (_, index) => {
-          const width = Number(String(props.widths || "").split(",")[index]);
-          return Number.isFinite(width) && width > 0 ? String(width) : "1";
-        });
-        if (preview.side === "left") {
-          nextDocuments.unshift(JSON.stringify([dragged]));
-        } else {
-          nextDocuments.push(JSON.stringify([dragged]));
-        }
-        editor.updateBlock(target, { props: {
-          columns: nextDocuments.length,
-          data: JSON.stringify(nextDocuments),
-          widths: (preview.side === "left" ? ["1", ...currentWidths] : [...currentWidths, "1"]).join(","),
-        } });
-        editor.removeBlocks([dragged]);
-        return;
-      }
-      const left = preview.side === "left" ? dragged : target;
-      const right = preview.side === "left" ? target : dragged;
-      editor.replaceBlocks([target, dragged], [{
-        type: "columns",
-        props: {
-          columns: 2,
-          data: JSON.stringify([JSON.stringify([left]), JSON.stringify([right])]),
-          column1: JSON.stringify([left]),
-          column2: JSON.stringify([right]),
-          widths: "1,1,1,1",
-        },
-      } as any]);
-    };
-    const onDragLeave = (event: DragEvent) => {
-      if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
-      columnDropPreviewRef.current = null;
-      setColumnDropPreview(null);
-    };
-
-    document.addEventListener("dragstart", onDragStart);
-    document.addEventListener("dragend", clearColumnDrop);
-    root.addEventListener("dragover", onDragOver, true);
-    root.addEventListener("drop", onDrop, true);
-    root.addEventListener("dragleave", onDragLeave);
-    return () => {
-      document.removeEventListener("dragstart", onDragStart);
-      document.removeEventListener("dragend", clearColumnDrop);
-      root.removeEventListener("dragover", onDragOver, true);
-      root.removeEventListener("drop", onDrop, true);
-      root.removeEventListener("dragleave", onDragLeave);
-    };
-  }, [editable, editor]);
+    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
+  }, [onBookmarkBlock]);
 
   useEffect(() => {
     if (!revealBlockId) return;
@@ -644,14 +490,6 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       icon: <SolarIcon name="ChatRoundDotsLinear" size={18} />,
       onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } })),
     },
-    {
-      title: t("notes.columns.slashTitle"),
-      subtext: t("notes.columns.slashDescription"),
-      aliases: ["columns", "columnas", "layout", "grid", "rejilla"],
-      group: t("notes.columns.slashGroup"),
-      icon: <Widget2Linear size={18} />,
-      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "columns", props: { columns: 2 } })),
-    },
     ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
       title: t(`notes.diagram.templates.${template}.title`),
       subtext: t(`notes.diagram.templates.${template}.description`),
@@ -665,24 +503,18 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
   return (
     <div
       ref={editorRootRef}
-      className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : embedded ? "entropi-column-editor min-h-24" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
+      className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
       onContextMenu={handleContextMenu}
       onKeyDownCapture={handleContainerEnter}
     >
-      <NoteEditorFeaturesContext.Provider value={nestedFeatures}>
-        <MantineProvider forceColorScheme={mode}>
-          <BlockNoteView editor={editor} theme={mode} editable={editable} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
-            {editable && <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />}
-            {editable && <SideMenuController sideMenu={bookmarkSideMenu} portalElement={embedded ? undefined : document.body} />}
-            {editable && <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />}
-          </BlockNoteView>
-        </MantineProvider>
-      </NoteEditorFeaturesContext.Provider>
+      <MantineProvider forceColorScheme={mode}>
+        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
+          <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />
+          <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />
+          <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
+        </BlockNoteView>
+      </MantineProvider>
       <CodeLanguageSelects editorRootRef={editorRootRef} />
-      {columnDropPreview && <div
-        className="entropi-column-drop-preview"
-        style={{ top: columnDropPreview.top, left: columnDropPreview.side === "left" ? columnDropPreview.left : columnDropPreview.left + columnDropPreview.width, height: columnDropPreview.height }}
-      />}
       {spellcheckMenu && (
         <SpellcheckMenu
           word={spellcheckMenu.word}

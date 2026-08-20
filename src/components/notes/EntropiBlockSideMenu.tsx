@@ -10,7 +10,6 @@ import {
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
 import { AddCircleLinear, AltArrowLeftLinear, AltArrowRightLinear, BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
-import { readNoteColumnDocuments } from "../../lib/noteColumns";
 
 export interface BlockBookmarkDraft {
   blockId: string;
@@ -61,19 +60,10 @@ function blockPlainText(value: unknown): string {
   const content = blockPlainText(item.content);
   if (content) return content;
   const props = item.props as Record<string, unknown> | undefined;
-  if (item.type === "columns" && props) {
-    return readNoteColumnDocuments(props)
-      .map((entry) => {
-        try { return blockPlainText(JSON.parse(String(entry))); } catch { return ""; }
-      })
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
   return [props?.latex, props?.code, props?.caption, props?.name].find((entry) => typeof entry === "string") as string | undefined ?? "";
 }
 
-function EntropiDragHandleMenu({ onBookmarkBlock, onExtractFromColumn }: { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; onExtractFromColumn?: (block: any) => void }) {
+function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void }) {
   const { t } = useTranslation();
   const Components = useComponentsContext()!;
   const editor = useBlockNoteEditor<any, any, any>();
@@ -120,7 +110,6 @@ function EntropiDragHandleMenu({ onBookmarkBlock, onExtractFromColumn }: { onBoo
     {block && <Components.Generic.Menu.Item onClick={addChildBlock} icon={<AddCircleLinear size={16} />}>{t("notes.blockMenu.addChild")}</Components.Generic.Menu.Item>}
     {block && <Components.Generic.Menu.Item onClick={moveIntoPreviousBlock} icon={<AltArrowRightLinear size={16} />}>{t("notes.blockMenu.nest")}</Components.Generic.Menu.Item>}
     {block && <Components.Generic.Menu.Item onClick={moveOutOfContainer} icon={<AltArrowLeftLinear size={16} />}>{t("notes.blockMenu.unnest")}</Components.Generic.Menu.Item>}
-    {block && onExtractFromColumn && <Components.Generic.Menu.Item onClick={() => onExtractFromColumn(block)} icon={<AltArrowLeftLinear size={16} />}>{t("notes.blockMenu.extractColumn")}</Components.Generic.Menu.Item>}
     <div className="entropi-block-menu-separator" />
     {block && <Components.Generic.Menu.Item onClick={() => editor.removeBlocks([block])} icon={<TrashBinTrashLinear size={16} />} className="entropi-block-menu-delete">{t("notes.blockMenu.delete")}</Components.Generic.Menu.Item>}
     {(supportsTextColor || supportsBackgroundColor) && <div className="entropi-block-color-palettes" onMouseDown={(event) => event.stopPropagation()}>
@@ -132,12 +121,7 @@ function EntropiDragHandleMenu({ onBookmarkBlock, onExtractFromColumn }: { onBoo
   </Components.Generic.Menu.Dropdown>;
 }
 
-export function EntropiBlockSideMenu({ onBookmarkBlock, onExtractFromColumn, ...props }: SideMenuProps & { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; onExtractFromColumn?: (block: any) => void }) {
-  const editor = useBlockNoteEditor<any, any, any>();
-  const block = useExtensionState(SideMenuExtension, { editor, selector: (state) => state?.block });
-  const dragHandleMenu = () => <EntropiDragHandleMenu onBookmarkBlock={onBookmarkBlock} onExtractFromColumn={onExtractFromColumn} />;
-  if (block?.type === "columns") return null;
-  return <div className="entropi-side-menu-event-bridge" onDragStartCapture={(event) => {
-    if (block) event.dataTransfer.setData("application/x-entropi-block-id", block.id);
-  }}><SideMenu {...props} dragHandleMenu={dragHandleMenu} /></div>;
+export function EntropiBlockSideMenu({ onBookmarkBlock, ...props }: SideMenuProps & { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void }) {
+  const dragHandleMenu = () => <EntropiDragHandleMenu onBookmarkBlock={onBookmarkBlock} />;
+  return <SideMenu {...props} dragHandleMenu={dragHandleMenu} />;
 }

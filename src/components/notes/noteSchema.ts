@@ -4,7 +4,6 @@ import { DrawingBlock } from "./DrawingBlock";
 import { InlineMath, MathBlock } from "./MathBlocks";
 import { VideoBlock } from "./VideoBlock";
 import { CalloutBlock } from "./CalloutBlock";
-import { ColumnsBlock } from "./ColumnsBlock";
 
 const languages = {
   javascript: { name: "JavaScript", aliases: ["js", "jsx"] },
@@ -58,7 +57,6 @@ export const noteSchema = BlockNoteSchema.create({
     diagram: DiagramBlock,
     video: VideoBlock,
     callout: CalloutBlock,
-    columns: ColumnsBlock,
   },
   inlineContentSpecs: { ...defaultInlineContentSpecs, inlineMath: InlineMath },
 });

@@ -17,7 +17,6 @@ import type { BookmarkCollection, BookmarkDraft, LinkedEntityType, Note, Relatio
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
 import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
-import { readNoteColumnDocuments } from "../lib/noteColumns";
 
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
 type UtilityPanel = "relations" | "glossary" | "bookmarks" | null;
@@ -32,13 +31,7 @@ function plainTextFromDocument(value: string | null): string {
       if (!item || typeof item !== "object") return "";
       const record = item as Record<string, unknown>;
       if (typeof record.text === "string") return record.text;
-      const props = record.props as Record<string, unknown> | undefined;
-      const columns = record.type === "columns" && props
-        ? readNoteColumnDocuments(props).map((entry) => {
-          try { return walk(JSON.parse(String(entry))); } catch { return ""; }
-        }).join(" ")
-        : "";
-      return `${walk(record.content)} ${columns} ${walk(record.children)}`;
+      return `${walk(record.content)} ${walk(record.children)}`;
     };
     return walk(JSON.parse(value)).replace(/\s+/g, " ").trim();
   } catch { return value; }

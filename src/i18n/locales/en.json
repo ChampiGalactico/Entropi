@@ -470,7 +470,6 @@
       "addChild": "Add block inside",
       "nest": "Nest under previous block",
       "unnest": "Move out of container",
-      "extractColumn": "Move out of columns",
       "textColor": "Text color",
       "backgroundColor": "Background color",
       "headerRow": "Header row",
@@ -604,14 +603,6 @@
       "systemIcon": "Emoji or symbol",
       "color": "Color",
       "tones": { "gray": "Gray", "blue": "Blue", "purple": "Purple", "green": "Green", "yellow": "Yellow", "orange": "Orange", "red": "Red", "pink": "Pink" }
-    },
-    "columns": {
-      "slashTitle": "Columns",
-      "slashDescription": "Split this section into independent, nestable columns.",
-      "slashGroup": "Layout",
-      "count": "Columns",
-      "useCount": "Use {{count}} columns",
-      "resize": "Drag to resize columns"
     },
     "drawing": {
       "add": "Add canvas",

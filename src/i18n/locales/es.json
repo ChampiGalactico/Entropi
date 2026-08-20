@@ -470,7 +470,6 @@
       "addChild": "Agregar bloque dentro",
       "nest": "Anidar en el bloque anterior",
       "unnest": "Sacar del bloque contenedor",
-      "extractColumn": "Sacar de columnas",
       "textColor": "Color del texto",
       "backgroundColor": "Color del fondo",
       "headerRow": "Fila de encabezado",
@@ -604,14 +603,6 @@
       "systemIcon": "Emoji o símbolo",
       "color": "Color",
       "tones": { "gray": "Gris", "blue": "Azul", "purple": "Morado", "green": "Verde", "yellow": "Amarillo", "orange": "Naranja", "red": "Rojo", "pink": "Rosa" }
-    },
-    "columns": {
-      "slashTitle": "Columnas",
-      "slashDescription": "Divide esta sección en columnas independientes y anidables.",
-      "slashGroup": "Diseño",
-      "count": "Columnas",
-      "useCount": "Usar {{count}} columnas",
-      "resize": "Arrastra para ajustar el ancho de las columnas"
     },
     "drawing": {
       "add": "Añadir lienzo",

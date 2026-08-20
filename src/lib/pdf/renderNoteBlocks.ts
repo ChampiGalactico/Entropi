@@ -402,22 +402,6 @@ async function dispatchBlock(opts: RenderNoteOptions, block: AnyBlock, depth: nu
     case "drawing":
       await drawDrawingBlock(opts, block);
       break;
-    case "columns": {
-      const count = Math.max(2, Math.min(4, Number(block.props?.columns) || 2));
-      for (let index = 1; index <= count; index += 1) {
-        let nested: AnyBlock[] = [];
-        try {
-          const parsed = JSON.parse(String(block.props?.[`column${index}`] ?? "[]"));
-          if (Array.isArray(parsed)) nested = parsed;
-        } catch { /* A malformed column should not prevent the other columns from exporting. */ }
-        for (const child of nested) {
-          // PDF pages use a readable stacked layout, matching the responsive single-column view.
-          // eslint-disable-next-line no-await-in-loop
-          await renderBlock(opts, child, depth, new Map());
-        }
-      }
-      break;
-    }
     case "bulletListItem": {
       drawBulletMarker(opts, indentX + LIST_INDENT, depth);
       await drawParagraph(opts, block, indentX + LIST_INDENT);
