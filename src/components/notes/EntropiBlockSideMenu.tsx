@@ -10,6 +10,7 @@ import {
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
 import { AddCircleLinear, AltArrowLeftLinear, AltArrowRightLinear, BookmarkLinear, TrashBinTrashLinear } from "../ui/appIcons";
+import { readNoteColumnDocuments } from "../../lib/noteColumns";
 
 export interface BlockBookmarkDraft {
   blockId: string;
@@ -61,9 +62,8 @@ function blockPlainText(value: unknown): string {
   if (content) return content;
   const props = item.props as Record<string, unknown> | undefined;
   if (item.type === "columns" && props) {
-    return Object.entries(props)
-      .filter(([key, entry]) => /^column\d+$/.test(key) && typeof entry === "string")
-      .map(([, entry]) => {
+    return readNoteColumnDocuments(props)
+      .map((entry) => {
         try { return blockPlainText(JSON.parse(String(entry))); } catch { return ""; }
       })
       .join(" ")

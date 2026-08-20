@@ -17,6 +17,7 @@ import type { BookmarkCollection, BookmarkDraft, LinkedEntityType, Note, Relatio
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
 import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
+import { readNoteColumnDocuments } from "../lib/noteColumns";
 
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
 type UtilityPanel = "relations" | "glossary" | "bookmarks" | null;
@@ -33,7 +34,7 @@ function plainTextFromDocument(value: string | null): string {
       if (typeof record.text === "string") return record.text;
       const props = record.props as Record<string, unknown> | undefined;
       const columns = record.type === "columns" && props
-        ? Object.entries(props).filter(([key, entry]) => /^column\d+$/.test(key) && typeof entry === "string").map(([, entry]) => {
+        ? readNoteColumnDocuments(props).map((entry) => {
           try { return walk(JSON.parse(String(entry))); } catch { return ""; }
         }).join(" ")
         : "";

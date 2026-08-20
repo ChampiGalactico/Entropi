@@ -1,40 +1,39 @@
 import { createReactBlockSpec } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
 import { Fragment, useContext, useEffect, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { BlockNoteEditor } from "./BlockNoteEditor";
 import { NoteEditorFeaturesContext } from "./NoteEditorFeaturesContext";
+import { EMPTY_NOTE_COLUMN, readNoteColumnDocuments } from "../../lib/noteColumns";
 
-const EMPTY_COLUMN = JSON.stringify([{ type: "paragraph", content: "" }]);
-const COLUMN_COUNTS = [2, 3, 4] as const;
-const DEFAULT_WIDTHS = [1, 1, 1, 1];
-
-function parseWidths(value: unknown): number[] {
+function parseWidths(value: unknown, count: number): number[] {
   const parsed = String(value || "").split(",").map(Number);
-  return DEFAULT_WIDTHS.map((fallback, index) => Number.isFinite(parsed[index]) && parsed[index] > 0 ? parsed[index] : fallback);
+  return Array.from({ length: count }, (_, index) => Number.isFinite(parsed[index]) && parsed[index] > 0 ? parsed[index] : 1);
 }
 
 function Columns({ block, editor }: { block: any; editor: any }) {
   const { t } = useTranslation();
   const features = useContext(NoteEditorFeaturesContext);
-  const count = Math.max(2, Math.min(4, Number(block.props.columns) || 2));
+  const columnDocuments = readNoteColumnDocuments(block.props as Record<string, unknown>);
+  const count = columnDocuments.length;
   const editable = editor.isEditable !== false;
-  const [widths, setWidths] = useState(() => parseWidths(block.props.widths));
+  const [widths, setWidths] = useState(() => parseWidths(block.props.widths, count));
   const widthsRef = useRef(widths);
   const dragCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    const next = parseWidths(block.props.widths);
+    const next = parseWidths(block.props.widths, count);
     widthsRef.current = next;
     setWidths(next);
-  }, [block.props.widths]);
+  }, [block.props.widths, count]);
 
   useEffect(() => () => dragCleanupRef.current?.(), []);
 
   function updateColumn(index: number, value: string) {
-    const key = `column${index + 1}`;
-    if (block.props[key] === value) return;
-    editor.updateBlock(block, { props: { [key]: value } });
+    if (columnDocuments[index] === value) return;
+    const next = [...columnDocuments];
+    next[index] = value;
+    editor.updateBlock(block, { props: { columns: next.length, data: JSON.stringify(next) } });
   }
 
   function persistWidths(next: number[]) {
@@ -95,12 +94,12 @@ function Columns({ block, editor }: { block: any; editor: any }) {
     persistWidths(resizePair(index, (event.key === "ArrowLeft" ? -1 : 1) * total * 0.05));
   }
 
-  return <section className="entropi-columns relative my-3 w-full" contentEditable={false} style={{ "--entropi-column-count": count } as CSSProperties}>
+  return <section className="entropi-columns relative my-3 w-full" contentEditable={false}>
     <div className="entropi-columns-grid" style={{ gridTemplateColumns: widths.slice(0, count).flatMap((width, index) => index < count - 1 ? [`minmax(0, ${width}fr)`, "12px"] : [`minmax(0, ${width}fr)`]).join(" ") }}>
       {Array.from({ length: count }, (_, index) => <Fragment key={index}>
         <div className="entropi-column min-w-0">
           <BlockNoteEditor
-            value={String(block.props[`column${index + 1}`] || EMPTY_COLUMN)}
+            value={columnDocuments[index] || EMPTY_NOTE_COLUMN}
             onChange={(value) => updateColumn(index, value)}
             embedded
             editable={editable}
@@ -127,12 +126,13 @@ export const ColumnsBlock = createReactBlockSpec(
   {
     type: "columns",
     propSchema: {
-      columns: { default: 2, values: [...COLUMN_COUNTS] },
-      column1: { default: EMPTY_COLUMN },
-      column2: { default: EMPTY_COLUMN },
-      column3: { default: EMPTY_COLUMN },
-      column4: { default: EMPTY_COLUMN },
-      widths: { default: "1,1,1,1" },
+      columns: { default: 2 },
+      data: { default: "" },
+      column1: { default: EMPTY_NOTE_COLUMN },
+      column2: { default: EMPTY_NOTE_COLUMN },
+      column3: { default: EMPTY_NOTE_COLUMN },
+      column4: { default: EMPTY_NOTE_COLUMN },
+      widths: { default: "1,1" },
     },
     content: "none",
   },

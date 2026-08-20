@@ -35,6 +35,7 @@ import { CodeLanguageSelects } from "./CodeLanguageSelects";
 import { EntropiBlockSideMenu, type BlockBookmarkDraft } from "./EntropiBlockSideMenu";
 import { getSpellingSuggestions } from "../../lib/spellcheck";
 import { NoteEditorFeaturesContext } from "./NoteEditorFeaturesContext";
+import { readNoteColumnDocuments } from "../../lib/noteColumns";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -199,7 +200,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
 
       const dragged = editor.getBlock(draggedId);
       const targetBlock = editor.getBlock(target.id);
-      if (!dragged || !targetBlock || (targetBlock.type === "columns" && Number((targetBlock.props as any).columns) >= 4)) return null;
+      if (!dragged || !targetBlock) return null;
       const draggedParent = editor.getParentBlock(dragged)?.id ?? null;
       const targetParent = editor.getParentBlock(targetBlock)?.id ?? null;
       if (draggedParent !== targetParent) return null;
@@ -246,19 +247,23 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       if (!dragged || !target) return;
       if (target.type === "columns") {
         const props = target.props as Record<string, unknown>;
-        const count = Math.max(2, Math.min(4, Number(props.columns) || 2));
-        if (count >= 4) return;
-        const nextProps: Record<string, unknown> = { columns: count + 1 };
-        const currentWidths = String(props.widths || "1,1,1,1").split(",").slice(0, count);
+        const currentDocuments = readNoteColumnDocuments(props);
+        const count = currentDocuments.length;
+        const nextDocuments = [...currentDocuments];
+        const currentWidths = Array.from({ length: count }, (_, index) => {
+          const width = Number(String(props.widths || "").split(",")[index]);
+          return Number.isFinite(width) && width > 0 ? String(width) : "1";
+        });
         if (preview.side === "left") {
-          for (let index = count; index >= 1; index -= 1) nextProps[`column${index + 1}`] = props[`column${index}`];
-          nextProps.column1 = JSON.stringify([dragged]);
-          nextProps.widths = ["1", ...currentWidths].join(",");
+          nextDocuments.unshift(JSON.stringify([dragged]));
         } else {
-          nextProps[`column${count + 1}`] = JSON.stringify([dragged]);
-          nextProps.widths = [...currentWidths, "1"].join(",");
+          nextDocuments.push(JSON.stringify([dragged]));
         }
-        editor.updateBlock(target, { props: nextProps });
+        editor.updateBlock(target, { props: {
+          columns: nextDocuments.length,
+          data: JSON.stringify(nextDocuments),
+          widths: (preview.side === "left" ? ["1", ...currentWidths] : [...currentWidths, "1"]).join(","),
+        } });
         editor.removeBlocks([dragged]);
         return;
       }
@@ -268,6 +273,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
         type: "columns",
         props: {
           columns: 2,
+          data: JSON.stringify([JSON.stringify([left]), JSON.stringify([right])]),
           column1: JSON.stringify([left]),
           column2: JSON.stringify([right]),
           widths: "1,1,1,1",

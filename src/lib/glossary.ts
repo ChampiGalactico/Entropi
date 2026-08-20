@@ -1,3 +1,5 @@
+import { readNoteColumnDocuments } from "./noteColumns";
+
 interface TextBlock {
   id: string;
   text: string;
@@ -43,8 +45,7 @@ export function extractGlossaryTextBlocks(content: string | null): TextBlock[] {
         if (text) result.push({ id, text });
       }
       if (type === "columns" && block.props && typeof block.props === "object") {
-        for (const [key, value] of Object.entries(block.props as Record<string, unknown>)) {
-          if (!/^column\d+$/.test(key) || typeof value !== "string") continue;
+        for (const value of readNoteColumnDocuments(block.props as Record<string, unknown>)) {
           try {
             const nested = JSON.parse(value);
             if (Array.isArray(nested)) walk(nested);
