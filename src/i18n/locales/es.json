@@ -509,6 +509,7 @@
       "editTitle": "Editar carpeta",
       "all": "Todas las notas",
       "unfiled": "Sin carpeta",
+      "notesHere": "Notas en esta carpeta",
       "none": "Sin carpeta",
       "searchPlaceholder": "Buscar notas por título...",
       "noMatches": "Ninguna nota coincide con este filtro.",

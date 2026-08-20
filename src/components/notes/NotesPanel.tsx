@@ -104,7 +104,6 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
   useEffect(() => { void reload(); }, [subjectId]);
 
   const folderTree = useMemo(() => flattenFolderTree(folders), [folders]);
-  const rootFolders = useMemo(() => folderTree.filter(({ depth }) => depth === 0).map(({ folder }) => folder), [folderTree]);
   const folderById = useMemo(() => new Map(folders.map((folder) => [folder.id, folder])), [folders]);
   const folderNoteCounts = useMemo(() => {
     const counts = new Map<number, number>();
@@ -125,24 +124,31 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
     return counts;
   }, [folders, notes]);
 
-  // Samsung Notes-style home view: browsing "All notes" shows folders as tiles you drill into,
-  // plus only the unfiled notes as loose cards — notes filed into a folder are represented by that
-  // folder's tile, not duplicated as individual cards here too. Typing a search from "All notes" is
-  // the one exception: it searches every note regardless of folder (each result tagged with its
-  // folder icon for context), since a search should never hide matches behind an unopened tile.
-  const isSearchingAll = activeFolder === "all" && search.trim().length > 0;
-  const showFolderTiles = activeFolder === "all" && rootFolders.length > 0 && !isSearchingAll;
+  // Each level shows its immediate child folders as tiles. This keeps semester folders useful as
+  // drill-down containers instead of looking empty simply because their notes live in subject
+  // subfolders. Searching inside a folder includes its full descendant tree.
+  const isSearching = search.trim().length > 0;
+  const visibleFolders = useMemo(() => {
+    if (activeFolder === UNFILED) return [];
+    const parentId = activeFolder === "all" ? null : activeFolder;
+    return folders.filter((folder) => folder.parent_id === parentId).sort((a, b) => a.name.localeCompare(b.name));
+  }, [activeFolder, folders]);
+  const showFolderTiles = visibleFolders.length > 0 && !isSearching;
   const visibleNotes = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const descendantIds = typeof activeFolder === "number" ? collectDescendantIds(folders, activeFolder) : null;
     return notes.filter((note) => {
-      if (!isSearchingAll) {
+      if (!isSearching) {
         if ((activeFolder === "all" || activeFolder === UNFILED) && note.folder_id !== null) return false;
         if (typeof activeFolder === "number" && note.folder_id !== activeFolder) return false;
+      } else {
+        if (activeFolder === UNFILED && note.folder_id !== null) return false;
+        if (descendantIds && (note.folder_id === null || !descendantIds.has(note.folder_id))) return false;
       }
       if (query && !note.title.toLowerCase().includes(query)) return false;
       return true;
     });
-  }, [notes, activeFolder, search, isSearchingAll]);
+  }, [notes, activeFolder, folders, search, isSearching]);
 
   async function createBlank() {
     const folder_id = typeof activeFolder === "number"
@@ -277,10 +283,10 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
           <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("notes.folders.searchPlaceholder")} className="pl-9" />
         </div>
 
-        {showFolderTiles && <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">{rootFolders.map((folder) => <button key={folder.id} type="button" onClick={() => setActiveFolder(folder.id)} {...folderDropZone(folder.id, folder.id)} className={`flex items-center gap-3 rounded-2xl border border-border bg-control p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card ${dragOverTarget === folder.id ? "ring-2 ring-accent" : ""}`}><FolderLinear size={30} color={folder.color} className="shrink-0" /><div className="min-w-0"><p className="truncate font-semibold text-text-primary">{folder.name}</p><p className="text-xs text-text-muted">{t("notes.folders.noteCount", { count: folderRecursiveCounts.get(folder.id) ?? 0 })}</p></div></button>)}</div>}
-        {showFolderTiles && <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{t("notes.folders.unfiled")}</p>}
+        {showFolderTiles && <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">{visibleFolders.map((folder) => <button key={folder.id} type="button" onClick={() => setActiveFolder(folder.id)} {...folderDropZone(folder.id, folder.id)} className={`flex items-center gap-3 rounded-2xl border border-border bg-control p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card ${dragOverTarget === folder.id ? "ring-2 ring-accent" : ""}`}><FolderLinear size={30} color={folder.color} className="shrink-0" /><div className="min-w-0"><p className="truncate font-semibold text-text-primary">{folder.name}</p><p className="text-xs text-text-muted">{t("notes.folders.noteCount", { count: folderRecursiveCounts.get(folder.id) ?? 0 })}</p></div></button>)}</div>}
+        {showFolderTiles && visibleNotes.length > 0 && <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{activeFolder === "all" ? t("notes.folders.unfiled") : t("notes.folders.notesHere")}</p>}
 
-        {visibleNotes.length === 0 ? <EmptyState title={notes.length === 0 ? t("notes.empty") : t("notes.folders.noMatches")} /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleNotes.map((note) => <article role="button" tabIndex={0} key={note.id} draggable onDragStart={(event) => handleNoteDragStart(event, note)} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-grab rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card active:cursor-grabbing"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 flex items-center gap-1.5 text-xs text-text-muted"><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</span>{isSearchingAll && note.folder_id !== null && folderById.get(note.folder_id) && <span className="flex items-center gap-1 truncate"><FolderLinear size={11} color={folderById.get(note.folder_id)!.color} />{folderById.get(note.folder_id)!.name}</span>}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void removeNote(note); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div><div className="mt-3" onClick={(event) => event.stopPropagation()}><Combobox
+        {visibleNotes.length === 0 ? (!showFolderTiles && <EmptyState title={notes.length === 0 ? t("notes.empty") : t("notes.folders.noMatches")} />) : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleNotes.map((note) => <article role="button" tabIndex={0} key={note.id} draggable onDragStart={(event) => handleNoteDragStart(event, note)} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-grab rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card active:cursor-grabbing"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 flex items-center gap-1.5 text-xs text-text-muted"><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</span>{isSearching && activeFolder !== UNFILED && note.folder_id !== null && folderById.get(note.folder_id) && <span className="flex items-center gap-1 truncate"><FolderLinear size={11} color={folderById.get(note.folder_id)!.color} />{folderById.get(note.folder_id)!.name}</span>}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void removeNote(note); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div><div className="mt-3" onClick={(event) => event.stopPropagation()}><Combobox
           compact
           value={note.folder_id ? String(note.folder_id) : ""}
           onChange={(value) => void moveNote(note, value)}

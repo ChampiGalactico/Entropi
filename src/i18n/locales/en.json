@@ -509,6 +509,7 @@
       "editTitle": "Edit folder",
       "all": "All notes",
       "unfiled": "Unfiled",
+      "notesHere": "Notes in this folder",
       "none": "No folder",
       "searchPlaceholder": "Search notes by title...",
       "noMatches": "No notes match this filter.",
