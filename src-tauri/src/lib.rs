@@ -119,6 +119,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0017_glossary.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 18,
+            description: "note_bookmarks",
+            sql: include_str!("../../src/db/migrations/0018_note_bookmarks.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

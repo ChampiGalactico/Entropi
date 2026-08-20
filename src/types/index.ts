@@ -12,3 +12,4 @@ export * from "./weeklyPlan";
 export * from "./note";
 export * from "./grading";
 export * from "./glossary";
+export * from "./bookmarks";
