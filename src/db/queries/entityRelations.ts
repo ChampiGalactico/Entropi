@@ -192,11 +192,27 @@ export async function replaceManualRelations(
   kind = "related_to",
 ): Promise<void> {
   const db = await getDb();
-  await db.execute(
-    `DELETE FROM entity_relations
+  const current = await db.select<EntityRelation[]>(
+    `SELECT * FROM entity_relations
      WHERE relation_kind = $1 AND origin = 'manual'
        AND ((source_type = $2 AND source_id = $3) OR (target_type = $2 AND target_id = $3))`,
     [kind, entity.type, entity.id],
   );
-  for (const target of targets) await addEntityRelation(entity, target, kind, "manual");
+  const desired = new Map(
+    targets
+      .filter((target) => target.type !== entity.type || target.id !== entity.id)
+      .map((target) => [`${target.type}:${target.id}`, target]),
+  );
+
+  for (const relation of current) {
+    const entityIsSource = relation.source_type === entity.type && relation.source_id === entity.id;
+    const other = entityIsSource
+      ? { type: relation.target_type, id: relation.target_id }
+      : { type: relation.source_type, id: relation.source_id };
+    const key = `${other.type}:${other.id}`;
+    if (desired.has(key)) desired.delete(key);
+    else await db.execute("DELETE FROM entity_relations WHERE id = $1", [relation.id]);
+  }
+
+  for (const target of desired.values()) await addEntityRelation(entity, target, kind, "manual");
 }
