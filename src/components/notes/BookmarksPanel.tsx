@@ -25,13 +25,16 @@ import type { BookmarkCollection, BookmarkCollectionInput, BookmarkDraft, Bookma
 import { BookmarkBlockPreview } from "./BookmarkBlockPreview";
 
 const COLORS = ["#8b5cf6", "#ec4899", "#ef4444", "#f59e0b", "#22c55e", "#06b6d4", "#3b82f6"];
+const LAST_BOOKMARK_COLLECTION_KEY = "entropi-last-bookmark-collection";
 
-export function BookmarksPanel({ noteId, draft, onDraftConsumed, onOpenLocation, onClose }: {
+export function BookmarksPanel({ noteId, draft, onDraftConsumed, onSaveNote, onOpenLocation, onClose, standalone = false }: {
   noteId: number;
   draft?: BookmarkDraft | null;
   onDraftConsumed?: () => void;
+  onSaveNote?: () => void;
   onOpenLocation: (noteId: number, blockId: string | null) => void;
   onClose: () => void;
+  standalone?: boolean;
 }) {
   const { t } = useTranslation();
   const [collections, setCollections] = useState<BookmarkCollection[]>([]);
@@ -47,6 +50,11 @@ export function BookmarksPanel({ noteId, draft, onDraftConsumed, onOpenLocation,
     const rows = await listBookmarkCollectionsForNote(noteId);
     setCollections(rows);
     setSelectedId((current) => preferredId ?? (rows.some((row) => row.id === current) ? current : rows[0]?.id ?? null));
+  }
+
+  function selectCollection(id: number) {
+    setSelectedId(id);
+    localStorage.setItem(LAST_BOOKMARK_COLLECTION_KEY, String(id));
   }
 
   useEffect(() => {
@@ -87,6 +95,7 @@ export function BookmarksPanel({ noteId, draft, onDraftConsumed, onOpenLocation,
     try {
       const id = editing === "new" ? await createBookmarkCollection(form) : (await updateBookmarkCollection(editing!.id, form), editing!.id);
       await reloadCollections(id);
+      selectCollection(id);
       setEditing(null);
       notify.success(t("notes.bookmarks.collectionSaved"));
     } catch (error) {
@@ -104,7 +113,7 @@ export function BookmarksPanel({ noteId, draft, onDraftConsumed, onOpenLocation,
   async function storePending(collectionId: number) {
     if (!pending) return;
     await saveBookmark(collectionId, pending);
-    setSelectedId(collectionId);
+    selectCollection(collectionId);
     setPending(null);
     setBookmarks(await listBookmarks(collectionId));
     await reloadCollections(collectionId);
@@ -131,12 +140,14 @@ export function BookmarksPanel({ noteId, draft, onDraftConsumed, onOpenLocation,
 
   const selected = collections.find((collection) => collection.id === selectedId) ?? null;
   return <aside className="flex h-full flex-col p-5">
-    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.bookmarks.title")}</h2><IconButton tooltipPlacement="left" label={t("notes.bookmarks.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} /></div>
+    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.bookmarks.title")}</h2>{!standalone && <IconButton tooltipPlacement="left" label={t("notes.bookmarks.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} />}</div>
     <p className="mt-1 text-xs text-text-muted">{t("notes.bookmarks.description")}</p>
 
     {pending && <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-3"><p className="text-xs font-semibold text-text-primary">{t("notes.bookmarks.saveIn")}</p><p className="mt-1 line-clamp-2 text-[10px] text-text-muted">{pending.plainText || t("notes.bookmarks.blockType", { type: pending.blockType })}</p><div className="mt-3 flex flex-wrap gap-1.5">{collections.map((collection) => <button key={collection.id} type="button" onClick={() => void storePending(collection.id)} className="rounded-full bg-control px-2.5 py-1 text-[10px] font-medium text-text-primary hover:bg-elevated"><span className="mr-1">{collection.icon ?? "🔖"}</span>{collection.name}</button>)}<button type="button" onClick={startCreate} className="rounded-full border border-dashed border-accent px-2.5 py-1 text-[10px] font-medium text-accent">+ {t("notes.bookmarks.newCollection")}</button></div></div>}
 
-    <div className="mt-4 flex items-center gap-1 overflow-x-auto pb-2">{collections.map((collection) => <button key={collection.id} type="button" onClick={() => setSelectedId(collection.id)} className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-medium ${selectedId === collection.id ? "text-white" : "bg-control text-text-secondary"}`} style={selectedId === collection.id ? { backgroundColor: collection.color } : undefined}>{collection.icon ?? "🔖"} {collection.name} <span className="opacity-70">{collection.bookmark_count}</span></button>)}<button type="button" aria-label={t("notes.bookmarks.newCollection")} onClick={startCreate} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-accent"><AddCircleLinear size={15} /></button></div>
+    <div className="mt-4 flex items-center gap-1 overflow-x-auto pb-2">{collections.map((collection) => <button key={collection.id} type="button" onClick={() => selectCollection(collection.id)} className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-medium ${selectedId === collection.id ? "text-white" : "bg-control text-text-secondary"}`} style={selectedId === collection.id ? { backgroundColor: collection.color } : undefined}>{collection.icon ?? "🔖"} {collection.name} <span className="opacity-70">{collection.bookmark_count}</span></button>)}<button type="button" aria-label={t("notes.bookmarks.newCollection")} onClick={startCreate} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-accent"><AddCircleLinear size={15} /></button></div>
+
+    {onSaveNote && <Button variant="secondary" className="mb-3 flex w-full items-center justify-center gap-2" onClick={onSaveNote}><BookmarkLinear size={15} />{t("notes.bookmarks.saveNote")}</Button>}
 
     {selected && <div className="flex items-center gap-2"><div className="relative min-w-0 flex-1"><MagniferLinear size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("notes.bookmarks.search")} className="h-9 w-full rounded-xl bg-control pl-8 pr-2 text-xs text-text-primary outline-none" /></div><IconButton label={t("notes.bookmarks.editCollection")} icon={<PenLinear size={14} />} onClick={() => startEdit(selected)} /></div>}
 

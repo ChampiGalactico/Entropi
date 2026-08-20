@@ -38,6 +38,7 @@ interface GlossaryPanelProps {
   draft?: GlossaryDraft | null;
   onDraftConsumed?: () => void;
   onChanged?: () => void;
+  standalone?: boolean;
 }
 
 export interface GlossaryDraft {
@@ -52,13 +53,13 @@ const emptyInput = (noteId: number, scopeFolderId: number | null): GlossaryEntry
   term: "",
   definition: "",
   scope_folder_id: scopeFolderId,
-  source_note_id: noteId,
+  source_note_id: noteId > 0 ? noteId : null,
   source_block_id: null,
   aliases: [],
   sections: [],
 });
 
-export function GlossaryPanel({ noteId, onClose, onOpenLocation, draft = null, onDraftConsumed, onChanged }: GlossaryPanelProps) {
+export function GlossaryPanel({ noteId, onClose, onOpenLocation, draft = null, onDraftConsumed, onChanged, standalone = false }: GlossaryPanelProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<PanelView>("list");
   const [query, setQuery] = useState("");
@@ -204,7 +205,7 @@ export function GlossaryPanel({ noteId, onClose, onOpenLocation, draft = null, o
   </aside>;
 
   return <aside className="flex h-full flex-col p-5">
-    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.glossary.title")}</h2><IconButton tooltipPlacement="left" label={t("notes.glossary.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} /></div>
+    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.glossary.title")}</h2>{!standalone && <IconButton tooltipPlacement="left" label={t("notes.glossary.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} />}</div>
     <p className="mt-1 text-xs text-text-muted">{t("notes.glossary.description")}</p>
     <div className="relative mt-4"><MagniferLinear size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" /><input value={query} onChange={(event) => setQuery(event.target.value)} spellCheck={false} placeholder={t("notes.glossary.search")} className="h-10 w-full rounded-xl bg-control pl-9 pr-3 text-xs text-text-primary outline-none placeholder:text-text-muted" /></div>
     <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">{entries.length === 0 ? <p className="rounded-2xl bg-surface-hover/55 px-4 py-8 text-center text-xs text-text-muted">{query ? t("notes.glossary.noResults") : t("notes.glossary.empty")}</p> : entries.map((entry) => <button key={entry.id} type="button" onClick={() => void openDetail(entry.id)} className="flex w-full items-start gap-2 rounded-2xl bg-surface-hover/55 p-3 text-left hover:bg-control"><BookLinear size={16} color="var(--accent)" className="mt-0.5 shrink-0" /><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-text-primary">{entry.term}</span><span className="mt-1 line-clamp-2 text-[10px] leading-4 text-text-muted">{entry.definition || t("notes.glossary.noDefinition")}</span><span className="mt-1 block truncate text-[9px] font-medium uppercase tracking-wider text-accent">{entry.scope_folder_name ?? t("notes.glossary.global")}</span></span></button>)}</div>

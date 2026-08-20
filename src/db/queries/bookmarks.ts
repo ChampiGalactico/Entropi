@@ -17,6 +17,16 @@ const activeFoldersCte = `WITH RECURSIVE ancestors(id, depth) AS (
 
 export async function listBookmarkCollectionsForNote(noteId: number): Promise<BookmarkCollection[]> {
   const db = await getDb();
+  if (noteId <= 0) {
+    return db.select<BookmarkCollection[]>(
+      `SELECT bc.*, nf.name AS scope_folder_name, 0 AS scope_depth, COUNT(nb.id) AS bookmark_count
+       FROM bookmark_collections bc
+       LEFT JOIN note_folders nf ON nf.id = bc.scope_folder_id
+       LEFT JOIN note_bookmarks nb ON nb.collection_id = bc.id
+       GROUP BY bc.id
+       ORDER BY CASE WHEN bc.scope_folder_id IS NULL THEN 0 ELSE 1 END, bc.name COLLATE NOCASE`,
+    );
+  }
   return db.select<BookmarkCollection[]>(
     `${activeFoldersCte}
      SELECT bc.*, nf.name AS scope_folder_name,

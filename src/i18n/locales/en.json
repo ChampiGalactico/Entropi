@@ -48,6 +48,7 @@
     "learningTopics": "Learning topics",
     "planner": "Weekly Planner",
     "notes": "Notes",
+    "knowledge": "Knowledge",
     "settings": "Settings"
   },
   "topbar": {
@@ -56,6 +57,10 @@
     "language": "Language",
     "goBack": "Previous page",
     "goForward": "Next page"
+  },
+  "knowledge": {
+    "title": "Knowledge library",
+    "subtitle": "Browse your bookmarks and glossary without opening a note."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -556,6 +561,9 @@
       "global": "All of Entropi",
       "saveIn": "Save this block in…",
       "saved": "Block saved to bookmarks",
+      "savedIn": "Saved in {{collection}}",
+      "savedCollection": "Saved",
+      "saveNote": "Save full note",
       "blockType": "{{type}} block",
       "search": "Search bookmarks…",
       "emptyCollections": "Create a collection to start saving blocks.",

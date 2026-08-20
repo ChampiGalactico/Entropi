@@ -10,12 +10,12 @@ import { noteSchema } from "./noteSchema";
 export function BookmarkBlockPreview({ snapshot, fallback }: { snapshot: string; fallback: string }) {
   const { mode } = useTheme();
   const { i18n } = useTranslation();
-  const block = useMemo(() => {
+  const blocks = useMemo(() => {
     try { return JSON.parse(snapshot); } catch { return { type: "paragraph", content: fallback }; }
   }, [fallback, snapshot]);
   const editor = useCreateBlockNote({
     schema: noteSchema,
-    initialContent: [block] as any,
+    initialContent: (Array.isArray(blocks) ? blocks : [blocks]) as any,
     dictionary: i18n.resolvedLanguage?.startsWith("es") ? es : en,
   }, [snapshot, i18n.resolvedLanguage]);
 

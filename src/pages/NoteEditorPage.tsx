@@ -12,13 +12,30 @@ import { confirmDelete } from "../components/ui/ConfirmDialog";
 import { deleteNote, getNote, listNoteLinks, replaceNoteLinks, updateNote } from "../db/queries/notes";
 import { listResolvedNoteRelations } from "../db/queries/entityRelations";
 import { listGlossaryVocabularyForNote } from "../db/queries/glossary";
-import type { BookmarkDraft, LinkedEntityType, Note, RelationCandidate, ResolvedEntityRelation } from "../types";
+import { createBookmarkCollection, listBookmarkCollectionsForNote, saveBookmark } from "../db/queries/bookmarks";
+import type { BookmarkCollection, BookmarkDraft, LinkedEntityType, Note, RelationCandidate, ResolvedEntityRelation } from "../types";
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
 import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
 
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
 type UtilityPanel = "relations" | "glossary" | "bookmarks" | null;
+const LAST_BOOKMARK_COLLECTION_KEY = "entropi-last-bookmark-collection";
+
+function plainTextFromDocument(value: string | null): string {
+  if (!value) return "";
+  try {
+    const walk = (item: unknown): string => {
+      if (typeof item === "string") return item;
+      if (Array.isArray(item)) return item.map(walk).join(" ");
+      if (!item || typeof item !== "object") return "";
+      const record = item as Record<string, unknown>;
+      if (typeof record.text === "string") return record.text;
+      return `${walk(record.content)} ${walk(record.children)}`;
+    };
+    return walk(JSON.parse(value)).replace(/\s+/g, " ").trim();
+  } catch { return value; }
+}
 
 export function NoteEditorPage() {
   const { t } = useTranslation();
@@ -40,7 +57,6 @@ export function NoteEditorPage() {
     return localStorage.getItem("entropi-note-links-panel") === "hidden" ? null : "relations";
   });
   const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
-  const [bookmarkDraft, setBookmarkDraft] = useState<BookmarkDraft | null>(null);
   const [glossaryWords, setGlossaryWords] = useState<string[]>([]);
   const setTopBarStatus = useNoteEditorStatusStore((state) => state.setStatus);
   const clearTopBarStatus = useNoteEditorStatusStore((state) => state.clearStatus);
@@ -126,11 +142,39 @@ export function NoteEditorPage() {
     localStorage.setItem("entropi-note-utility-panel", "glossary");
   }, []);
 
+  const saveBookmarkImmediately = useCallback(async (draft: BookmarkDraft) => {
+    let collections = await listBookmarkCollectionsForNote(noteId);
+    const rememberedId = Number(localStorage.getItem(LAST_BOOKMARK_COLLECTION_KEY));
+    let collection: BookmarkCollection | undefined = collections.find((item) => item.id === rememberedId) ?? collections[0];
+    if (!collection) {
+      try {
+        const id = await createBookmarkCollection({ name: t("notes.bookmarks.savedCollection"), icon: "🔖", color: "#8b5cf6", scope_folder_id: null });
+        collections = await listBookmarkCollectionsForNote(noteId);
+        collection = collections.find((item) => item.id === id);
+      } catch {
+        collections = await listBookmarkCollectionsForNote(noteId);
+        collection = collections.find((item) => item.scope_folder_id === null);
+      }
+    }
+    if (!collection) { notify.error(t("notes.bookmarks.saveError")); return; }
+    await saveBookmark(collection.id, draft);
+    localStorage.setItem(LAST_BOOKMARK_COLLECTION_KEY, String(collection.id));
+    notify.success(t("notes.bookmarks.savedIn", { collection: collection.name }));
+  }, [noteId, t]);
+
   const bookmarkBlock = useCallback((draft: Omit<BookmarkDraft, "noteId">) => {
-    setBookmarkDraft({ ...draft, noteId });
-    setActivePanel("bookmarks");
-    localStorage.setItem("entropi-note-utility-panel", "bookmarks");
-  }, [noteId]);
+    void saveBookmarkImmediately({ ...draft, noteId });
+  }, [noteId, saveBookmarkImmediately]);
+
+  const bookmarkNote = useCallback(() => {
+    void saveBookmarkImmediately({
+      noteId,
+      blockId: "__note__",
+      blockType: "note",
+      blockSnapshot: content ?? "[]",
+      plainText: plainTextFromDocument(content) || title,
+    });
+  }, [content, noteId, saveBookmarkImmediately, title]);
 
   const lastEditedLabel = t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note?.updated_at ?? Date.now())) });
 
@@ -164,7 +208,7 @@ export function NoteEditorPage() {
         ? <RelatedLinksPanel noteId={note.id} selected={selected} resolved={resolvedRelations} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={() => togglePanel("relations")} />
         : activePanel === "glossary"
           ? <GlossaryPanel noteId={note.id} draft={glossaryDraft} onDraftConsumed={() => setGlossaryDraft(null)} onChanged={reloadGlossaryWords} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />
-          : <BookmarksPanel noteId={note.id} draft={bookmarkDraft} onDraftConsumed={() => setBookmarkDraft(null)} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("bookmarks")} />}
+          : <BookmarksPanel noteId={note.id} onSaveNote={bookmarkNote} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("bookmarks")} />}
     </div>}
     <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
       <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />

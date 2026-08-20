@@ -49,6 +49,17 @@ const activeEntriesCte = `WITH RECURSIVE ancestors(id, depth) AS (
 
 export async function listGlossaryEntriesForNote(noteId: number, query = ""): Promise<GlossaryEntry[]> {
   const db = await getDb();
+  if (noteId <= 0) {
+    return db.select<GlossaryEntry[]>(
+      `SELECT ge.*, nf.name AS scope_folder_name, 0 AS scope_depth
+       FROM glossary_entries ge
+       LEFT JOIN note_folders nf ON nf.id = ge.scope_folder_id
+       WHERE $1 = '' OR ge.normalized_term LIKE '%' || $1 || '%'
+         OR EXISTS (SELECT 1 FROM glossary_aliases ga WHERE ga.entry_id = ge.id AND ga.normalized_alias LIKE '%' || $1 || '%')
+       ORDER BY CASE WHEN ge.scope_folder_id IS NULL THEN 0 ELSE 1 END, ge.term COLLATE NOCASE`,
+      [normalizeGlossaryTerm(query)],
+    );
+  }
   return db.select<GlossaryEntry[]>(
     `${activeEntriesCte}
      SELECT ge.*, nf.name AS scope_folder_name,

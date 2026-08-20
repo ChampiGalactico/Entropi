@@ -48,6 +48,7 @@
     "learningTopics": "Temas por aprender",
     "planner": "Planificador Semanal",
     "notes": "Notas",
+    "knowledge": "Conocimiento",
     "settings": "Configuración"
   },
   "topbar": {
@@ -56,6 +57,10 @@
     "language": "Idioma",
     "goBack": "Página anterior",
     "goForward": "Página siguiente"
+  },
+  "knowledge": {
+    "title": "Biblioteca de conocimiento",
+    "subtitle": "Consulta tus bookmarks y el glosario sin abrir una nota."
   },
   "dashboard": {
     "title": "Panel",
@@ -556,6 +561,9 @@
       "global": "Todo Entropi",
       "saveIn": "Guardar este bloque en…",
       "saved": "Bloque guardado en bookmarks",
+      "savedIn": "Guardado en {{collection}}",
+      "savedCollection": "Guardados",
+      "saveNote": "Guardar nota completa",
       "blockType": "Bloque de {{type}}",
       "search": "Buscar bookmarks…",
       "emptyCollections": "Crea una colección para empezar a guardar bloques.",
