@@ -94,7 +94,13 @@ function Columns({ block, editor }: { block: any; editor: any }) {
     persistWidths(resizePair(index, (event.key === "ArrowLeft" ? -1 : 1) * total * 0.05));
   }
 
-  return <section className="entropi-columns relative my-3 w-full" contentEditable={false}>
+  return <section
+    className="entropi-columns relative my-3 w-full"
+    contentEditable={false}
+    onMouseDown={(event) => event.stopPropagation()}
+    onClick={(event) => event.stopPropagation()}
+    onDoubleClick={(event) => event.stopPropagation()}
+  >
     <div className="entropi-columns-grid" style={{ gridTemplateColumns: widths.slice(0, count).flatMap((width, index) => index < count - 1 ? [`minmax(0, ${width}fr)`, "12px"] : [`minmax(0, ${width}fr)`]).join(" ") }}>
       {Array.from({ length: count }, (_, index) => <Fragment key={index}>
         <div className="entropi-column min-w-0">

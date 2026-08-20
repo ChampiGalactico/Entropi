@@ -135,6 +135,7 @@ export function EntropiBlockSideMenu({ onBookmarkBlock, ...props }: SideMenuProp
   const editor = useBlockNoteEditor<any, any, any>();
   const block = useExtensionState(SideMenuExtension, { editor, selector: (state) => state?.block });
   const dragHandleMenu = () => <EntropiDragHandleMenu onBookmarkBlock={onBookmarkBlock} />;
+  if (block?.type === "columns") return null;
   return <div className="entropi-side-menu-event-bridge" onDragStartCapture={(event) => {
     if (block) event.dataTransfer.setData("application/x-entropi-block-id", block.id);
   }}><SideMenu {...props} dragHandleMenu={dragHandleMenu} /></div>;
