@@ -39,6 +39,7 @@ import { NoteEditorFeaturesContext } from "./NoteEditorFeaturesContext";
 const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
+const AUTO_NEST_CONTAINER_TYPES = new Set(["quote", "callout", "toggleListItem"]);
 
 type ColumnDropPreview = {
   targetId: string;
@@ -377,6 +378,23 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     onChange(JSON.stringify(editor.document));
   }
 
+  function replaceWithDisplayMath(block: any, latex: string, consumed: any[] = []) {
+    const parent = editor.getParentBlock(block);
+    const documentBlocks = editor.document as any[];
+    const index = parent ? -1 : documentBlocks.findIndex((item) => item.id === block.id);
+    const previous = index > 0 ? documentBlocks[index - 1] : null;
+    if (previous && AUTO_NEST_CONTAINER_TYPES.has(previous.type)) {
+      const mathBlock = { id: block.id, type: "math", props: { latex }, children: block.children ?? [] };
+      editor.replaceBlocks([previous, block, ...consumed], [{
+        ...previous,
+        children: [...(previous.children ?? []), mathBlock],
+      } as any]);
+      return;
+    }
+    editor.updateBlock(block, { type: "math", props: { latex } } as any);
+    if (consumed.length) editor.removeBlocks(consumed);
+  }
+
   function handleEditorChange() {
     serialize();
     if (isSyncingMath.current) return;
@@ -401,7 +419,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     const textOnly = block.content.every((item: any) => item.type === "text");
     const raw = textOnly ? block.content.map((item: any) => item.text).join("").trim() : "";
     if (raw.startsWith("$$") && raw.endsWith("$$") && raw.length > 4) {
-      editor.updateBlock(block, { type: "math", props: { latex: raw } } as any);
+      replaceWithDisplayMath(block, raw);
       return;
     }
     const document = editor.document as any[];
@@ -426,9 +444,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       if (displayEnd >= blockIndex && displayEnd >= displayStart) {
         const latex = document.slice(displayStart, displayEnd + 1).map((item) => plainText(item) ?? "").join("\n").trim();
         const anchor = document[displayStart];
-        editor.updateBlock(anchor, { type: "math", props: { latex } } as any);
-        const redundant = document.slice(displayStart + 1, displayEnd + 1).map((item) => item.id);
-        if (redundant.length) editor.removeBlocks(redundant);
+        replaceWithDisplayMath(anchor, latex, document.slice(displayStart + 1, displayEnd + 1));
         return;
       }
     }
@@ -473,7 +489,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     if (trimmed.startsWith("$$") && trimmed.endsWith("$$") && trimmed.length > 4) {
       if (caret > fullText.trimEnd().length) {
         isSyncingMath.current = true;
-        editor.updateBlock(block, { type: "math", props: { latex: trimmed } } as any);
+        replaceWithDisplayMath(block, trimmed);
         isSyncingMath.current = false;
       }
       return;
@@ -572,10 +588,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const slashMenuItems = useMemo(() => {
-    const containerTypes = new Set(["quote", "callout", "toggleListItem"]);
     const withAutomaticContainerNesting = (onItemClick: () => void) => () => {
       const cursor = editor.getTextCursorPosition();
-      const shouldNest = !editor.getParentBlock(cursor.block) && !!cursor.prevBlock && containerTypes.has(cursor.prevBlock.type);
+      const shouldNest = !editor.getParentBlock(cursor.block) && !!cursor.prevBlock && AUTO_NEST_CONTAINER_TYPES.has(cursor.prevBlock.type);
       onItemClick();
       if (shouldNest && editor.canNestBlock()) editor.nestBlock();
     };
