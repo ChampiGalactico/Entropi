@@ -5,7 +5,7 @@ import { AddCircleLinear, AddFolderLinear, FolderLinear, MagniferLinear, PenLine
 import { Badge, Button, ColorPickerPopover, Combobox, EmptyState, IconButton, Input, Modal, notify } from "../ui";
 import { confirmDelete } from "../ui/ConfirmDialog";
 import { listAllAssessments, listAssessmentsBySubject } from "../../db/queries/assessments";
-import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, moveNoteToFolder, replaceNoteLinks } from "../../db/queries/notes";
+import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, moveNoteToFolder } from "../../db/queries/notes";
 import { createNoteFolder, deleteNoteFolder, getSubjectNoteFolderId, listNoteFolders, updateNoteFolder } from "../../db/queries/noteFolders";
 import { listAllSubjects } from "../../db/queries/subjects";
 import { listTasks } from "../../db/queries/tasks";
