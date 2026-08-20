@@ -32,7 +32,7 @@ import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
 import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
 import { notify } from "../ui";
 import { CodeLanguageSelects } from "./CodeLanguageSelects";
-import { EntropiBlockSideMenu } from "./EntropiBlockSideMenu";
+import { EntropiBlockSideMenu, type BlockBookmarkDraft } from "./EntropiBlockSideMenu";
 import { getSpellingSuggestions } from "../../lib/spellcheck";
 
 const spellcheckExtension = createSpellcheckExtension();
@@ -100,7 +100,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; acceptedWords?: string[] }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -141,6 +141,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
     return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
   }, [onAddToGlossary]);
+  const bookmarkSideMenu = useMemo(() => function BookmarkSideMenu(props: any) {
+    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
+  }, [onBookmarkBlock]);
 
   useEffect(() => {
     if (!revealBlockId) return;
@@ -421,7 +424,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
       <MantineProvider forceColorScheme={mode}>
         <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
           <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />
-          <SideMenuController sideMenu={EntropiBlockSideMenu} portalElement={document.body} />
+          <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
       </MantineProvider>

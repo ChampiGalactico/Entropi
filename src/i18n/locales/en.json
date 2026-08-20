@@ -461,6 +461,7 @@
     "video": { "placeholder": "Paste a YouTube, Vimeo, or video link (Enter to confirm)" },
     "blockMenu": {
       "delete": "Delete block",
+      "bookmark": "Save block to bookmarks",
       "textColor": "Text color",
       "backgroundColor": "Background color",
       "headerRow": "Header row",
@@ -537,6 +538,31 @@
         "source": "Source",
         "custom": "Custom"
       }
+    },
+    "bookmarks": {
+      "title": "Bookmarks",
+      "description": "Important blocks organized by collection and context.",
+      "showPanel": "Show bookmarks",
+      "hidePanel": "Hide bookmarks",
+      "newCollection": "New collection",
+      "editCollection": "Edit collection",
+      "collectionName": "Name",
+      "collectionSaved": "Collection saved",
+      "duplicateCollection": "A collection with that name already exists in this scope.",
+      "saveError": "The collection could not be saved.",
+      "icon": "Icon or emoji",
+      "color": "Color",
+      "scope": "Scope",
+      "global": "All of Entropi",
+      "saveIn": "Save this block in…",
+      "saved": "Block saved to bookmarks",
+      "blockType": "{{type}} block",
+      "search": "Search bookmarks…",
+      "emptyCollections": "Create a collection to start saving blocks.",
+      "empty": "This collection is empty.",
+      "noResults": "No bookmarks found.",
+      "open": "Open source",
+      "back": "Back"
     },
     "references": { "details": "More details in" },
     "folders": {

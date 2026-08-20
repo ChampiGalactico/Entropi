@@ -461,6 +461,7 @@
     "video": { "placeholder": "Pega un enlace de YouTube, Vimeo o un video (Enter para confirmar)" },
     "blockMenu": {
       "delete": "Eliminar bloque",
+      "bookmark": "Guardar bloque en bookmarks",
       "textColor": "Color del texto",
       "backgroundColor": "Color del fondo",
       "headerRow": "Fila de encabezado",
@@ -537,6 +538,31 @@
         "source": "Fuente",
         "custom": "Personalizado"
       }
+    },
+    "bookmarks": {
+      "title": "Bookmarks",
+      "description": "Bloques importantes organizados por colecciones y contexto.",
+      "showPanel": "Mostrar bookmarks",
+      "hidePanel": "Ocultar bookmarks",
+      "newCollection": "Nueva colección",
+      "editCollection": "Editar colección",
+      "collectionName": "Nombre",
+      "collectionSaved": "Colección guardada",
+      "duplicateCollection": "Ya existe una colección con ese nombre en este ámbito.",
+      "saveError": "No se pudo guardar la colección.",
+      "icon": "Icono o emoji",
+      "color": "Color",
+      "scope": "Ámbito",
+      "global": "Todo Entropi",
+      "saveIn": "Guardar este bloque en…",
+      "saved": "Bloque guardado en bookmarks",
+      "blockType": "Bloque de {{type}}",
+      "search": "Buscar bookmarks…",
+      "emptyCollections": "Crea una colección para empezar a guardar bloques.",
+      "empty": "Esta colección todavía está vacía.",
+      "noResults": "No se encontraron bookmarks.",
+      "open": "Abrir origen",
+      "back": "Volver"
     },
     "references": { "details": "Más detalles en" },
     "folders": {

@@ -275,6 +275,22 @@ body {
   background: transparent !important;
 }
 
+.entropi-bookmark-preview .bn-container,
+.entropi-bookmark-preview .bn-editor {
+  min-height: 0 !important;
+  background: transparent !important;
+}
+
+.entropi-bookmark-preview .bn-editor {
+  padding-inline: 0 !important;
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-size: 0.78rem;
+}
+
+.entropi-bookmark-preview .bn-block-outer {
+  margin-block: 0 !important;
+}
+
 .entropi-note-page .bn-formatting-toolbar,
 .vida-blocknote .bn-formatting-toolbar,
 .bn-formatting-toolbar {

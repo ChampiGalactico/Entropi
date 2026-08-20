@@ -10,6 +10,14 @@ import {
   type SideMenuProps,
 } from "@blocknote/react";
 import { useTranslation } from "react-i18next";
+import { BookmarkLinear } from "../ui/appIcons";
+
+export interface BlockBookmarkDraft {
+  blockId: string;
+  blockType: string;
+  blockSnapshot: string;
+  plainText: string;
+}
 
 const BLOCK_COLORS = [
   ["default", "transparent"],
@@ -44,7 +52,19 @@ function ColorPalette({ kind, value, onChange }: { kind: "textColor" | "backgrou
   </section>;
 }
 
-function EntropiDragHandleMenu() {
+function blockPlainText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(blockPlainText).join(" ").replace(/\s+/g, " ").trim();
+  if (!value || typeof value !== "object") return "";
+  const item = value as Record<string, unknown>;
+  if (typeof item.text === "string") return item.text;
+  const content = blockPlainText(item.content);
+  if (content) return content;
+  const props = item.props as Record<string, unknown> | undefined;
+  return [props?.latex, props?.code, props?.caption, props?.name].find((entry) => typeof entry === "string") as string | undefined ?? "";
+}
+
+function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void }) {
   const { t } = useTranslation();
   const Components = useComponentsContext()!;
   const editor = useBlockNoteEditor<any, any, any>();
@@ -54,6 +74,16 @@ function EntropiDragHandleMenu() {
   const supportsBackgroundColor = typeof props?.backgroundColor === "string";
 
   return <Components.Generic.Menu.Dropdown className="bn-menu-dropdown bn-drag-handle-menu entropi-block-menu">
+    {onBookmarkBlock && block && <button type="button" onClick={(event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onBookmarkBlock({
+        blockId: block.id,
+        blockType: block.type,
+        blockSnapshot: JSON.stringify(block),
+        plainText: blockPlainText(block),
+      });
+    }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-hover"><BookmarkLinear size={16} />{t("notes.blockMenu.bookmark")}</button>}
     <RemoveBlockItem>{t("notes.blockMenu.delete")}</RemoveBlockItem>
     {(supportsTextColor || supportsBackgroundColor) && <div className="entropi-block-color-palettes" onMouseDown={(event) => event.stopPropagation()}>
       {supportsTextColor && <ColorPalette kind="textColor" value={String(props?.textColor)} onChange={(color) => editor.updateBlock(block!, { props: { textColor: color } })} />}
@@ -64,6 +94,7 @@ function EntropiDragHandleMenu() {
   </Components.Generic.Menu.Dropdown>;
 }
 
-export function EntropiBlockSideMenu(props: SideMenuProps) {
-  return <SideMenu {...props} dragHandleMenu={EntropiDragHandleMenu} />;
+export function EntropiBlockSideMenu({ onBookmarkBlock, ...props }: SideMenuProps & { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void }) {
+  const dragHandleMenu = () => <EntropiDragHandleMenu onBookmarkBlock={onBookmarkBlock} />;
+  return <SideMenu {...props} dragHandleMenu={dragHandleMenu} />;
 }
