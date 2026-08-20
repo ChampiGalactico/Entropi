@@ -371,6 +371,23 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     });
   }
 
+  function handleContainerEnter(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.nativeEvent.isComposing) return;
+    const target = event.target as HTMLElement;
+    const ownEditor = editorRootRef.current?.querySelector<HTMLElement>(".bn-editor");
+    if (!ownEditor || target.closest(".bn-editor") !== ownEditor) return;
+    if (target.closest("input, textarea, [data-content-type='codeBlock']")) return;
+    let current: any;
+    try { current = editor.getTextCursorPosition().block; } catch { return; }
+    let container = editor.getParentBlock(current) as any;
+    while (container && !AUTO_NEST_CONTAINER_TYPES.has(container.type)) container = editor.getParentBlock(container) as any;
+    if (!container) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const [outside] = editor.insertBlocks([{ type: "paragraph" }], container, "after");
+    editor.setTextCursorPosition(outside, "start");
+  }
+
   function replaceMisspelledWord(replacement: string) {
     if (!spellcheckMenu) return;
     const tiptapEditor = (editor as any)._tiptapEditor;
@@ -650,6 +667,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       ref={editorRootRef}
       className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : embedded ? "entropi-column-editor min-h-24" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
       onContextMenu={handleContextMenu}
+      onKeyDownCapture={handleContainerEnter}
     >
       <NoteEditorFeaturesContext.Provider value={nestedFeatures}>
         <MantineProvider forceColorScheme={mode}>
