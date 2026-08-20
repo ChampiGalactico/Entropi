@@ -9,3 +9,4 @@ export * from "./NotesPage";
 export * from "./NoteEditorPage";
 export * from "./SettingsPage";
 export * from "./LearningTopicsPage";
+export * from "./KnowledgePage";

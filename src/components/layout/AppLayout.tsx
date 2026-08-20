@@ -8,6 +8,7 @@ import { UpdateBanner } from "../ui/UpdateBanner";
 import { EntityDetailModal } from "../shared/EntityDetailModal";
 import { useNavigationHistoryStore } from "../../stores/navigationHistoryStore";
 import { useUpdateStore } from "../../stores/updateStore";
+import { useTypographyStore } from "../../stores/typographyStore";
 
 export function AppLayout() {
   const location = useLocation();
@@ -16,6 +17,8 @@ export function AppLayout() {
 
   const checkForUpdates = useUpdateStore((state) => state.check);
   useEffect(() => { void checkForUpdates(true); }, [checkForUpdates]);
+  const hydrateTypography = useTypographyStore((state) => state.hydrate);
+  useEffect(() => { void hydrateTypography(); }, [hydrateTypography]);
 
   return (
     <div className="h-screen overflow-hidden bg-transparent">

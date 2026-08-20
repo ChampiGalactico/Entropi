@@ -67,7 +67,7 @@ export function IconPicker({ value, onChange, color = "currentColor" }: IconPick
       </button>
 
       {open && createPortal(
-        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/20 p-4 backdrop-blur-sm" onMouseDown={() => setOpen(false)}>
+        <div data-icon-picker-portal="true" className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/20 p-4 backdrop-blur-sm" onMouseDown={() => setOpen(false)}>
         <div className="flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col gap-2 overflow-hidden rounded-[2rem] border border-border bg-elevated p-4 shadow-modal backdrop-blur-3xl" onMouseDown={(event) => event.stopPropagation()}>
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-surface-hover px-3 py-1.5">
             <MagniferLinear size={14} className="text-text-muted" />

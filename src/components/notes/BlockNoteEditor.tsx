@@ -9,6 +9,7 @@ import {
   CreateLinkButton,
   FormattingToolbar,
   FormattingToolbarController,
+  SideMenuController,
   SuggestionMenuController,
   TextAlignButton,
   getDefaultReactSlashMenuItems,
@@ -21,7 +22,7 @@ import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { PenLinear } from "../ui/appIcons";
+import { BookLinear, PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
@@ -30,10 +31,14 @@ import { createSpellcheckExtension, setEditorSpellers } from "./spellcheckExtens
 import { useIgnoredWords, useSpellcheckers } from "../../hooks/useSpellcheck";
 import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu";
 import { notify } from "../ui";
+import { CodeLanguageSelects } from "./CodeLanguageSelects";
+import { EntropiBlockSideMenu, type BlockBookmarkDraft } from "./EntropiBlockSideMenu";
+import { getSpellingSuggestions } from "../../lib/spellcheck";
 
 const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
+const AUTO_NEST_CONTAINER_TYPES = new Set(["quote", "callout", "toggleListItem"]);
 
 // No server to upload to in a local-first app — files are embedded as base64 data URLs directly
 // in the note's own JSON, so pasting a copied image or picking one from disk works fully offline
@@ -50,7 +55,25 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function EntropiFormattingToolbar() {
+export interface GlossarySelectionDraft {
+  term: string;
+  blockId: string | null;
+}
+
+function EntropiFormattingToolbar({ onAddToGlossary }: { onAddToGlossary?: (draft: GlossarySelectionDraft) => void }) {
+  const { t } = useTranslation();
+
+  function addSelection(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    const term = selection.toString().trim().replace(/\s+/g, " ");
+    if (!term) return;
+    const anchor = selection.anchorNode instanceof HTMLElement ? selection.anchorNode : selection.anchorNode?.parentElement;
+    const blockId = anchor?.closest<HTMLElement>("[data-id]")?.dataset.id ?? null;
+    onAddToGlossary?.({ term, blockId });
+  }
+
   return <FormattingToolbar>
     <BlockTypeSelect />
     <BasicTextStyleButton basicTextStyle="bold" />
@@ -63,23 +86,86 @@ function EntropiFormattingToolbar() {
     <TextAlignButton textAlignment="right" />
     <ColorStyleButton />
     <CreateLinkButton />
+    {onAddToGlossary && <button type="button" title={t("notes.glossary.createFromSelection")} aria-label={t("notes.glossary.createFromSelection")} onMouseDown={addSelection} className="flex h-8 w-8 items-center justify-center rounded-md text-text-secondary hover:bg-control hover:text-accent"><BookLinear size={16} /></button>}
   </FormattingToolbar>;
+}
+
+type SerializedBlock = Record<string, unknown> & {
+  type?: string;
+  props?: Record<string, unknown>;
+  children?: unknown[];
+};
+
+function parseColumnDocument(value: unknown): SerializedBlock[] {
+  if (typeof value !== "string") return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed as SerializedBlock[] : [];
+  } catch {
+    return [];
+  }
+}
+
+function getLegacyColumnDocuments(props: Record<string, unknown> | undefined): string[] {
+  if (!props) return [];
+
+  if (typeof props.data === "string") {
+    try {
+      const parsed: unknown = JSON.parse(props.data);
+      if (Array.isArray(parsed)) return parsed.filter((item): item is string => typeof item === "string");
+    } catch { /* Fall through to the original fixed-column format. */ }
+  }
+
+  const requestedCount = typeof props.columns === "number" ? props.columns : Number(props.columns);
+  const count = Number.isFinite(requestedCount) ? Math.max(2, Math.min(4, requestedCount)) : 2;
+  return Array.from({ length: count }, (_, index) => props[`column${index + 1}`])
+    .filter((item): item is string => typeof item === "string");
+}
+
+function containsLegacyColumns(blocks: SerializedBlock[]): boolean {
+  return blocks.some((block) => block.type === "columns"
+    || (Array.isArray(block.children) && containsLegacyColumns(block.children as SerializedBlock[])));
+}
+
+function flattenLegacyColumns(blocks: SerializedBlock[]): SerializedBlock[] {
+  return blocks.flatMap((block) => {
+    if (block.type === "columns") {
+      return getLegacyColumnDocuments(block.props)
+        .flatMap((document) => flattenLegacyColumns(parseColumnDocument(document)));
+    }
+
+    if (!Array.isArray(block.children)) return [block];
+    return [{ ...block, children: flattenLegacyColumns(block.children as SerializedBlock[]) }];
+  });
+}
+
+function valueContainsLegacyColumns(value: string | null): boolean {
+  if (!value) return false;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && containsLegacyColumns(parsed as SerializedBlock[]);
+  } catch {
+    return false;
+  }
 }
 
 function parseBlocks(value: string | null): PartialBlock[] | undefined {
   if (!value) return undefined;
   try {
     const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed as PartialBlock[] : [{ type: "paragraph", content: value }];
+    return Array.isArray(parsed)
+      ? flattenLegacyColumns(parsed as SerializedBlock[]) as PartialBlock[]
+      : [{ type: "paragraph", content: value }];
   } catch {
     // Keep notes created before BlockNote was introduced editable.
     return [{ type: "paragraph", content: value }];
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, revealKey = null, onAddToGlossary, onBookmarkBlock, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; revealKey?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; onBookmarkBlock?: (draft: BlockBookmarkDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
+  const hadLegacyColumns = useMemo(() => valueContainsLegacyColumns(value), [value]);
   const initialContent = useMemo(() => parseBlocks(value), [value]);
   const editor = useCreateBlockNote({
     schema: noteSchema,
@@ -105,21 +191,151 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
   const isSyncingMath = useRef(false);
   const spellers = useSpellcheckers();
   const { ignoredWords, ignoreWord } = useIgnoredWords();
-  const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
+  const spellcheckExceptions = useMemo(() => {
+    const words = new Set(ignoredWords);
+    for (const value of acceptedWords) {
+      const word = value.trim();
+      if (/^[\p{L}\p{M}\p{N}_-]+$/u.test(word)) words.add(word.toLocaleLowerCase("es"));
+    }
+    return words;
+  }, [acceptedWords, ignoredWords]);
+  const [spellcheckMenu, setSpellcheckMenu] = useState<(SpellcheckMenuTarget & { from: number; to: number; suggestions: string[] }) | null>(null);
+  const editorRootRef = useRef<HTMLDivElement>(null);
+  const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
+    return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
+  }, [onAddToGlossary]);
+  const bookmarkSideMenu = useMemo(() => function BookmarkSideMenu(props: any) {
+    return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
+  }, [onBookmarkBlock]);
 
   useEffect(() => {
-    setEditorSpellers((editor as any)._tiptapEditor, spellers, ignoredWords);
-  }, [editor, spellers, ignoredWords]);
+    if (!revealBlockId) return;
+    let frame = 0;
+    let highlightTimer = 0;
+    let removeTimer = 0;
+    let attempts = 0;
+    const escapedId = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(revealBlockId) : revealBlockId.replace(/["\\]/g, "\\$&");
+
+    function reveal() {
+      const element = editorRootRef.current?.querySelector<HTMLElement>(`[data-id="${escapedId}"]`);
+      if (!element && attempts < 30) {
+        attempts += 1;
+        frame = window.requestAnimationFrame(reveal);
+        return;
+      }
+      if (!element) return;
+
+      let scrollParent: HTMLElement | null = element.parentElement;
+      while (scrollParent) {
+        const overflowY = window.getComputedStyle(scrollParent).overflowY;
+        if (/(auto|scroll)/.test(overflowY) && scrollParent.scrollHeight > scrollParent.clientHeight) break;
+        scrollParent = scrollParent.parentElement;
+      }
+      if (scrollParent) {
+        const parentRect = scrollParent.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const top = scrollParent.scrollTop + elementRect.top - parentRect.top - scrollParent.clientHeight * 0.3;
+        scrollParent.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      } else {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      const spotlight = element.closest<HTMLElement>(".bn-block-outer") ?? element;
+      spotlight.classList.remove("entropi-block-reveal");
+      highlightTimer = window.setTimeout(() => {
+        void spotlight.offsetWidth;
+        spotlight.classList.add("entropi-block-reveal");
+        removeTimer = window.setTimeout(() => spotlight.classList.remove("entropi-block-reveal"), 2800);
+      }, 180);
+    }
+
+    frame = window.requestAnimationFrame(reveal);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(highlightTimer);
+      window.clearTimeout(removeTimer);
+    };
+  }, [revealBlockId, revealKey]);
+
+  useEffect(() => {
+    setEditorSpellers((editor as any)._tiptapEditor, spellers, spellcheckExceptions);
+  }, [editor, spellers, spellcheckExceptions]);
 
   function handleContextMenu(event: React.MouseEvent) {
     const target = (event.target as HTMLElement).closest?.(".entropi-misspelled");
     if (!target?.textContent) return;
     event.preventDefault();
-    setSpellcheckMenu({ word: target.textContent, x: event.clientX, y: event.clientY });
+    const tiptapEditor = (editor as any)._tiptapEditor;
+    let from: number;
+    try { from = tiptapEditor.view.posAtDOM(target, 0); } catch { return; }
+    const word = target.textContent;
+    setSpellcheckMenu({
+      word,
+      from,
+      to: from + word.length,
+      suggestions: getSpellingSuggestions(word, spellers),
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function handleContainerEnter(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || event.nativeEvent.isComposing) return;
+    const target = event.target as HTMLElement;
+    const ownEditor = editorRootRef.current?.querySelector<HTMLElement>(".bn-editor");
+    if (!ownEditor || target.closest(".bn-editor") !== ownEditor) return;
+    if (target.closest("input, textarea, [data-content-type='codeBlock']")) return;
+    let current: any;
+    try { current = editor.getTextCursorPosition().block; } catch { return; }
+    let container = editor.getParentBlock(current) as any;
+    while (container && !AUTO_NEST_CONTAINER_TYPES.has(container.type)) container = editor.getParentBlock(container) as any;
+    if (!container) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const [outside] = editor.insertBlocks([{ type: "paragraph" }], container, "after");
+    editor.setTextCursorPosition(outside, "start");
+  }
+
+  function replaceMisspelledWord(replacement: string) {
+    if (!spellcheckMenu) return;
+    const tiptapEditor = (editor as any)._tiptapEditor;
+    const { state, view } = tiptapEditor;
+    view.dispatch(state.tr.insertText(replacement, spellcheckMenu.from, spellcheckMenu.to));
+    view.focus();
+    setSpellcheckMenu(null);
   }
 
   function serialize() {
     onChange(JSON.stringify(editor.document));
+  }
+
+  function replaceWithDisplayMath(block: any, latex: string, consumed: any[] = []) {
+    const parent = editor.getParentBlock(block);
+    const documentBlocks = editor.document as any[];
+    const index = parent ? -1 : documentBlocks.findIndex((item) => item.id === block.id);
+    const previous = index > 0 ? documentBlocks[index - 1] : null;
+    if (previous && AUTO_NEST_CONTAINER_TYPES.has(previous.type)) {
+      const mathBlock = { id: block.id, type: "math", props: { latex }, children: block.children ?? [] };
+      editor.replaceBlocks([previous, block, ...consumed], [{
+        ...previous,
+        children: [...(previous.children ?? []), mathBlock],
+      } as any]);
+      return;
+    }
+    editor.updateBlock(block, { type: "math", props: { latex } } as any);
+    if (consumed.length) editor.removeBlocks(consumed);
+  }
+
+  function handleEditorChange() {
+    serialize();
+    if (isSyncingMath.current) return;
+    // Text input does not consistently emit BlockNote's selection-change event. Run the live
+    // conversion after the document update as well, so the space typed after a closing `$`
+    // reliably turns the source into an inline formula.
+    queueMicrotask(() => {
+      if (isSyncingMath.current) return;
+      try { convertCompletedInlineMath(editor.getTextCursorPosition().block.id); } catch { /* Custom blocks may not expose a text cursor. */ }
+    });
   }
 
   function renderMathInBlock(blockId: string | null) {
@@ -134,7 +350,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     const textOnly = block.content.every((item: any) => item.type === "text");
     const raw = textOnly ? block.content.map((item: any) => item.text).join("").trim() : "";
     if (raw.startsWith("$$") && raw.endsWith("$$") && raw.length > 4) {
-      editor.updateBlock(block, { type: "math", props: { latex: raw } } as any);
+      replaceWithDisplayMath(block, raw);
       return;
     }
     const document = editor.document as any[];
@@ -159,9 +375,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       if (displayEnd >= blockIndex && displayEnd >= displayStart) {
         const latex = document.slice(displayStart, displayEnd + 1).map((item) => plainText(item) ?? "").join("\n").trim();
         const anchor = document[displayStart];
-        editor.updateBlock(anchor, { type: "math", props: { latex } } as any);
-        const redundant = document.slice(displayStart + 1, displayEnd + 1).map((item) => item.id);
-        if (redundant.length) editor.removeBlocks(redundant);
+        replaceWithDisplayMath(anchor, latex, document.slice(displayStart + 1, displayEnd + 1));
         return;
       }
     }
@@ -206,7 +420,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     if (trimmed.startsWith("$$") && trimmed.endsWith("$$") && trimmed.length > 4) {
       if (caret > fullText.trimEnd().length) {
         isSyncingMath.current = true;
-        editor.updateBlock(block, { type: "math", props: { latex: trimmed } } as any);
+        replaceWithDisplayMath(block, trimmed);
         isSyncingMath.current = false;
       }
       return;
@@ -223,7 +437,10 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       let match: RegExpExecArray | null;
       while ((match = pattern.exec(text))) {
         const matchEnd = cursor + match.index + match[0].length;
-        if (matchEnd >= caret) continue;
+        // Some browser/ProseMirror combinations report the caret immediately before a trailing
+        // collapsible space even though that space has already been inserted into the document.
+        const followedByWhitespace = /\s/.test(fullText.charAt(matchEnd));
+        if (matchEnd > caret || (matchEnd === caret && !followedByWhitespace)) continue;
         if (match.index > lastIndex) content.push({ ...item, text: text.slice(lastIndex, match.index) });
         if (match[0].startsWith("$$")) content.push({ ...item, text: match[0] });
         else { content.push({ type: "inlineMath", props: { latex: match[0].slice(1, -1) } }); changed = true; }
@@ -297,19 +514,27 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
     const ids = (editor.document as any[]).map((block) => block.id);
     ids.forEach((id) => renderMathInBlock(id));
     const after = JSON.stringify(editor.document);
-    if (after !== before) onChange(after);
+    if (after !== before || hadLegacyColumns) onChange(after);
     // Existing notes are normalized once when the editor opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const slashMenuItems = useMemo(() => [
-    ...getDefaultReactSlashMenuItems(editor),
+  const slashMenuItems = useMemo(() => {
+    const withAutomaticContainerNesting = (onItemClick: () => void) => () => {
+      const cursor = editor.getTextCursorPosition();
+      const shouldNest = !editor.getParentBlock(cursor.block) && !!cursor.prevBlock && AUTO_NEST_CONTAINER_TYPES.has(cursor.prevBlock.type);
+      onItemClick();
+      if (shouldNest && editor.canNestBlock()) editor.nestBlock();
+    };
+
+    return [
+    ...getDefaultReactSlashMenuItems(editor).map((item) => ({ ...item, onItemClick: withAutomaticContainerNesting(item.onItemClick) })),
     {
       title: t("notes.math.slashTitle"),
       subtext: t("notes.math.slashDescription"),
       aliases: ["formula", "latex", "math", "ecuacion", "matematicas"],
       group: t("notes.slashGroup"),
       icon: <SolarIcon name="CalculatorLinear" size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "math" }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "math" })),
     },
     {
       title: t("notes.drawing.slashTitle"),
@@ -317,7 +542,15 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       aliases: ["canvas", "dibujo", "lienzo", "draw"],
       group: t("notes.slashGroup"),
       icon: <PenLinear size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" })),
+    },
+    {
+      title: t("notes.callout.slashTitle"),
+      subtext: t("notes.callout.slashDescription"),
+      aliases: ["callout", "alert", "info", "aviso", "nota", "destacado"],
+      group: t("notes.callout.slashGroup"),
+      icon: <SolarIcon name="ChatRoundDotsLinear" size={18} />,
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } })),
     },
     ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
       title: t(`notes.diagram.templates.${template}.title`),
@@ -325,25 +558,32 @@ export function BlockNoteEditor({ value, onChange, fullPage = false }: { value: 
       aliases: ["diagram", "diagrama", "mermaid", template],
       group: t("notes.slashGroup"),
       icon: <SolarIcon name="RoutingLinear" size={18} />,
-      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "diagram", props: { code: DIAGRAM_TEMPLATES[template] } }),
+      onItemClick: withAutomaticContainerNesting(() => insertOrUpdateBlockForSlashMenu(editor, { type: "diagram", props: { code: DIAGRAM_TEMPLATES[template] } })),
     })),
-  ], [editor, t]);
+  ];
+  }, [editor, t]);
   return (
     <div
+      ref={editorRootRef}
       className={fullPage ? "entropi-note-page min-h-[60vh] bg-transparent" : "vida-blocknote min-h-52 overflow-hidden rounded-2xl border border-border bg-control"}
       onContextMenu={handleContextMenu}
+      onKeyDownCapture={handleContainerEnter}
     >
       <MantineProvider forceColorScheme={mode}>
-        <BlockNoteView editor={editor} theme={mode} onChange={serialize} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false}>
-          <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
+        <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
+          <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />
+          <SideMenuController sideMenu={bookmarkSideMenu} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>
       </MantineProvider>
+      <CodeLanguageSelects editorRootRef={editorRootRef} />
       {spellcheckMenu && (
         <SpellcheckMenu
           word={spellcheckMenu.word}
           x={spellcheckMenu.x}
           y={spellcheckMenu.y}
+          suggestions={spellcheckMenu.suggestions}
+          onReplace={replaceMisspelledWord}
           onIgnore={() => {
             void ignoreWord(spellcheckMenu.word);
             setSpellcheckMenu(null);

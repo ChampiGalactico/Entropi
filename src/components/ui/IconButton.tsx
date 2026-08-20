@@ -1,15 +1,16 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { Tooltip } from "./Tooltip";
+import { Tooltip, type TooltipProps } from "./Tooltip";
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: ReactNode;
   label: string;
   active?: boolean;
+  tooltipPlacement?: TooltipProps["placement"];
 }
 
-export function IconButton({ icon, label, active = false, className = "", ...rest }: IconButtonProps) {
+export function IconButton({ icon, label, active = false, tooltipPlacement = "top", className = "", ...rest }: IconButtonProps) {
   return (
-    <Tooltip label={label}>
+    <Tooltip label={label} placement={tooltipPlacement}>
     <button
       aria-label={label}
       className={`flex items-center justify-center rounded-full p-2 transition-all duration-150 active:scale-[0.92] disabled:pointer-events-none disabled:opacity-40 ${

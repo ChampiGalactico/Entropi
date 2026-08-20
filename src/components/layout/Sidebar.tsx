@@ -10,6 +10,7 @@ import {
   Widget5Linear,
   BookLinear,
   LightbulbBoltLinear,
+  BookmarkLinear,
 } from "../ui/appIcons";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useRef, useState } from "react";
@@ -29,6 +30,7 @@ const defaultNavItems: NavItem[] = [
   { to: "/learning-topics", labelKey: "nav.learningTopics", icon: <LightbulbBoltLinear size={22} /> },
   { to: "/planner", labelKey: "nav.planner", icon: <BookLinear size={22} /> },
   { to: "/notes", labelKey: "nav.notes", icon: <NotebookLinear size={22} /> },
+  { to: "/knowledge", labelKey: "nav.knowledge", icon: <BookmarkLinear size={22} /> },
   { to: "/settings", labelKey: "nav.settings", icon: <SettingsLinear size={22} /> },
 ];
 

@@ -10,3 +10,4 @@ export * from "./TeachingRolesManager";
 export * from "./CalendarSettingsSection";
 export * from "./NotesSettingsSection";
 export * from "./SpellcheckSettingsSection";
+export * from "./TypographySettingsSection";

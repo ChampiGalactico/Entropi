@@ -3,7 +3,28 @@ import type { NoteFolder } from "../../types";
 
 export async function listNoteFolders(): Promise<NoteFolder[]> {
   const db = await getDb();
-  return db.select<NoteFolder[]>("SELECT * FROM note_folders ORDER BY name COLLATE NOCASE");
+  return db.select<NoteFolder[]>(
+    `SELECT nf.*,
+       (SELECT er.target_type FROM entity_relations er
+        WHERE er.source_type = 'note_folder' AND er.source_id = nf.id
+          AND er.relation_kind = 'context_of' AND er.origin = 'system' LIMIT 1) AS managed_context_type,
+       (SELECT er.target_id FROM entity_relations er
+        WHERE er.source_type = 'note_folder' AND er.source_id = nf.id
+          AND er.relation_kind = 'context_of' AND er.origin = 'system' LIMIT 1) AS managed_context_id
+     FROM note_folders nf ORDER BY nf.name COLLATE NOCASE`,
+  );
+}
+
+export async function getSubjectNoteFolderId(subjectId: number): Promise<number | null> {
+  const db = await getDb();
+  const rows = await db.select<Array<{ id: number }>>(
+    `SELECT source_id AS id FROM entity_relations
+     WHERE source_type = 'note_folder' AND target_type = 'subject' AND target_id = $1
+       AND relation_kind = 'context_of' AND origin = 'system'
+     LIMIT 1`,
+    [subjectId],
+  );
+  return rows[0]?.id ?? null;
 }
 
 export async function createNoteFolder(name: string, color: string, parentId: number | null): Promise<number> {
@@ -29,6 +50,14 @@ export async function deleteNoteFolder(id: number): Promise<void> {
        UNION ALL
        SELECT nf.id FROM note_folders nf JOIN descendants d ON nf.parent_id = d.id
      )`;
+  const managed = await db.select<Array<{ count: number }>>(
+    `${descendantsCte}
+     SELECT COUNT(*) AS count FROM entity_relations er
+     WHERE er.source_type = 'note_folder' AND er.source_id IN (SELECT id FROM descendants)
+       AND er.relation_kind = 'context_of' AND er.origin = 'system'`,
+    [id],
+  );
+  if ((managed[0]?.count ?? 0) > 0) throw new Error("managed-subject-folder");
   await db.execute(`${descendantsCte} UPDATE notes SET folder_id = NULL WHERE folder_id IN (SELECT id FROM descendants)`, [id]);
   await db.execute(`${descendantsCte} DELETE FROM note_folders WHERE id IN (SELECT id FROM descendants)`, [id]);
 }

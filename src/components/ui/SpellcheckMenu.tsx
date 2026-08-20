@@ -8,7 +8,7 @@ export interface SpellcheckMenuTarget {
   y: number;
 }
 
-export function SpellcheckMenu({ word, x, y, onIgnore, onClose }: SpellcheckMenuTarget & { onIgnore: () => void; onClose: () => void }) {
+export function SpellcheckMenu({ word, x, y, suggestions = [], onReplace, onIgnore, onClose }: SpellcheckMenuTarget & { suggestions?: string[]; onReplace?: (suggestion: string) => void; onIgnore: () => void; onClose: () => void }) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -35,6 +35,18 @@ export function SpellcheckMenu({ word, x, y, onIgnore, onClose }: SpellcheckMenu
       style={{ position: "fixed", top: y, left: x, zIndex: 1000 }}
       className="min-w-[220px] overflow-hidden rounded-xl border border-border bg-elevated py-1 shadow-modal backdrop-blur-2xl"
     >
+      {suggestions.length > 0 && <>
+        <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted">{t("settings.spellcheck.suggestions")}</p>
+        {suggestions.map((suggestion) => <button
+          key={suggestion}
+          type="button"
+          onClick={() => onReplace?.(suggestion)}
+          className="block w-full truncate px-3 py-2 text-left text-sm font-medium text-text-primary hover:bg-surface-hover hover:text-accent"
+        >
+          {suggestion}
+        </button>)}
+        <div className="my-1 h-px bg-border" />
+      </>}
       <button
         type="button"
         onClick={onIgnore}

@@ -1,58 +1,86 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowLeftLinear, DownloadMinimalisticLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { BookLinear, BookmarkLinear, CloseCircleLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
+import { GlossaryPanel, type GlossaryDraft } from "../components/notes/GlossaryPanel";
+import { BookmarksPanel } from "../components/notes/BookmarksPanel";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
-import { Button, Checkbox, IconButton, notify } from "../components/ui";
+import { RelatedLinksPanel } from "../components/notes/RelatedLinksPanel";
+import { IconButton, notify } from "../components/ui";
 import { confirmDelete } from "../components/ui/ConfirmDialog";
-import { listAllAssessments } from "../db/queries/assessments";
-import { deleteNote, getNote, listNoteLinks, listNotes, replaceNoteLinks, updateNote } from "../db/queries/notes";
-import { listAllSubjects } from "../db/queries/subjects";
-import { listTasks } from "../db/queries/tasks";
-import type { LinkedEntityType, Note, Subject, Task, Assessment } from "../types";
+import { deleteNote, getNote, listNoteLinks, replaceNoteLinks, updateNote } from "../db/queries/notes";
+import { listResolvedNoteRelations } from "../db/queries/entityRelations";
+import { listGlossaryVocabularyForNote } from "../db/queries/glossary";
+import { createBookmarkCollection, listBookmarkCollectionsForNote, saveBookmark } from "../db/queries/bookmarks";
+import type { BookmarkCollection, BookmarkDraft, LinkedEntityType, Note, RelationCandidate, ResolvedEntityRelation } from "../types";
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
+import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
 
-interface LinkOption { type: LinkedEntityType; id: number; label: string; group: string }
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
+type UtilityPanel = "relations" | "glossary" | "bookmarks" | null;
+const LAST_BOOKMARK_COLLECTION_KEY = "entropi-last-bookmark-collection";
+
+function plainTextFromDocument(value: string | null): string {
+  if (!value) return "";
+  try {
+    const walk = (item: unknown): string => {
+      if (typeof item === "string") return item;
+      if (Array.isArray(item)) return item.map(walk).join(" ");
+      if (!item || typeof item !== "object") return "";
+      const record = item as Record<string, unknown>;
+      if (typeof record.text === "string") return record.text;
+      return `${walk(record.content)} ${walk(record.children)}`;
+    };
+    return walk(JSON.parse(value)).replace(/\s+/g, " ").trim();
+  } catch { return value; }
+}
 
 export function NoteEditorPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const noteId = Number(useParams<{ id: string }>().id);
   const [note, setNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState<string | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [otherNotes, setOtherNotes] = useState<Note[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [resolvedRelations, setResolvedRelations] = useState<ResolvedEntityRelation[]>([]);
   const [saved, setSaved] = useState(false);
   const [autosaveSeconds, setAutosaveSeconds] = useState(DEFAULT_NOTE_AUTOSAVE_SECONDS);
   const [helpOpen, setHelpOpen] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [activePanel, setActivePanel] = useState<UtilityPanel>(() => {
+    const stored = localStorage.getItem("entropi-note-utility-panel");
+    if (stored === "relations" || stored === "glossary" || stored === "bookmarks") return stored;
+    return localStorage.getItem("entropi-note-links-panel") === "hidden" ? null : "relations";
+  });
+  const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
+  const [glossaryWords, setGlossaryWords] = useState<string[]>([]);
+  const setTopBarStatus = useNoteEditorStatusStore((state) => state.setStatus);
+  const clearTopBarStatus = useNoteEditorStatusStore((state) => state.clearStatus);
   const printAreaRef = useRef<HTMLElement>(null);
   const editorContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    void Promise.all([getNote(noteId), listAllSubjects(), listTasks({}), listAllAssessments(), listNotes(), listNoteLinks(noteId)]).then(([noteRow, subjectRows, taskRows, assessmentRows, noteRows, linkRows]) => {
+    void Promise.all([getNote(noteId), listNoteLinks(noteId), listResolvedNoteRelations(noteId)]).then(([noteRow, linkRows, relationRows]) => {
       if (!noteRow) return;
-      setNote(noteRow); setTitle(noteRow.title); setContent(noteRow.content); setSubjects(subjectRows); setTasks(taskRows); setAssessments(assessmentRows); setOtherNotes(noteRows.filter((item) => item.id !== noteId));
+      setNote(noteRow); setTitle(noteRow.title); setContent(noteRow.content); setResolvedRelations(relationRows);
       setSelected(new Set(linkRows.map((link) => linkKey(link.entity_type, link.entity_id))));
       setSaved(true);
     });
   }, [noteId]);
 
-  const options: LinkOption[] = [
-    ...subjects.map((item) => ({ type: "subject" as const, id: item.id, label: item.name, group: t("notes.links.subjects") })),
-    ...tasks.map((item) => ({ type: "task" as const, id: item.id, label: item.title, group: t("notes.links.tasks") })),
-    ...assessments.map((item) => ({ type: "assessment" as const, id: item.id, label: item.title, group: t("notes.links.assessments") })),
-    ...otherNotes.map((item) => ({ type: "note" as const, id: item.id, label: item.title, group: t("notes.links.notes") })),
-  ];
+  const reloadGlossaryWords = useCallback(() => {
+    void listGlossaryVocabularyForNote(noteId).then(setGlossaryWords);
+  }, [noteId]);
 
-  function toggle(option: LinkOption) {
+  useEffect(() => {
+    reloadGlossaryWords();
+  }, [reloadGlossaryWords]);
+
+  function toggle(option: RelationCandidate) {
     const key = linkKey(option.type, option.id);
     setSelected((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     setSaved(false);
@@ -69,6 +97,12 @@ export function NoteEditorPage() {
   useEffect(() => {
     void getNoteAutosaveSeconds().then(setAutosaveSeconds);
   }, []);
+
+  useEffect(() => {
+    if (note) setTopBarStatus(note.id, saved);
+  }, [note, saved, setTopBarStatus]);
+
+  useEffect(() => () => clearTopBarStatus(noteId), [clearTopBarStatus, noteId]);
 
   useEffect(() => {
     if (!note || saved || !title.trim()) return;
@@ -89,6 +123,60 @@ export function NoteEditorPage() {
 
   async function remove() { if (!note || !(await confirmDelete({ itemName: note.title }))) return; await deleteNote(note.id); notify.success(t("feedback.deleted")); navigate(-1); }
 
+  function togglePanel(panel: Exclude<UtilityPanel, null>) {
+    setActivePanel((current) => {
+      const next = current === panel ? null : panel;
+      localStorage.setItem("entropi-note-utility-panel", next ?? "hidden");
+      return next;
+    });
+  }
+
+  function openGlossaryLocation(targetNoteId: number, blockId: string | null) {
+    const search = blockId && blockId !== "__note__" ? `?block=${encodeURIComponent(blockId)}&focus=${Date.now()}` : "";
+    navigate(`/notes/${targetNoteId}${search}`);
+  }
+
+  const addSelectionToGlossary = useCallback((draft: GlossaryDraft) => {
+    setGlossaryDraft(draft);
+    setActivePanel("glossary");
+    localStorage.setItem("entropi-note-utility-panel", "glossary");
+  }, []);
+
+  const saveBookmarkImmediately = useCallback(async (draft: BookmarkDraft) => {
+    let collections = await listBookmarkCollectionsForNote(noteId);
+    const rememberedId = Number(localStorage.getItem(LAST_BOOKMARK_COLLECTION_KEY));
+    let collection: BookmarkCollection | undefined = collections.find((item) => item.id === rememberedId) ?? collections[0];
+    if (!collection) {
+      try {
+        const id = await createBookmarkCollection({ name: t("notes.bookmarks.savedCollection"), icon: "🔖", color: "#8b5cf6", scope_folder_id: null });
+        collections = await listBookmarkCollectionsForNote(noteId);
+        collection = collections.find((item) => item.id === id);
+      } catch {
+        collections = await listBookmarkCollectionsForNote(noteId);
+        collection = collections.find((item) => item.scope_folder_id === null);
+      }
+    }
+    if (!collection) { notify.error(t("notes.bookmarks.saveError")); return; }
+    await saveBookmark(collection.id, draft);
+    localStorage.setItem(LAST_BOOKMARK_COLLECTION_KEY, String(collection.id));
+    window.dispatchEvent(new CustomEvent("entropi-bookmarks-changed", { detail: { collectionId: collection.id } }));
+    notify.success(t("notes.bookmarks.savedIn", { collection: collection.name }));
+  }, [noteId, t]);
+
+  const bookmarkBlock = useCallback((draft: Omit<BookmarkDraft, "noteId">) => {
+    void saveBookmarkImmediately({ ...draft, noteId });
+  }, [noteId, saveBookmarkImmediately]);
+
+  const bookmarkNote = useCallback(() => {
+    void saveBookmarkImmediately({
+      noteId,
+      blockId: "__note__",
+      blockType: "note",
+      blockSnapshot: content ?? "[]",
+      plainText: plainTextFromDocument(content) || title,
+    });
+  }, [content, noteId, saveBookmarkImmediately, title]);
+
   const lastEditedLabel = t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note?.updated_at ?? Date.now())) });
 
   async function exportPdf() {
@@ -108,41 +196,35 @@ export function NoteEditorPage() {
 
   if (!note) return null;
   return <div className="mx-auto max-w-7xl">
-    <div className="sticky top-0 z-20 mb-6 flex items-center justify-between rounded-full border border-border bg-control/90 p-2 shadow-card backdrop-blur-2xl"><div className="flex items-center gap-2"><IconButton label={t("notes.back")} icon={<AltArrowLeftLinear size={18} />} onClick={() => navigate(-1)} /><span className="text-xs text-text-muted">{saved ? t("notes.saved") : t("notes.unsaved")}</span><span className="hidden text-xs text-text-muted sm:inline">· {lastEditedLabel}</span></div><div className="flex items-center gap-2"><span className="hidden text-[10px] text-text-muted sm:inline">Ctrl+S</span><IconButton label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={17} />} onClick={() => void exportPdf()} disabled={exportingPdf} /><IconButton label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={17} />} onClick={() => setHelpOpen(true)} /><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={16} />} onClick={() => void remove()} /><Button onClick={() => void save(true)}>{t("settings.lookup.save")}</Button></div></div>
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <main ref={printAreaRef} id="entropi-print-area" className="min-w-0 px-4 pb-20 md:px-10">
+    <main ref={printAreaRef} id="entropi-print-area" className={`min-w-0 px-4 pb-20 pr-16 transition-[margin] duration-200 md:px-10 md:pr-20 ${activePanel ? "xl:mr-[21rem]" : ""}`}>
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
         <div ref={editorContentRef}>
-          <BlockNoteEditor key={note.id} value={content} fullPage onChange={(value) => { setContent(value); setSaved(false); }} />
+          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} revealKey={searchParams.get("focus")} acceptedWords={glossaryWords} onAddToGlossary={addSelectionToGlossary} onBookmarkBlock={bookmarkBlock} onChange={(value) => { setContent(value); setSaved(false); }} />
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
-      </main>
-      <RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} />
-    </div>
+    </main>
+    {activePanel && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl">
+      {activePanel === "relations"
+        ? <RelatedLinksPanel noteId={note.id} selected={selected} resolved={resolvedRelations} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={() => togglePanel("relations")} />
+        : activePanel === "glossary"
+          ? <GlossaryPanel noteId={note.id} draft={glossaryDraft} onDraftConsumed={() => setGlossaryDraft(null)} onChanged={reloadGlossaryWords} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />
+          : <BookmarksPanel noteId={note.id} onSaveNote={bookmarkNote} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("bookmarks")} />}
+    </div>}
+    <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
+      <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />
+      <div className="my-2 h-px w-5 bg-border" />
+      <IconButton tooltipPlacement="left" label={`${t("settings.lookup.save")} · ${saved ? t("notes.saved") : t("notes.unsaved")} · Ctrl+S`} icon={<DisketteLinear size={18} />} active={!saved} onClick={() => void save(true)} />
+      <span aria-hidden="true" className={`mt-1 h-1.5 w-1.5 rounded-full ${saved ? "bg-success" : "bg-warning"}`} />
+      <div className="flex-1" />
+      <IconButton tooltipPlacement="left" label={activePanel === "relations" ? t("notes.links.hidePanel") : t("notes.links.showPanel")} icon={<LinkCircleLinear size={18} />} active={activePanel === "relations"} onClick={() => togglePanel("relations")} />
+      <IconButton tooltipPlacement="left" label={activePanel === "glossary" ? t("notes.glossary.hidePanel") : t("notes.glossary.showPanel")} icon={<BookLinear size={18} />} active={activePanel === "glossary"} onClick={() => togglePanel("glossary")} />
+      <IconButton tooltipPlacement="left" label={activePanel === "bookmarks" ? t("notes.bookmarks.hidePanel") : t("notes.bookmarks.showPanel")} icon={<BookmarkLinear size={18} />} active={activePanel === "bookmarks"} onClick={() => togglePanel("bookmarks")} />
+      <IconButton tooltipPlacement="left" label={t("notes.help.tooltip")} icon={<QuestionCircleLinear size={18} />} onClick={() => setHelpOpen(true)} />
+      <IconButton tooltipPlacement="left" label={t("notes.exportPdf")} icon={<DownloadMinimalisticLinear size={18} />} onClick={() => void exportPdf()} disabled={exportingPdf} />
+      <div className="my-2 h-px w-5 bg-border" />
+      <IconButton tooltipPlacement="left" label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={17} />} className="hover:!bg-danger/15 hover:!text-danger" onClick={() => void remove()} />
+    </aside>
     <NoteHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
   </div>;
-}
-
-function RelatedLinksPanel({ options, selected, onToggle, onClear }: { options: LinkOption[]; selected: Set<string>; onToggle: (option: LinkOption) => void; onClear: () => void }) {
-  const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
-  const groups = [...new Set(options.map((option) => option.group))];
-  function toggleGroup(group: string) {
-    setCollapsed((current) => { const next = new Set(current); if (next.has(group)) next.delete(group); else next.add(group); return next; });
-  }
-  return <aside className="h-fit rounded-[1.75rem] border border-border bg-control p-5 lg:sticky lg:top-20">
-    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.links.title")}</h2>{selected.size > 0 && <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={onClear}>{t("notes.links.clear")}</Button>}</div>
-    <p className="mt-1 text-xs text-text-muted">{selected.size === 0 ? t("notes.links.none") : t("notes.links.description")}</p>
-    <div className="mt-5 max-h-[calc(100vh-220px)] space-y-2 overflow-y-auto pr-1">{groups.map((group) => {
-      const groupOptions = options.filter((option) => option.group === group).sort((a, b) => Number(selected.has(linkKey(b.type, b.id))) - Number(selected.has(linkKey(a.type, a.id))));
-      const visible = visibleCounts[group] ?? 6;
-      const isCollapsed = collapsed.has(group);
-      return <section key={group} className="rounded-2xl bg-surface-hover/55 px-3 py-2">
-        <button type="button" onClick={() => toggleGroup(group)} className="flex w-full items-center justify-between gap-2 text-left"><span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{group} · {groupOptions.length}</span><AltArrowDownLinear size={14} className={`text-text-muted transition-transform ${isCollapsed ? "-rotate-90" : ""}`} /></button>
-        {!isCollapsed && <div className="mt-3 space-y-2">{groupOptions.slice(0, visible).map((option) => <Checkbox key={linkKey(option.type, option.id)} checked={selected.has(linkKey(option.type, option.id))} onChange={() => onToggle(option)} label={option.label} />)}{groupOptions.length > 6 && <button type="button" onClick={() => setVisibleCounts((current) => ({ ...current, [group]: visible >= groupOptions.length ? 6 : visible + 8 }))} className="w-full rounded-xl px-2 py-1.5 text-left text-[10px] font-medium text-accent hover:bg-elevated">{visible >= groupOptions.length ? t("notes.links.showLess") : t("notes.links.showMore", { count: groupOptions.length - visible })}</button>}</div>}
-      </section>;
-    })}</div>
-  </aside>;
 }

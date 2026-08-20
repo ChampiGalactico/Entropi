@@ -66,6 +66,24 @@
   --info: #60a5fa;
 }
 
+:root,
+:root[data-theme="light"] {
+  --bg-menu-solid: #f7f8fc;
+  --bg-menu-hover: #e9edf5;
+}
+
+:root[data-theme="dark"] {
+  --bg-menu-solid: #24262d;
+  --bg-menu-hover: #30333d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-menu-solid: #24262d;
+    --bg-menu-hover: #30333d;
+  }
+}
+
 /* BlockNote's color-swatch icons (.bn-color-icon) read their color from --bn-colors-highlights-*
    custom properties that BlockNote scopes to .bn-root. The formatting toolbar is portaled to
    document.body (see FormattingToolbarController in BlockNoteEditor.tsx, needed so its dropdowns
@@ -198,7 +216,9 @@ body {
   margin: 0;
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-variant-ligatures: common-ligatures contextual discretionary-ligatures;
+  font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
   -webkit-font-smoothing: antialiased;
   transition: background-color 300ms, color 300ms;
   overflow: hidden;
@@ -208,6 +228,9 @@ body {
 }
 
 :root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, ui-monospace, monospace;
+  --font-app: var(--font-sans);
   transition: background-color 300ms, --accent 300ms;
 }
 
@@ -270,6 +293,22 @@ body {
   background: transparent !important;
 }
 
+.entropi-bookmark-preview .bn-container,
+.entropi-bookmark-preview .bn-editor {
+  min-height: 0 !important;
+  background: transparent !important;
+}
+
+.entropi-bookmark-preview .bn-editor {
+  padding-inline: 0 !important;
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-size: 0.78rem;
+}
+
+.entropi-bookmark-preview .bn-block-outer {
+  margin-block: 0 !important;
+}
+
 .entropi-note-page .bn-formatting-toolbar,
 .vida-blocknote .bn-formatting-toolbar,
 .bn-formatting-toolbar {
@@ -300,6 +339,64 @@ body {
   overflow-y: auto !important;
 }
 
+.entropi-block-menu {
+  z-index: 170 !important;
+  width: 15rem !important;
+  max-height: min(80vh, 32rem) !important;
+  overflow-y: auto !important;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 28%, var(--border-subtle)) !important;
+  border-radius: 1rem !important;
+  background: var(--bg-menu-solid) !important;
+  padding: 0.4rem !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--text-primary) 4%, transparent) !important;
+  backdrop-filter: none !important;
+}
+
+.entropi-block-menu [role="menuitem"] {
+  margin-block: 0.1rem;
+  border-radius: 0.65rem !important;
+  transition: background-color 130ms ease, color 130ms ease, transform 130ms ease !important;
+}
+
+.entropi-block-menu [role="menuitem"]:hover,
+.entropi-block-menu [role="menuitem"]:focus-visible,
+.entropi-block-menu [data-hovered] {
+  background: var(--bg-menu-hover) !important;
+  color: var(--text-primary) !important;
+  transform: translateX(2px);
+  outline: none !important;
+}
+
+.entropi-block-menu .entropi-block-menu-bookmark:hover,
+.entropi-block-menu .entropi-block-menu-bookmark:focus-visible {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-menu-solid)) !important;
+  color: var(--accent) !important;
+}
+
+.entropi-block-menu .entropi-block-menu-delete {
+  color: var(--danger) !important;
+}
+
+.entropi-block-menu .entropi-block-menu-delete:hover,
+.entropi-block-menu .entropi-block-menu-delete:focus-visible {
+  background: color-mix(in srgb, var(--danger) 16%, var(--bg-menu-solid)) !important;
+  color: var(--danger) !important;
+}
+
+.entropi-block-menu-separator {
+  height: 1px;
+  margin: 0.35rem 0.25rem;
+  background: color-mix(in srgb, var(--text-muted) 22%, transparent);
+}
+
+.entropi-block-color-palettes {
+  display: grid;
+  gap: 0.85rem;
+  margin-block: 0.35rem;
+  border-block: 1px solid var(--border-subtle);
+  padding: 0.75rem 0.45rem;
+}
+
 .entropi-note-page .bn-inline-content code,
 .vida-blocknote .bn-inline-content code {
   border: 1px solid color-mix(in srgb, var(--accent-secondary) 24%, var(--border-subtle));
@@ -309,7 +406,7 @@ body {
   -webkit-box-decoration-break: clone;
   padding: 0.12em 0.38em;
   color: color-mix(in srgb, var(--accent-secondary) 76%, var(--text-primary));
-  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono, "Cascadia Code", Consolas, monospace);
   font-size: 0.88em;
   font-weight: 550;
   font-variant-ligatures: common-ligatures contextual;
@@ -355,6 +452,96 @@ body {
   padding-inline: 0;
 }
 
+/* Nested blocks create overlapping indentation gutters. Keep the active block and its side menu
+   above sibling gutters, and give the drag handle a forgiving hit area so it does not disappear
+   while the pointer crosses from nested content to the six-dot control. */
+.entropi-note-page .bn-block-outer,
+.entropi-note-page .bn-block-group {
+  overflow: visible !important;
+}
+
+.entropi-note-page .bn-block-outer:hover,
+.entropi-note-page .bn-block-outer:focus-within {
+  position: relative;
+  z-index: 12;
+}
+
+/* BlockNote already stores arbitrary child blocks beneath any block. Present quote parents and
+   their children as one continuous container so headings, display math, lists, and media read as
+   genuinely nested content instead of unrelated indented siblings. */
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group) {
+  margin-block: 0.35rem;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 72%, var(--text-muted));
+  border-radius: 0 1rem 1rem 0;
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-surface));
+  padding: 0.35rem 0.8rem 0.7rem 0.65rem;
+}
+
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-content[data-content-type="quote"] blockquote {
+  border-left: 0;
+  padding-left: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.entropi-note-page .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-group {
+  margin-left: 0.8rem;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  padding-left: 0.55rem;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group) {
+  --nested-callout-strong: #3b82f6;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="gray"]):has(> .bn-block-group) { --nested-callout-strong: #94a3b8; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="blue"]):has(> .bn-block-group) { --nested-callout-strong: #3b82f6; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="purple"]):has(> .bn-block-group) { --nested-callout-strong: #a855f7; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="green"]):has(> .bn-block-group) { --nested-callout-strong: #22c55e; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="yellow"]):has(> .bn-block-group) { --nested-callout-strong: #eab308; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="orange"]):has(> .bn-block-group) { --nested-callout-strong: #f97316; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="red"]):has(> .bn-block-group) { --nested-callout-strong: #ef4444; }
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout[data-tone="pink"]):has(> .bn-block-group) { --nested-callout-strong: #ec4899; }
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group)
+  > .react-renderer .entropi-callout {
+  margin-bottom: 0;
+  border-bottom-color: transparent;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.entropi-note-page .bn-block:has(> .react-renderer .entropi-callout):has(> .bn-block-group)
+  > .bn-block-group {
+  width: 100%;
+  margin-left: 0;
+  border: 1px solid color-mix(in srgb, var(--nested-callout-strong) 38%, var(--border-subtle));
+  border-top: 0;
+  border-radius: 0 0 1rem 1rem;
+  background: color-mix(in srgb, var(--nested-callout-strong) 12%, var(--bg-surface));
+  padding: 0.1rem 0.75rem 0.7rem 2.35rem;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--nested-callout-strong) 85%, transparent);
+}
+
+.entropi-note-page .bn-side-menu {
+  z-index: 30 !important;
+  pointer-events: auto !important;
+}
+
+.entropi-note-page .bn-drag-handle {
+  min-height: 2rem;
+  min-width: 2rem;
+  pointer-events: auto !important;
+}
+
+.entropi-note-page .bn-editor,
+.vida-blocknote .bn-editor {
+  font-family: var(--font-app, "Inter", system-ui, sans-serif);
+  font-variant-ligatures: common-ligatures contextual discretionary-ligatures;
+  font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
+}
+
 .entropi-math {
   font-family: "Times New Roman", Cambria, serif;
   letter-spacing: 0.01em;
@@ -382,9 +569,43 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   background: var(--bg-control);
-  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono, "Cascadia Code", Consolas, monospace);
   font-variant-ligatures: common-ligatures contextual;
   font-feature-settings: "calt" 1, "liga" 1;
+}
+
+.bn-block-content[data-content-type="codeBlock"] > pre {
+  padding-top: 3.25rem;
+}
+
+.bn-block-content[data-content-type="codeBlock"] > div > select {
+  display: none !important;
+}
+
+.entropi-code-language-select {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.75rem;
+  z-index: 2;
+  max-width: calc(100% - 1.5rem);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+}
+
+.entropi-code-language-select button {
+  min-width: 7.5rem;
+  border-color: color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  box-shadow: var(--shadow-card);
+}
+
+@media print {
+  .entropi-code-language-select {
+    display: none !important;
+  }
+
+  .bn-block-content[data-content-type="codeBlock"] > pre {
+    padding-top: 1.5rem;
+  }
 }
 
 @keyframes vida-tab-enter {
@@ -461,6 +682,11 @@ body {
 
   body * {
     visibility: hidden;
+  }
+
+  .entropi-note-utility-rail,
+  .entropi-note-relations-drawer {
+    display: none !important;
   }
 
   #entropi-print-area,
@@ -549,4 +775,87 @@ body {
     color: inherit;
     font-weight: 600;
   }
+}
+@keyframes entropi-block-reveal {
+  0% { outline-color: transparent; background-color: transparent; box-shadow: 0 0 0 0 transparent; transform: scale(0.995); }
+  16%, 68% { outline-color: color-mix(in srgb, var(--accent) 82%, transparent); background-color: color-mix(in srgb, var(--accent) 17%, transparent); box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--accent) 9%, transparent); transform: scale(1); }
+  100% { outline-color: transparent; background-color: transparent; box-shadow: 0 0 0 0.8rem transparent; transform: scale(1); }
+}
+
+/* Callouts keep the editor's typography while giving important text a distinct,
+   printable surface. Each tone controls both the accent and its subtle backdrop. */
+.bn-block-content[data-content-type="callout"],
+.bn-block-content[data-content-type="callout"] > div {
+  width: 100%;
+  max-width: 100%;
+}
+
+.entropi-callout {
+  --callout-strong: #3b82f6;
+  --callout-soft: color-mix(in srgb, var(--callout-strong) 12%, var(--bg-surface));
+  border-color: color-mix(in srgb, var(--callout-strong) 38%, var(--border-subtle));
+  background: var(--callout-soft);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--callout-strong) 85%, transparent);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.entropi-callout:focus-within {
+  border-color: color-mix(in srgb, var(--callout-strong) 68%, var(--border-subtle));
+  box-shadow: inset 3px 0 0 var(--callout-strong), 0 0 0 3px color-mix(in srgb, var(--callout-strong) 9%, transparent);
+}
+
+.entropi-callout[data-tone="gray"] { --callout-strong: #94a3b8; }
+.entropi-callout[data-tone="blue"] { --callout-strong: #3b82f6; }
+.entropi-callout[data-tone="purple"] { --callout-strong: #a855f7; }
+.entropi-callout[data-tone="green"] { --callout-strong: #22c55e; }
+.entropi-callout[data-tone="yellow"] { --callout-strong: #eab308; }
+.entropi-callout[data-tone="orange"] { --callout-strong: #f97316; }
+.entropi-callout[data-tone="red"] { --callout-strong: #ef4444; }
+.entropi-callout[data-tone="pink"] { --callout-strong: #ec4899; }
+
+.entropi-callout-icon {
+  color: var(--callout-strong);
+  background: color-mix(in srgb, var(--callout-strong) 14%, var(--bg-surface));
+}
+
+.entropi-callout-content {
+  min-height: 1.5rem;
+  line-height: 1.55;
+}
+
+.entropi-callout-popover {
+  background: var(--bg-menu-solid);
+  animation: vida-popover-enter 160ms cubic-bezier(.2,.8,.2,1);
+}
+
+.entropi-callout-icon-option {
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.entropi-callout-icon-option:hover {
+  background: var(--bg-menu-hover);
+  transform: translateY(-1px);
+}
+
+.entropi-callout-tone-gray { background: #94a3b8; }
+.entropi-callout-tone-blue { background: #3b82f6; }
+.entropi-callout-tone-purple { background: #a855f7; }
+.entropi-callout-tone-green { background: #22c55e; }
+.entropi-callout-tone-yellow { background: #eab308; }
+.entropi-callout-tone-orange { background: #f97316; }
+.entropi-callout-tone-red { background: #ef4444; }
+.entropi-callout-tone-pink { background: #ec4899; }
+
+@media print {
+  #entropi-print-area .entropi-callout-settings,
+  #entropi-print-area .entropi-callout-popover {
+    display: none !important;
+  }
+}
+
+.entropi-block-reveal {
+  animation: entropi-block-reveal 2.6s ease-out;
+  border-radius: 0.75rem;
+  outline: 2px solid transparent;
+  outline-offset: 0.2rem;
 }

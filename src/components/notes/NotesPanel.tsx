@@ -1,18 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AddCircleLinear, AddFolderLinear, FolderLinear, MagniferLinear, PenLinear, TrashBinTrashLinear } from "../ui/appIcons";
 import { Badge, Button, ColorPickerPopover, Combobox, EmptyState, IconButton, Input, Modal, notify } from "../ui";
 import { confirmDelete } from "../ui/ConfirmDialog";
 import { listAllAssessments, listAssessmentsBySubject } from "../../db/queries/assessments";
-import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, moveNoteToFolder, replaceNoteLinks } from "../../db/queries/notes";
-import { createNoteFolder, deleteNoteFolder, listNoteFolders, updateNoteFolder } from "../../db/queries/noteFolders";
+import { createNote, deleteNote, listNoteLinks, listNotes, listNotesForSubject, moveNoteToFolder } from "../../db/queries/notes";
+import { createNoteFolder, deleteNoteFolder, getSubjectNoteFolderId, listNoteFolders, updateNoteFolder } from "../../db/queries/noteFolders";
 import { listAllSubjects } from "../../db/queries/subjects";
 import { listTasks } from "../../db/queries/tasks";
 import type { Assessment, Note, NoteFolder, NoteLink, Subject, Task } from "../../types";
 
 const UNFILED = "unfiled" as const;
 type FolderFilter = "all" | typeof UNFILED | number;
+
+function folderFilterFromParam(value: string | null): FolderFilter {
+  if (value === UNFILED) return UNFILED;
+  const folderId = Number(value);
+  return Number.isInteger(folderId) && folderId > 0 ? folderId : "all";
+}
 
 interface FolderFormState { name: string; color: string; parentId: number | null }
 const emptyFolderForm = (parentId: number | null = null): FolderFormState => ({ name: "", color: "#6366f1", parentId });
@@ -60,18 +66,44 @@ function collectDescendantIds(folders: NoteFolder[], rootId: number): Set<number
 export function NotesPanel({ subjectId }: { subjectId?: number }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
   const [folders, setFolders] = useState<NoteFolder[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [links, setLinks] = useState<Record<number, NoteLink[]>>({});
-  const [activeFolder, setActiveFolder] = useState<FolderFilter>("all");
+  const [activeFolder, setActiveFolderState] = useState<FolderFilter>(() => folderFilterFromParam(searchParams.get("folder")));
   const [search, setSearch] = useState("");
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [editingFolder, setEditingFolder] = useState<NoteFolder | null>(null);
   const [folderForm, setFolderForm] = useState<FolderFormState>(emptyFolderForm());
   const [dragOverTarget, setDragOverTarget] = useState<FolderFilter | null>(null);
+
+  function setActiveFolder(folder: FolderFilter) {
+    setActiveFolderState(folder);
+    const next = new URLSearchParams(searchParams);
+    if (folder === "all") next.delete("folder");
+    else next.set("folder", String(folder));
+    // The selected folder is page state, so replace the current library entry. Opening a note
+    // then pushes a new entry and Back restores this exact folder instead of the default view.
+    setSearchParams(next, { replace: true });
+  }
+
+  useEffect(() => {
+    if (subjectId === undefined) return;
+    let cancelled = false;
+    void getSubjectNoteFolderId(subjectId).then((folderId) => {
+      if (cancelled || folderId === null) return;
+      setActiveFolderState(folderId);
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        next.set("folder", String(folderId));
+        return next;
+      }, { replace: true });
+    });
+    return () => { cancelled = true; };
+  }, [setSearchParams, subjectId]);
 
   async function reload() {
     const [noteRows, folderRows, subjectRows, taskRows, assessmentRows] = await Promise.all([
@@ -87,7 +119,6 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
   useEffect(() => { void reload(); }, [subjectId]);
 
   const folderTree = useMemo(() => flattenFolderTree(folders), [folders]);
-  const rootFolders = useMemo(() => folderTree.filter(({ depth }) => depth === 0).map(({ folder }) => folder), [folderTree]);
   const folderById = useMemo(() => new Map(folders.map((folder) => [folder.id, folder])), [folders]);
   const folderNoteCounts = useMemo(() => {
     const counts = new Map<number, number>();
@@ -108,29 +139,37 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
     return counts;
   }, [folders, notes]);
 
-  // Samsung Notes-style home view: browsing "All notes" shows folders as tiles you drill into,
-  // plus only the unfiled notes as loose cards — notes filed into a folder are represented by that
-  // folder's tile, not duplicated as individual cards here too. Typing a search from "All notes" is
-  // the one exception: it searches every note regardless of folder (each result tagged with its
-  // folder icon for context), since a search should never hide matches behind an unopened tile.
-  const isSearchingAll = activeFolder === "all" && search.trim().length > 0;
-  const showFolderTiles = activeFolder === "all" && rootFolders.length > 0 && !isSearchingAll;
+  // Each level shows its immediate child folders as tiles. This keeps semester folders useful as
+  // drill-down containers instead of looking empty simply because their notes live in subject
+  // subfolders. Searching inside a folder includes its full descendant tree.
+  const isSearching = search.trim().length > 0;
+  const visibleFolders = useMemo(() => {
+    if (activeFolder === UNFILED) return [];
+    const parentId = activeFolder === "all" ? null : activeFolder;
+    return folders.filter((folder) => folder.parent_id === parentId).sort((a, b) => a.name.localeCompare(b.name));
+  }, [activeFolder, folders]);
+  const showFolderTiles = visibleFolders.length > 0 && !isSearching;
   const visibleNotes = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const descendantIds = typeof activeFolder === "number" ? collectDescendantIds(folders, activeFolder) : null;
     return notes.filter((note) => {
-      if (!isSearchingAll) {
+      if (!isSearching) {
         if ((activeFolder === "all" || activeFolder === UNFILED) && note.folder_id !== null) return false;
         if (typeof activeFolder === "number" && note.folder_id !== activeFolder) return false;
+      } else {
+        if (activeFolder === UNFILED && note.folder_id !== null) return false;
+        if (descendantIds && (note.folder_id === null || !descendantIds.has(note.folder_id))) return false;
       }
       if (query && !note.title.toLowerCase().includes(query)) return false;
       return true;
     });
-  }, [notes, activeFolder, search, isSearchingAll]);
+  }, [notes, activeFolder, folders, search, isSearching]);
 
   async function createBlank() {
-    const folder_id = typeof activeFolder === "number" ? activeFolder : null;
+    const folder_id = typeof activeFolder === "number"
+      ? activeFolder
+      : subjectId === undefined ? null : await getSubjectNoteFolderId(subjectId);
     const id = await createNote({ title: t("notes.untitled"), content: null, linked_entity_type: null, linked_entity_id: null, folder_id });
-    if (subjectId !== undefined) await replaceNoteLinks(id, [{ entity_type: "subject", entity_id: subjectId }]);
     navigate(`/notes/${id}`);
   }
 
@@ -202,7 +241,13 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
   async function removeFolder(folder: NoteFolder) {
     if (!(await confirmDelete({ itemName: folder.name }))) return;
     const removedIds = collectDescendantIds(folders, folder.id);
-    await deleteNoteFolder(folder.id);
+    try {
+      await deleteNoteFolder(folder.id);
+    } catch (error) {
+      if (error instanceof Error && error.message === "managed-subject-folder") notify.error(t("notes.folders.managedDeleteError"));
+      else throw error;
+      return;
+    }
     if (typeof activeFolder === "number" && removedIds.has(activeFolder)) setActiveFolder("all");
     notify.success(t("feedback.deleted"));
     await reload();
@@ -240,7 +285,7 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
               <span className="hidden shrink-0 items-center group-hover/row:flex">
                 <IconButton label={t("notes.folders.addSubfolder")} icon={<AddFolderLinear size={12} />} onClick={() => openCreateFolder(folder.id)} className="p-1" />
                 <IconButton label={t("settings.lookup.edit")} icon={<PenLinear size={12} />} onClick={() => openEditFolder(folder)} className="p-1" />
-                <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={12} />} onClick={() => void removeFolder(folder)} className="p-1" />
+                {folder.managed_context_id === null && <IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={12} />} onClick={() => void removeFolder(folder)} className="p-1" />}
               </span>
             </div>
           ))}
@@ -253,10 +298,10 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
           <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("notes.folders.searchPlaceholder")} className="pl-9" />
         </div>
 
-        {showFolderTiles && <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">{rootFolders.map((folder) => <button key={folder.id} type="button" onClick={() => setActiveFolder(folder.id)} {...folderDropZone(folder.id, folder.id)} className={`flex items-center gap-3 rounded-2xl border border-border bg-control p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card ${dragOverTarget === folder.id ? "ring-2 ring-accent" : ""}`}><FolderLinear size={30} color={folder.color} className="shrink-0" /><div className="min-w-0"><p className="truncate font-semibold text-text-primary">{folder.name}</p><p className="text-xs text-text-muted">{t("notes.folders.noteCount", { count: folderRecursiveCounts.get(folder.id) ?? 0 })}</p></div></button>)}</div>}
-        {showFolderTiles && <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{t("notes.folders.unfiled")}</p>}
+        {showFolderTiles && <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">{visibleFolders.map((folder) => <button key={folder.id} type="button" onClick={() => setActiveFolder(folder.id)} {...folderDropZone(folder.id, folder.id)} className={`flex items-center gap-3 rounded-2xl border border-border bg-control p-4 text-left transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card ${dragOverTarget === folder.id ? "ring-2 ring-accent" : ""}`}><FolderLinear size={30} color={folder.color} className="shrink-0" /><div className="min-w-0"><p className="truncate font-semibold text-text-primary">{folder.name}</p><p className="text-xs text-text-muted">{t("notes.folders.noteCount", { count: folderRecursiveCounts.get(folder.id) ?? 0 })}</p></div></button>)}</div>}
+        {showFolderTiles && visibleNotes.length > 0 && <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{activeFolder === "all" ? t("notes.folders.unfiled") : t("notes.folders.notesHere")}</p>}
 
-        {visibleNotes.length === 0 ? <EmptyState title={notes.length === 0 ? t("notes.empty") : t("notes.folders.noMatches")} /> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleNotes.map((note) => <article role="button" tabIndex={0} key={note.id} draggable onDragStart={(event) => handleNoteDragStart(event, note)} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-grab rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card active:cursor-grabbing"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 flex items-center gap-1.5 text-xs text-text-muted"><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</span>{isSearchingAll && note.folder_id !== null && folderById.get(note.folder_id) && <span className="flex items-center gap-1 truncate"><FolderLinear size={11} color={folderById.get(note.folder_id)!.color} />{folderById.get(note.folder_id)!.name}</span>}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void removeNote(note); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div><div className="mt-3" onClick={(event) => event.stopPropagation()}><Combobox
+        {visibleNotes.length === 0 ? (!showFolderTiles && <EmptyState title={notes.length === 0 ? t("notes.empty") : t("notes.folders.noMatches")} />) : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visibleNotes.map((note) => <article role="button" tabIndex={0} key={note.id} draggable onDragStart={(event) => handleNoteDragStart(event, note)} onClick={() => navigate(`/notes/${note.id}`)} onKeyDown={(event) => { if (event.key === "Enter") navigate(`/notes/${note.id}`); }} className="group cursor-grab rounded-[1.5rem] border border-border bg-control p-4 transition-all hover:-translate-y-0.5 hover:bg-elevated hover:shadow-card active:cursor-grabbing"><div className="flex items-start justify-between gap-2"><div><h4 className="font-semibold text-text-primary">{note.title}</h4><p className="mt-1 flex items-center gap-1.5 text-xs text-text-muted"><span>{new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(note.updated_at))}</span>{isSearching && activeFolder !== UNFILED && note.folder_id !== null && folderById.get(note.folder_id) && <span className="flex items-center gap-1 truncate"><FolderLinear size={11} color={folderById.get(note.folder_id)!.color} />{folderById.get(note.folder_id)!.name}</span>}</p></div><IconButton label={t("settings.lookup.delete")} icon={<TrashBinTrashLinear size={15} />} onClick={(event) => { event.stopPropagation(); void removeNote(note); }} /></div><div className="mt-4 flex flex-wrap gap-1">{(links[note.id] ?? []).map((link) => <Badge key={`${link.entity_type}:${link.entity_id}`}>{labelFor(link) ?? link.entity_type}</Badge>)}</div><div className="mt-3" onClick={(event) => event.stopPropagation()}><Combobox
           compact
           value={note.folder_id ? String(note.folder_id) : ""}
           onChange={(value) => void moveNote(note, value)}

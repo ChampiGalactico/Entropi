@@ -95,6 +95,36 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../src/db/migrations/0013_note_folder_nesting.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 14,
+            description: "entity_relations",
+            sql: include_str!("../../src/db/migrations/0014_entity_relations.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 15,
+            description: "subject_note_folders",
+            sql: include_str!("../../src/db/migrations/0015_subject_note_folders.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 16,
+            description: "semester_note_folders",
+            sql: include_str!("../../src/db/migrations/0016_semester_note_folders.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 17,
+            description: "glossary",
+            sql: include_str!("../../src/db/migrations/0017_glossary.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 18,
+            description: "note_bookmarks",
+            sql: include_str!("../../src/db/migrations/0018_note_bookmarks.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

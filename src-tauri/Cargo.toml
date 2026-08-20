@@ -1,6 +1,6 @@
 [package]
 name = "entropi"
-version = "0.1.2"
+version = "0.1.3"
 description = "A local-first desktop application for organizing university life"
 authors = ["ChampiGalactico"]
 edition = "2021"

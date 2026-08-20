@@ -22,8 +22,8 @@ interface SpellcheckMeta {
 function buildDecorations(doc: ProseMirrorNode, spellers: Speller[], ignoredWords: ReadonlySet<string>): DecorationSet {
   if (spellers.length === 0) return DecorationSet.empty;
   const decorations: Decoration[] = [];
-  doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
+  doc.descendants((node, pos, parent) => {
+    if (!node.isText || !node.text || parent?.type.name === "codeBlock") return;
     for (const range of findMisspelledRanges(node.text, spellers, ignoredWords)) {
       decorations.push(Decoration.inline(pos + range.start, pos + range.end, { class: "entropi-misspelled" }));
     }

@@ -12,6 +12,7 @@ import {
   NoteEditorPage,
   SettingsPage,
   LearningTopicsPage,
+  KnowledgePage,
 } from "./pages";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="planner" element={<PlannerPage />} />
           <Route path="notes" element={<NotesPage />} />
           <Route path="notes/:id" element={<NoteEditorPage />} />
+          <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
