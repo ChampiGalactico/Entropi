@@ -1,21 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AltArrowDownLinear, AltArrowRightLinear, CloseCircleLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
+import { CloseCircleLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
-import { Button, Checkbox, IconButton, notify } from "../components/ui";
+import { RelatedLinksPanel } from "../components/notes/RelatedLinksPanel";
+import { IconButton, notify } from "../components/ui";
 import { confirmDelete } from "../components/ui/ConfirmDialog";
-import { listAllAssessments } from "../db/queries/assessments";
-import { deleteNote, getNote, listNoteLinks, listNotes, replaceNoteLinks, updateNote } from "../db/queries/notes";
-import { listAllSubjects } from "../db/queries/subjects";
-import { listTasks } from "../db/queries/tasks";
-import type { LinkedEntityType, Note, Subject, Task, Assessment } from "../types";
+import { deleteNote, getNote, listNoteLinks, replaceNoteLinks, updateNote } from "../db/queries/notes";
+import { listResolvedNoteRelations } from "../db/queries/entityRelations";
+import type { LinkedEntityType, Note, RelationCandidate, ResolvedEntityRelation } from "../types";
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
 import { useNoteEditorStatusStore } from "../stores/noteEditorStatusStore";
 
-interface LinkOption { type: LinkedEntityType; id: number; label: string; group: string }
 const linkKey = (type: LinkedEntityType, id: number) => `${type}:${id}`;
 
 export function NoteEditorPage() {
@@ -25,11 +23,8 @@ export function NoteEditorPage() {
   const [note, setNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState<string | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [otherNotes, setOtherNotes] = useState<Note[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [resolvedRelations, setResolvedRelations] = useState<ResolvedEntityRelation[]>([]);
   const [saved, setSaved] = useState(false);
   const [autosaveSeconds, setAutosaveSeconds] = useState(DEFAULT_NOTE_AUTOSAVE_SECONDS);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -41,22 +36,15 @@ export function NoteEditorPage() {
   const editorContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    void Promise.all([getNote(noteId), listAllSubjects(), listTasks({}), listAllAssessments(), listNotes(), listNoteLinks(noteId)]).then(([noteRow, subjectRows, taskRows, assessmentRows, noteRows, linkRows]) => {
+    void Promise.all([getNote(noteId), listNoteLinks(noteId), listResolvedNoteRelations(noteId)]).then(([noteRow, linkRows, relationRows]) => {
       if (!noteRow) return;
-      setNote(noteRow); setTitle(noteRow.title); setContent(noteRow.content); setSubjects(subjectRows); setTasks(taskRows); setAssessments(assessmentRows); setOtherNotes(noteRows.filter((item) => item.id !== noteId));
+      setNote(noteRow); setTitle(noteRow.title); setContent(noteRow.content); setResolvedRelations(relationRows);
       setSelected(new Set(linkRows.map((link) => linkKey(link.entity_type, link.entity_id))));
       setSaved(true);
     });
   }, [noteId]);
 
-  const options: LinkOption[] = [
-    ...subjects.map((item) => ({ type: "subject" as const, id: item.id, label: item.name, group: t("notes.links.subjects") })),
-    ...tasks.map((item) => ({ type: "task" as const, id: item.id, label: item.title, group: t("notes.links.tasks") })),
-    ...assessments.map((item) => ({ type: "assessment" as const, id: item.id, label: item.title, group: t("notes.links.assessments") })),
-    ...otherNotes.map((item) => ({ type: "note" as const, id: item.id, label: item.title, group: t("notes.links.notes") })),
-  ];
-
-  function toggle(option: LinkOption) {
+  function toggle(option: RelationCandidate) {
     const key = linkKey(option.type, option.id);
     setSelected((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     setSaved(false);
@@ -133,7 +121,7 @@ export function NoteEditorPage() {
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
     </main>
-    {linksPanelOpen && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl"><RelatedLinksPanel options={options} selected={selected} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={toggleLinksPanel} /></div>}
+    {linksPanelOpen && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl"><RelatedLinksPanel noteId={note.id} selected={selected} resolved={resolvedRelations} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={toggleLinksPanel} /></div>}
     <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
       <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />
       <div className="my-2 h-px w-5 bg-border" />
@@ -148,27 +136,4 @@ export function NoteEditorPage() {
     </aside>
     <NoteHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
   </div>;
-}
-
-function RelatedLinksPanel({ options, selected, onToggle, onClear, onClose }: { options: LinkOption[]; selected: Set<string>; onToggle: (option: LinkOption) => void; onClear: () => void; onClose: () => void }) {
-  const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
-  const groups = [...new Set(options.map((option) => option.group))];
-  function toggleGroup(group: string) {
-    setCollapsed((current) => { const next = new Set(current); if (next.has(group)) next.delete(group); else next.add(group); return next; });
-  }
-  return <aside className="flex h-full flex-col p-5">
-    <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold text-text-primary">{t("notes.links.title")}</h2><div className="flex items-center gap-1">{selected.size > 0 && <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={onClear}>{t("notes.links.clear")}</Button>}<IconButton tooltipPlacement="left" label={t("notes.links.hidePanel")} icon={<AltArrowRightLinear size={16} />} onClick={onClose} /></div></div>
-    <p className="mt-1 text-xs text-text-muted">{selected.size === 0 ? t("notes.links.none") : t("notes.links.description")}</p>
-    <div className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">{groups.map((group) => {
-      const groupOptions = options.filter((option) => option.group === group).sort((a, b) => Number(selected.has(linkKey(b.type, b.id))) - Number(selected.has(linkKey(a.type, a.id))));
-      const visible = visibleCounts[group] ?? 6;
-      const isCollapsed = collapsed.has(group);
-      return <section key={group} className="rounded-2xl bg-surface-hover/55 px-3 py-2">
-        <button type="button" onClick={() => toggleGroup(group)} className="flex w-full items-center justify-between gap-2 text-left"><span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{group} · {groupOptions.length}</span><AltArrowDownLinear size={14} className={`text-text-muted transition-transform ${isCollapsed ? "-rotate-90" : ""}`} /></button>
-        {!isCollapsed && <div className="mt-3 space-y-2">{groupOptions.slice(0, visible).map((option) => <Checkbox key={linkKey(option.type, option.id)} checked={selected.has(linkKey(option.type, option.id))} onChange={() => onToggle(option)} label={option.label} />)}{groupOptions.length > 6 && <button type="button" onClick={() => setVisibleCounts((current) => ({ ...current, [group]: visible >= groupOptions.length ? 6 : visible + 8 }))} className="w-full rounded-xl px-2 py-1.5 text-left text-[10px] font-medium text-accent hover:bg-elevated">{visible >= groupOptions.length ? t("notes.links.showLess") : t("notes.links.showMore", { count: groupOptions.length - visible })}</button>}</div>}
-      </section>;
-    })}</div>
-  </aside>;
 }

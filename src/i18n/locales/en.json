@@ -478,7 +478,25 @@
       "assessments": "Assessments",
       "notes": "Other notes",
       "showMore": "Show {{count}} more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "add": "Add relationship",
+      "remove": "Remove relationship",
+      "manual": "Manual",
+      "inherited": "By context",
+      "fromFolder": "From folder · {{folder}}",
+      "searchPlaceholder": "Search notes, subjects, events…",
+      "suggested": "Suggested from the same subject",
+      "results": "Results",
+      "allEntities": "All items",
+      "noResults": "No items found.",
+      "types": {
+        "all": "All",
+        "note": "Note",
+        "subject": "Subject",
+        "task": "Task",
+        "assessment": "Assessment",
+        "event": "Event"
+      }
     },
     "references": { "details": "More details in" },
     "folders": {

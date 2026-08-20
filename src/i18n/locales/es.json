@@ -478,7 +478,25 @@
       "assessments": "Evaluaciones",
       "notes": "Otras notas",
       "showMore": "Ver {{count}} más",
-      "showLess": "Ver menos"
+      "showLess": "Ver menos",
+      "add": "Agregar relación",
+      "remove": "Quitar relación",
+      "manual": "Manuales",
+      "inherited": "Por contexto",
+      "fromFolder": "Por carpeta · {{folder}}",
+      "searchPlaceholder": "Buscar notas, materias, eventos…",
+      "suggested": "Sugeridos de la misma materia",
+      "results": "Resultados",
+      "allEntities": "Todos los elementos",
+      "noResults": "No se encontraron elementos.",
+      "types": {
+        "all": "Todo",
+        "note": "Nota",
+        "subject": "Materia",
+        "task": "Tarea",
+        "assessment": "Evaluación",
+        "event": "Evento"
+      }
     },
     "references": { "details": "Más detalles en" },
     "folders": {

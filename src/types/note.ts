@@ -45,4 +45,14 @@ export interface ResolvedEntityRelation {
   origin: "manual" | "inherited";
   relation_id: number;
   inherited_from_folder_id: number | null;
+  inherited_from_folder_name: string | null;
+}
+
+export interface RelationCandidate {
+  type: LinkedEntityType;
+  id: number;
+  label: string;
+  subtitle: string | null;
+  color: string | null;
+  is_suggested: 0 | 1;
 }
