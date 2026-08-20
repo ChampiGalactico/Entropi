@@ -22,7 +22,7 @@ import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "react-i18next";
-import { PenLinear } from "../ui/appIcons";
+import { BookLinear, PenLinear } from "../ui/appIcons";
 import { SolarIcon } from "../ui/SolarIcon";
 import { noteSchema } from "./noteSchema";
 import { DIAGRAM_TEMPLATES, type DiagramTemplate } from "./DiagramBlock";
@@ -53,7 +53,25 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function EntropiFormattingToolbar() {
+export interface GlossarySelectionDraft {
+  term: string;
+  blockId: string | null;
+}
+
+function EntropiFormattingToolbar({ onAddToGlossary }: { onAddToGlossary?: (draft: GlossarySelectionDraft) => void }) {
+  const { t } = useTranslation();
+
+  function addSelection(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    const term = selection.toString().trim().replace(/\s+/g, " ");
+    if (!term) return;
+    const anchor = selection.anchorNode instanceof HTMLElement ? selection.anchorNode : selection.anchorNode?.parentElement;
+    const blockId = anchor?.closest<HTMLElement>("[data-id]")?.dataset.id ?? null;
+    onAddToGlossary?.({ term, blockId });
+  }
+
   return <FormattingToolbar>
     <BlockTypeSelect />
     <BasicTextStyleButton basicTextStyle="bold" />
@@ -66,6 +84,7 @@ function EntropiFormattingToolbar() {
     <TextAlignButton textAlignment="right" />
     <ColorStyleButton />
     <CreateLinkButton />
+    {onAddToGlossary && <button type="button" title={t("notes.glossary.createFromSelection")} aria-label={t("notes.glossary.createFromSelection")} onMouseDown={addSelection} className="flex h-8 w-8 items-center justify-center rounded-md text-text-secondary hover:bg-control hover:text-accent"><BookLinear size={16} /></button>}
   </FormattingToolbar>;
 }
 
@@ -80,7 +99,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -110,6 +129,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   const { ignoredWords, ignoreWord } = useIgnoredWords();
   const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
+  const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
+    return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
+  }, [onAddToGlossary]);
 
   useEffect(() => {
     if (!revealBlockId) return;
@@ -369,7 +391,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
     >
       <MantineProvider forceColorScheme={mode}>
         <BlockNoteView editor={editor} theme={mode} onChange={handleEditorChange} onFocus={handleFocus} onSelectionChange={stableHandleSelectionChange} onBlur={(event) => { if (event.currentTarget.contains(event.relatedTarget as Node | null)) return; renderMathInBlock(activeBlockId.current); activeBlockId.current = null; queueMicrotask(serialize); }} slashMenu={false} formattingToolbar={false} sideMenu={false}>
-          <FormattingToolbarController formattingToolbar={EntropiFormattingToolbar} portalElement={document.body} />
+          <FormattingToolbarController formattingToolbar={glossaryToolbar} portalElement={document.body} />
           <SideMenuController sideMenu={EntropiBlockSideMenu} portalElement={document.body} />
           <SuggestionMenuController triggerCharacter="/" getItems={async (query) => filterSuggestionItems(slashMenuItems, query)} />
         </BlockNoteView>

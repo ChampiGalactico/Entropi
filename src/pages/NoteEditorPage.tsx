@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { BookLinear, CloseCircleLinear, DisketteLinear, DownloadMinimalisticLinear, LinkCircleLinear, QuestionCircleLinear, TrashBinTrashLinear } from "../components/ui/appIcons";
 import { BlockNoteEditor } from "../components/notes";
-import { GlossaryPanel } from "../components/notes/GlossaryPanel";
+import { GlossaryPanel, type GlossaryDraft } from "../components/notes/GlossaryPanel";
 import { NoteHelpModal } from "../components/notes/NoteHelpModal";
 import { RelatedLinksPanel } from "../components/notes/RelatedLinksPanel";
 import { IconButton, notify } from "../components/ui";
@@ -37,6 +37,7 @@ export function NoteEditorPage() {
     if (stored === "relations" || stored === "glossary") return stored;
     return localStorage.getItem("entropi-note-links-panel") === "hidden" ? null : "relations";
   });
+  const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
   const setTopBarStatus = useNoteEditorStatusStore((state) => state.setStatus);
   const clearTopBarStatus = useNoteEditorStatusStore((state) => state.clearStatus);
   const printAreaRef = useRef<HTMLElement>(null);
@@ -107,6 +108,12 @@ export function NoteEditorPage() {
     navigate(`/notes/${targetNoteId}${search}`);
   }
 
+  const addSelectionToGlossary = useCallback((draft: GlossaryDraft) => {
+    setGlossaryDraft(draft);
+    setActivePanel("glossary");
+    localStorage.setItem("entropi-note-utility-panel", "glossary");
+  }, []);
+
   const lastEditedLabel = t("notes.lastEdited", { date: new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(note?.updated_at ?? Date.now())) });
 
   async function exportPdf() {
@@ -130,14 +137,14 @@ export function NoteEditorPage() {
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
         <div ref={editorContentRef}>
-          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} onChange={(value) => { setContent(value); setSaved(false); }} />
+          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} onAddToGlossary={addSelectionToGlossary} onChange={(value) => { setContent(value); setSaved(false); }} />
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
     </main>
     {activePanel && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl">
       {activePanel === "relations"
         ? <RelatedLinksPanel noteId={note.id} selected={selected} resolved={resolvedRelations} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={() => togglePanel("relations")} />
-        : <GlossaryPanel noteId={note.id} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />}
+        : <GlossaryPanel noteId={note.id} draft={glossaryDraft} onDraftConsumed={() => setGlossaryDraft(null)} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />}
     </div>}
     <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
       <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />

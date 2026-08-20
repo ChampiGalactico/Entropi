@@ -35,6 +35,14 @@ interface GlossaryPanelProps {
   noteId: number;
   onClose: () => void;
   onOpenLocation: (noteId: number, blockId: string | null) => void;
+  draft?: GlossaryDraft | null;
+  onDraftConsumed?: () => void;
+  onChanged?: () => void;
+}
+
+export interface GlossaryDraft {
+  term: string;
+  blockId: string | null;
 }
 
 type PanelView = "list" | "detail" | "edit";
@@ -50,7 +58,7 @@ const emptyInput = (noteId: number, scopeFolderId: number | null): GlossaryEntry
   sections: [],
 });
 
-export function GlossaryPanel({ noteId, onClose, onOpenLocation }: GlossaryPanelProps) {
+export function GlossaryPanel({ noteId, onClose, onOpenLocation, draft = null, onDraftConsumed, onChanged }: GlossaryPanelProps) {
   const { t } = useTranslation();
   const [view, setView] = useState<PanelView>("list");
   const [query, setQuery] = useState("");
@@ -87,6 +95,20 @@ export function GlossaryPanel({ noteId, onClose, onOpenLocation }: GlossaryPanel
     }, 120);
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [noteId, query]);
+
+  useEffect(() => {
+    if (!draft) return;
+    setDetail(null);
+    setEditingId(null);
+    setAliasesText("");
+    setForm({
+      ...emptyInput(noteId, scopes.find((scope) => scope.folder_id !== null)?.folder_id ?? null),
+      term: draft.term,
+      source_block_id: draft.blockId,
+    });
+    setView("edit");
+    onDraftConsumed?.();
+  }, [draft, noteId, onDraftConsumed, scopes]);
 
   async function openDetail(id: number) {
     const [entry, usage] = await Promise.all([getGlossaryEntryDetail(id), listGlossaryOccurrences(id)]);
@@ -129,6 +151,7 @@ export function GlossaryPanel({ noteId, onClose, onOpenLocation }: GlossaryPanel
         : (await updateGlossaryEntry(editingId, values), editingId);
       notify.success(t("notes.glossary.saved"));
       await reload();
+      onChanged?.();
       await openDetail(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -141,6 +164,7 @@ export function GlossaryPanel({ noteId, onClose, onOpenLocation }: GlossaryPanel
   async function remove(entry: GlossaryEntryDetail) {
     if (!(await confirmDelete({ itemName: entry.term }))) return;
     await deleteGlossaryEntry(entry.id);
+    onChanged?.();
     notify.success(t("feedback.deleted"));
     setDetail(null);
     setView("list");
