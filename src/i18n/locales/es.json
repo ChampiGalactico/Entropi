@@ -779,6 +779,7 @@
       "title": "Corrección ortográfica",
       "languages": "Idiomas activos",
       "languagesHint": "Las palabras que no existan en ninguno de estos idiomas se subrayarán.",
+      "suggestions": "Sugerencias",
       "addToDictionary": "Añadir \"{{word}}\" al diccionario",
       "ignoreWord": "Omitir \"{{word}}\""
     },

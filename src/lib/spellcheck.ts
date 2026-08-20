@@ -60,3 +60,30 @@ export function findMisspelledRanges(
   }
   return ranges;
 }
+
+function matchSuggestionCase(suggestion: string, original: string): string {
+  if (original === original.toLocaleUpperCase() && original !== original.toLocaleLowerCase()) {
+    return suggestion.toLocaleUpperCase();
+  }
+  const first = original.charAt(0);
+  if (first && first === first.toLocaleUpperCase() && first !== first.toLocaleLowerCase()) {
+    return suggestion.charAt(0).toLocaleUpperCase() + suggestion.slice(1);
+  }
+  return suggestion;
+}
+
+export function getSpellingSuggestions(word: string, spellers: Speller[], limit = 5): string[] {
+  const suggestions: string[] = [];
+  const seen = new Set<string>();
+  for (const speller of spellers) {
+    for (const raw of speller.suggest(word)) {
+      const suggestion = matchSuggestionCase(raw, word);
+      const key = suggestion.toLocaleLowerCase();
+      if (!suggestion || key === word.toLocaleLowerCase() || seen.has(key)) continue;
+      seen.add(key);
+      suggestions.push(suggestion);
+      if (suggestions.length >= limit) return suggestions;
+    }
+  }
+  return suggestions;
+}

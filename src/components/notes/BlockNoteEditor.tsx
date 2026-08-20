@@ -33,6 +33,7 @@ import { SpellcheckMenu, type SpellcheckMenuTarget } from "../ui/SpellcheckMenu"
 import { notify } from "../ui";
 import { CodeLanguageSelects } from "./CodeLanguageSelects";
 import { EntropiBlockSideMenu } from "./EntropiBlockSideMenu";
+import { getSpellingSuggestions } from "../../lib/spellcheck";
 
 const spellcheckExtension = createSpellcheckExtension();
 
@@ -135,7 +136,7 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
     }
     return words;
   }, [acceptedWords, ignoredWords]);
-  const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
+  const [spellcheckMenu, setSpellcheckMenu] = useState<(SpellcheckMenuTarget & { from: number; to: number; suggestions: string[] }) | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
   const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
     return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
@@ -163,7 +164,27 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
     const target = (event.target as HTMLElement).closest?.(".entropi-misspelled");
     if (!target?.textContent) return;
     event.preventDefault();
-    setSpellcheckMenu({ word: target.textContent, x: event.clientX, y: event.clientY });
+    const tiptapEditor = (editor as any)._tiptapEditor;
+    let from: number;
+    try { from = tiptapEditor.view.posAtDOM(target, 0); } catch { return; }
+    const word = target.textContent;
+    setSpellcheckMenu({
+      word,
+      from,
+      to: from + word.length,
+      suggestions: getSpellingSuggestions(word, spellers),
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function replaceMisspelledWord(replacement: string) {
+    if (!spellcheckMenu) return;
+    const tiptapEditor = (editor as any)._tiptapEditor;
+    const { state, view } = tiptapEditor;
+    view.dispatch(state.tr.insertText(replacement, spellcheckMenu.from, spellcheckMenu.to));
+    view.focus();
+    setSpellcheckMenu(null);
   }
 
   function serialize() {
@@ -410,6 +431,8 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
           word={spellcheckMenu.word}
           x={spellcheckMenu.x}
           y={spellcheckMenu.y}
+          suggestions={spellcheckMenu.suggestions}
+          onReplace={replaceMisspelledWord}
           onIgnore={() => {
             void ignoreWord(spellcheckMenu.word);
             setSpellcheckMenu(null);
