@@ -441,6 +441,14 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
       icon: <PenLinear size={18} />,
       onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "drawing" }),
     },
+    {
+      title: t("notes.callout.slashTitle"),
+      subtext: t("notes.callout.slashDescription"),
+      aliases: ["callout", "alert", "info", "aviso", "nota", "destacado"],
+      group: t("notes.callout.slashGroup"),
+      icon: <SolarIcon name="ChatRoundDotsLinear" size={18} />,
+      onItemClick: () => insertOrUpdateBlockForSlashMenu(editor, { type: "callout", props: { tone: "blue", icon: "💡" } }),
+    },
     ...(Object.keys(DIAGRAM_TEMPLATES) as DiagramTemplate[]).map((template) => ({
       title: t(`notes.diagram.templates.${template}.title`),
       subtext: t(`notes.diagram.templates.${template}.description`),

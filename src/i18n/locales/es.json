@@ -591,6 +591,16 @@
       "noteCount_other": "{{count}} notas"
     },
     "slashGroup": "Ingeniería y física",
+    "callout": {
+      "slashTitle": "Callout",
+      "slashDescription": "Destaca información con un icono y un color.",
+      "slashGroup": "Bloques destacados",
+      "customize": "Personalizar callout",
+      "icon": "Icono",
+      "systemIcon": "Emoji o símbolo",
+      "color": "Color",
+      "tones": { "gray": "Gris", "blue": "Azul", "purple": "Morado", "green": "Verde", "yellow": "Amarillo", "orange": "Naranja", "red": "Rojo", "pink": "Rosa" }
+    },
     "drawing": {
       "add": "Añadir lienzo",
       "slashTitle": "Canvas de dibujo",

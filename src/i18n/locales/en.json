@@ -591,6 +591,16 @@
       "noteCount_other": "{{count}} notes"
     },
     "slashGroup": "Engineering and physics",
+    "callout": {
+      "slashTitle": "Callout",
+      "slashDescription": "Highlight information with an icon and color.",
+      "slashGroup": "Highlighted blocks",
+      "customize": "Customize callout",
+      "icon": "Icon",
+      "systemIcon": "Emoji or symbol",
+      "color": "Color",
+      "tones": { "gray": "Gray", "blue": "Blue", "purple": "Purple", "green": "Green", "yellow": "Yellow", "orange": "Orange", "red": "Red", "pink": "Pink" }
+    },
     "drawing": {
       "add": "Add canvas",
       "slashTitle": "Drawing canvas",
