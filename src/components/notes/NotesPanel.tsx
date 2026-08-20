@@ -90,6 +90,21 @@ export function NotesPanel({ subjectId }: { subjectId?: number }) {
     setSearchParams(next, { replace: true });
   }
 
+  useEffect(() => {
+    if (subjectId === undefined) return;
+    let cancelled = false;
+    void getSubjectNoteFolderId(subjectId).then((folderId) => {
+      if (cancelled || folderId === null) return;
+      setActiveFolderState(folderId);
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        next.set("folder", String(folderId));
+        return next;
+      }, { replace: true });
+    });
+    return () => { cancelled = true; };
+  }, [setSearchParams, subjectId]);
+
   async function reload() {
     const [noteRows, folderRows, subjectRows, taskRows, assessmentRows] = await Promise.all([
       subjectId === undefined ? listNotes() : listNotesForSubject(subjectId),
