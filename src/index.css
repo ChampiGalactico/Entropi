@@ -799,9 +799,37 @@ body {
 
 .entropi-columns-grid {
   display: grid;
-  grid-template-columns: repeat(var(--entropi-column-count), minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0;
   align-items: start;
+}
+
+.entropi-column-resizer {
+  align-self: stretch;
+  position: relative;
+  min-height: 5.5rem;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.entropi-column-resizer > span {
+  position: absolute;
+  inset: 0 4px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.entropi-column-resizer:hover > span,
+.entropi-column-resizer:focus-visible > span,
+.entropi-resizing-columns .entropi-column-resizer > span {
+  background: color-mix(in srgb, var(--accent) 72%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.entropi-resizing-columns,
+.entropi-resizing-columns * {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 
 .entropi-column {
@@ -825,19 +853,26 @@ body {
   margin-left: 18px;
 }
 
-.entropi-bookmark-preview .entropi-columns-toolbar {
-  display: none;
+.entropi-bookmark-preview .entropi-columns-toolbar,
+.entropi-bookmark-preview .entropi-column-resizer {
+  visibility: hidden;
 }
 
 @media (max-width: 760px) {
   .entropi-columns-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .entropi-column-resizer {
+    display: none;
   }
 }
 
 @media print {
-  #entropi-print-area .entropi-columns-toolbar {
-    display: none !important;
+  #entropi-print-area .entropi-columns-toolbar,
+  #entropi-print-area .entropi-column-resizer {
+    visibility: hidden !important;
   }
 }
 
