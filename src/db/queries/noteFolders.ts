@@ -6,6 +6,18 @@ export async function listNoteFolders(): Promise<NoteFolder[]> {
   return db.select<NoteFolder[]>("SELECT * FROM note_folders ORDER BY name COLLATE NOCASE");
 }
 
+export async function getSubjectNoteFolderId(subjectId: number): Promise<number | null> {
+  const db = await getDb();
+  const rows = await db.select<Array<{ id: number }>>(
+    `SELECT source_id AS id FROM entity_relations
+     WHERE source_type = 'note_folder' AND target_type = 'subject' AND target_id = $1
+       AND relation_kind = 'context_of' AND origin = 'system'
+     LIMIT 1`,
+    [subjectId],
+  );
+  return rows[0]?.id ?? null;
+}
+
 export async function createNoteFolder(name: string, color: string, parentId: number | null): Promise<number> {
   const db = await getDb();
   const result = await db.execute("INSERT INTO note_folders (name, color, parent_id) VALUES ($1, $2, $3)", [name, color, parentId]);
