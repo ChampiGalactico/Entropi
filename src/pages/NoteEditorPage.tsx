@@ -10,6 +10,7 @@ import { IconButton, notify } from "../components/ui";
 import { confirmDelete } from "../components/ui/ConfirmDialog";
 import { deleteNote, getNote, listNoteLinks, replaceNoteLinks, updateNote } from "../db/queries/notes";
 import { listResolvedNoteRelations } from "../db/queries/entityRelations";
+import { listGlossaryVocabularyForNote } from "../db/queries/glossary";
 import type { LinkedEntityType, Note, RelationCandidate, ResolvedEntityRelation } from "../types";
 import { DEFAULT_NOTE_AUTOSAVE_SECONDS, getNoteAutosaveSeconds } from "../lib/notePreferences";
 import { exportNoteToPdf } from "../lib/exportNotePdf";
@@ -38,6 +39,7 @@ export function NoteEditorPage() {
     return localStorage.getItem("entropi-note-links-panel") === "hidden" ? null : "relations";
   });
   const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
+  const [glossaryWords, setGlossaryWords] = useState<string[]>([]);
   const setTopBarStatus = useNoteEditorStatusStore((state) => state.setStatus);
   const clearTopBarStatus = useNoteEditorStatusStore((state) => state.clearStatus);
   const printAreaRef = useRef<HTMLElement>(null);
@@ -51,6 +53,14 @@ export function NoteEditorPage() {
       setSaved(true);
     });
   }, [noteId]);
+
+  const reloadGlossaryWords = useCallback(() => {
+    void listGlossaryVocabularyForNote(noteId).then(setGlossaryWords);
+  }, [noteId]);
+
+  useEffect(() => {
+    reloadGlossaryWords();
+  }, [reloadGlossaryWords]);
 
   function toggle(option: RelationCandidate) {
     const key = linkKey(option.type, option.id);
@@ -137,14 +147,14 @@ export function NoteEditorPage() {
         <div className="entropi-print-band entropi-print-band-header hidden"><strong>{title || t("notes.untitled")}</strong><span>Entropi</span></div>
         <input value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} onFocus={(event) => { if (title === t("notes.untitled")) event.currentTarget.select(); }} placeholder={t("notes.untitled")} className="entropi-print-title mb-8 w-full bg-transparent text-4xl font-bold tracking-tight text-text-primary outline-none placeholder:text-text-muted" autoFocus />
         <div ref={editorContentRef}>
-          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} onAddToGlossary={addSelectionToGlossary} onChange={(value) => { setContent(value); setSaved(false); }} />
+          <BlockNoteEditor key={note.id} value={content} fullPage revealBlockId={searchParams.get("block")} acceptedWords={glossaryWords} onAddToGlossary={addSelectionToGlossary} onChange={(value) => { setContent(value); setSaved(false); }} />
         </div>
         <div className="entropi-print-band entropi-print-band-footer hidden"><span>{lastEditedLabel}</span><span>Entropi</span></div>
     </main>
     {activePanel && <div className="entropi-note-relations-drawer fixed bottom-5 right-[5.25rem] top-[5.25rem] z-30 w-[min(19rem,calc(100vw-7rem))] overflow-hidden rounded-[1.75rem] border border-border bg-control/95 shadow-card backdrop-blur-2xl">
       {activePanel === "relations"
         ? <RelatedLinksPanel noteId={note.id} selected={selected} resolved={resolvedRelations} onToggle={toggle} onClear={() => { setSelected(new Set()); setSaved(false); }} onClose={() => togglePanel("relations")} />
-        : <GlossaryPanel noteId={note.id} draft={glossaryDraft} onDraftConsumed={() => setGlossaryDraft(null)} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />}
+        : <GlossaryPanel noteId={note.id} draft={glossaryDraft} onDraftConsumed={() => setGlossaryDraft(null)} onChanged={reloadGlossaryWords} onOpenLocation={openGlossaryLocation} onClose={() => togglePanel("glossary")} />}
     </div>}
     <aside className="entropi-note-utility-rail fixed bottom-5 right-4 top-[5.25rem] z-40 flex w-12 flex-col items-center rounded-full border border-border bg-control/90 p-1.5 shadow-card backdrop-blur-2xl">
       <IconButton tooltipPlacement="left" label={t("notes.close")} icon={<CloseCircleLinear size={18} />} onClick={() => navigate(-1)} />

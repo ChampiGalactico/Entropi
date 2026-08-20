@@ -99,7 +99,7 @@ function parseBlocks(value: string | null): PartialBlock[] | undefined {
   }
 }
 
-export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void }) {
+export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlockId = null, onAddToGlossary, acceptedWords = [] }: { value: string | null; onChange: (value: string) => void; fullPage?: boolean; revealBlockId?: string | null; onAddToGlossary?: (draft: GlossarySelectionDraft) => void; acceptedWords?: string[] }) {
   const { mode } = useTheme();
   const { t, i18n } = useTranslation();
   const initialContent = useMemo(() => parseBlocks(value), [value]);
@@ -127,6 +127,14 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   const isSyncingMath = useRef(false);
   const spellers = useSpellcheckers();
   const { ignoredWords, ignoreWord } = useIgnoredWords();
+  const spellcheckExceptions = useMemo(() => {
+    const words = new Set(ignoredWords);
+    for (const value of acceptedWords) {
+      const word = value.trim();
+      if (/^[\p{L}\p{M}\p{N}_-]+$/u.test(word)) words.add(word.toLocaleLowerCase("es"));
+    }
+    return words;
+  }, [acceptedWords, ignoredWords]);
   const [spellcheckMenu, setSpellcheckMenu] = useState<SpellcheckMenuTarget | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
   const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
@@ -148,8 +156,8 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, revealBlock
   }, [revealBlockId]);
 
   useEffect(() => {
-    setEditorSpellers((editor as any)._tiptapEditor, spellers, ignoredWords);
-  }, [editor, spellers, ignoredWords]);
+    setEditorSpellers((editor as any)._tiptapEditor, spellers, spellcheckExceptions);
+  }, [editor, spellers, spellcheckExceptions]);
 
   function handleContextMenu(event: React.MouseEvent) {
     const target = (event.target as HTMLElement).closest?.(".entropi-misspelled");
