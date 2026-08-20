@@ -891,6 +891,29 @@ body {
   pointer-events: auto !important;
 }
 
+/* A quote may carry child blocks, but the column is only layout: do not draw the additional
+   container rail used by the full-page nested-block presentation. Keep only the quote's own rail. */
+.entropi-note-page .entropi-column-editor .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group) {
+  margin-block: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.entropi-note-page .entropi-column-editor .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-content[data-content-type="quote"] blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--accent) 72%, var(--text-muted));
+  padding-left: 0.65rem;
+}
+
+.entropi-note-page .entropi-column-editor .bn-block:has(> .bn-block-content[data-content-type="quote"]):has(> .bn-block-group)
+  > .bn-block-group {
+  margin-left: 0;
+  border-left: 0;
+  padding-left: 0;
+}
+
 .entropi-column-editor .bn-block-group .bn-block-group {
   margin-left: 18px;
 }
