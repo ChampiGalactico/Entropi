@@ -813,9 +813,11 @@ body {
 
 .entropi-column-resizer > span {
   position: absolute;
-  inset: 0 4px;
+  inset-block: 0;
+  left: 5px;
+  width: 2px;
   border-radius: 999px;
-  background: transparent;
+  background: color-mix(in srgb, var(--text-muted) 24%, transparent);
   transition: background-color 120ms ease, box-shadow 120ms ease;
 }
 
@@ -836,64 +838,54 @@ body {
   position: fixed;
   z-index: 10000;
   pointer-events: none;
-  border: 2px solid color-mix(in srgb, var(--accent) 86%, white);
-  border-radius: 0.9rem;
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 12px 40px color-mix(in srgb, var(--accent) 16%, transparent);
+  width: 3px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 88%, white);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .entropi-side-menu-event-bridge {
   display: contents;
 }
 
-.entropi-column-drop-preview-left {
-  clip-path: inset(0 50% 0 0 round 0.9rem);
-}
-
-.entropi-column-drop-preview-right {
-  clip-path: inset(0 0 0 50% round 0.9rem);
-}
-
-.entropi-column-drop-preview > span {
-  position: absolute;
-  top: 50%;
-  left: 25%;
-  translate: -50% -50%;
-  padding: 0.3rem 0.55rem;
-  border-radius: 0.5rem;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  font-size: 0.7rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.entropi-column-drop-preview-right > span {
-  left: 75%;
-}
-
 .entropi-column {
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--bg-control) 72%, transparent);
-  padding: 0.35rem;
+  overflow: visible;
+  background: transparent;
 }
 
-.entropi-column:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border-subtle));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+.entropi-column-editor,
+.entropi-column-editor .bn-container,
+.entropi-column-editor .bn-editor {
+  overflow: visible !important;
+  min-height: 5.5rem;
+  background: transparent !important;
 }
 
 .entropi-column-editor .bn-editor {
-  min-height: 5.5rem;
-  padding: 0.25rem 0.4rem;
+  padding: 0 0.25rem 0 2rem;
+}
+
+.entropi-column-editor .bn-block-outer,
+.entropi-column-editor .bn-block-group {
+  overflow: visible !important;
+}
+
+.entropi-column-editor .bn-side-menu {
+  z-index: 40 !important;
+  pointer-events: auto !important;
+}
+
+.entropi-column-editor .bn-drag-handle {
+  min-height: 2rem;
+  min-width: 2rem;
+  pointer-events: auto !important;
 }
 
 .entropi-column-editor .bn-block-group .bn-block-group {
   margin-left: 18px;
 }
 
-.entropi-bookmark-preview .entropi-columns-toolbar,
 .entropi-bookmark-preview .entropi-column-resizer {
   visibility: hidden;
 }
@@ -910,7 +902,6 @@ body {
 }
 
 @media print {
-  #entropi-print-area .entropi-columns-toolbar,
   #entropi-print-area .entropi-column-resizer {
     visibility: hidden !important;
   }

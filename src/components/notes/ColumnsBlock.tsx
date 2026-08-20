@@ -96,10 +96,6 @@ function Columns({ block, editor }: { block: any; editor: any }) {
   }
 
   return <section className="entropi-columns relative my-3 w-full" contentEditable={false} style={{ "--entropi-column-count": count } as CSSProperties}>
-    {editable && <div className="entropi-columns-toolbar mb-2 flex items-center justify-end gap-1">
-      <span className="mr-1 text-[10px] font-medium uppercase tracking-wider text-text-muted">{t("notes.columns.count")}</span>
-      {COLUMN_COUNTS.map((item) => <button key={item} type="button" aria-label={t("notes.columns.useCount", { count: item })} onClick={() => editor.updateBlock(block, { props: { columns: item } })} className={`h-7 min-w-7 rounded-lg px-2 text-xs font-semibold transition-colors ${count === item ? "bg-accent text-white" : "bg-control text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}>{item}</button>)}
-    </div>}
     <div className="entropi-columns-grid" style={{ gridTemplateColumns: widths.slice(0, count).flatMap((width, index) => index < count - 1 ? [`minmax(0, ${width}fr)`, "12px"] : [`minmax(0, ${width}fr)`]).join(" ") }}>
       {Array.from({ length: count }, (_, index) => <Fragment key={index}>
         <div className="entropi-column min-w-0">

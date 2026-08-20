@@ -656,9 +656,9 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
       </NoteEditorFeaturesContext.Provider>
       <CodeLanguageSelects editorRootRef={editorRootRef} />
       {columnDropPreview && <div
-        className={`entropi-column-drop-preview entropi-column-drop-preview-${columnDropPreview.side}`}
-        style={{ top: columnDropPreview.top, left: columnDropPreview.left, width: columnDropPreview.width, height: columnDropPreview.height }}
-      ><span>{t("notes.columns.dropToCreate")}</span></div>}
+        className="entropi-column-drop-preview"
+        style={{ top: columnDropPreview.top, left: columnDropPreview.side === "left" ? columnDropPreview.left : columnDropPreview.left + columnDropPreview.width, height: columnDropPreview.height }}
+      />}
       {spellcheckMenu && (
         <SpellcheckMenu
           word={spellcheckMenu.word}

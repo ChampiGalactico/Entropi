@@ -610,8 +610,7 @@
       "slashGroup": "Layout",
       "count": "Columns",
       "useCount": "Use {{count}} columns",
-      "resize": "Drag to resize columns",
-      "dropToCreate": "Create column"
+      "resize": "Drag to resize columns"
     },
     "drawing": {
       "add": "Add canvas",
