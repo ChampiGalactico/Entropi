@@ -726,6 +726,12 @@ body {
 
 /* Callouts keep the editor's typography while giving important text a distinct,
    printable surface. Each tone controls both the accent and its subtle backdrop. */
+.bn-block-content[data-content-type="callout"],
+.bn-block-content[data-content-type="callout"] > div {
+  width: 100%;
+  max-width: 100%;
+}
+
 .entropi-callout {
   --callout-strong: #3b82f6;
   --callout-soft: color-mix(in srgb, var(--callout-strong) 12%, var(--bg-surface));

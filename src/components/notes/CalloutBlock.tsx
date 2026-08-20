@@ -35,7 +35,7 @@ function Callout({ block, editor, contentRef }: { block: any; editor: any; conte
     editor.updateBlock(block, { props: patch });
   }
 
-  return <div className="entropi-callout group relative my-2 flex min-h-14 items-start gap-3 rounded-2xl border px-3 py-3" data-tone={tone}>
+  return <div className="entropi-callout group relative my-2 flex min-h-14 w-full items-start gap-3 rounded-2xl border px-3 py-3" data-tone={tone}>
     <button type="button" contentEditable={false} title={t("notes.callout.customize")} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setSettingsOpen((open) => !open); }} className="entropi-callout-icon mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-transform hover:scale-110"><CalloutIcon value={icon} /></button>
     <div ref={contentRef} className="entropi-callout-content min-w-0 flex-1 py-1 text-text-primary" />
     <button type="button" contentEditable={false} aria-label={t("notes.callout.customize")} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation(); setSettingsOpen((open) => !open); }} className="entropi-callout-settings flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-text-muted opacity-0 transition-opacity hover:bg-black/10 group-hover:opacity-100"><TuningLinear size={15} /></button>
