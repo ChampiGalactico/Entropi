@@ -832,6 +832,46 @@ body {
   user-select: none !important;
 }
 
+.entropi-column-drop-preview {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  border: 2px solid color-mix(in srgb, var(--accent) 86%, white);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 12px 40px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.entropi-side-menu-event-bridge {
+  display: contents;
+}
+
+.entropi-column-drop-preview-left {
+  clip-path: inset(0 50% 0 0 round 0.9rem);
+}
+
+.entropi-column-drop-preview-right {
+  clip-path: inset(0 0 0 50% round 0.9rem);
+}
+
+.entropi-column-drop-preview > span {
+  position: absolute;
+  top: 50%;
+  left: 25%;
+  translate: -50% -50%;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.5rem;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.entropi-column-drop-preview-right > span {
+  left: 75%;
+}
+
 .entropi-column {
   border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
   border-radius: 1rem;

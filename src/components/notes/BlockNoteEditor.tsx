@@ -40,6 +40,15 @@ const spellcheckExtension = createSpellcheckExtension();
 
 const SOURCE_BLOCK_TYPES = new Set(["math", "diagram"]);
 
+type ColumnDropPreview = {
+  targetId: string;
+  side: "left" | "right";
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
 // No server to upload to in a local-first app — files are embedded as base64 data URLs directly
 // in the note's own JSON, so pasting a copied image or picking one from disk works fully offline
 // with nothing to keep in sync or clean up. Capped well under SQLite's practical row-size comfort
@@ -138,7 +147,10 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     return words;
   }, [acceptedWords, ignoredWords]);
   const [spellcheckMenu, setSpellcheckMenu] = useState<(SpellcheckMenuTarget & { from: number; to: number; suggestions: string[] }) | null>(null);
+  const [columnDropPreview, setColumnDropPreview] = useState<ColumnDropPreview | null>(null);
   const editorRootRef = useRef<HTMLDivElement>(null);
+  const draggedBlockIdRef = useRef<string | null>(null);
+  const columnDropPreviewRef = useRef<ColumnDropPreview | null>(null);
   const glossaryToolbar = useMemo(() => function GlossaryFormattingToolbar() {
     return <EntropiFormattingToolbar onAddToGlossary={onAddToGlossary} />;
   }, [onAddToGlossary]);
@@ -146,6 +158,140 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
     return <EntropiBlockSideMenu {...props} onBookmarkBlock={onBookmarkBlock} />;
   }, [onBookmarkBlock]);
   const nestedFeatures = useMemo(() => ({ onAddToGlossary, onBookmarkBlock, acceptedWords }), [acceptedWords, onAddToGlossary, onBookmarkBlock]);
+
+  useEffect(() => {
+    const root = editorRootRef.current;
+    if (!root || !editable) return;
+
+    function clearColumnDrop() {
+      draggedBlockIdRef.current = null;
+      columnDropPreviewRef.current = null;
+      setColumnDropPreview(null);
+    }
+
+    function blockIdFromDrag(event: DragEvent) {
+      const bridgedId = event.dataTransfer?.getData("application/x-entropi-block-id");
+      if (bridgedId && editor.getBlock(bridgedId)) return bridgedId;
+      const html = event.dataTransfer?.getData("blocknote/html") || event.dataTransfer?.getData("text/html") || "";
+      if (html) {
+        const parsed = new DOMParser().parseFromString(html, "text/html");
+        const id = parsed.querySelector<HTMLElement>("[data-id]")?.dataset.id;
+        if (id && editor.getBlock(id)) return id;
+      }
+      const selected = (editor as any).getSelectionCutBlocks?.() as Array<{ id?: string }> | undefined;
+      const id = selected?.[0]?.id;
+      return id && editor.getBlock(id) ? id : null;
+    }
+
+    function ownedBlockElements(mainEditor: HTMLElement) {
+      const elements = Array.from(mainEditor.querySelectorAll<HTMLElement>(".bn-block-outer"));
+      return elements.filter((element) => element.closest(".bn-editor") === mainEditor && !!element.querySelector<HTMLElement>("[data-id]")?.dataset.id);
+    }
+
+    function findDropTarget(event: DragEvent, draggedId: string, mainEditor: HTMLElement) {
+      const candidates = ownedBlockElements(mainEditor)
+        .map((element) => ({ element, id: element.querySelector<HTMLElement>("[data-id]")?.dataset.id, rect: element.getBoundingClientRect() }))
+        .filter((candidate): candidate is { element: HTMLElement; id: string; rect: DOMRect } => !!candidate.id && candidate.id !== draggedId)
+        .sort((a, b) => Math.abs(event.clientY - (a.rect.top + a.rect.height / 2)) - Math.abs(event.clientY - (b.rect.top + b.rect.height / 2)));
+      const target = candidates[0];
+      if (!target || event.clientY < target.rect.top - 28 || event.clientY > target.rect.bottom + 28) return null;
+
+      const dragged = editor.getBlock(draggedId);
+      const targetBlock = editor.getBlock(target.id);
+      if (!dragged || !targetBlock || (targetBlock.type === "columns" && Number((targetBlock.props as any).columns) >= 4)) return null;
+      const draggedParent = editor.getParentBlock(dragged)?.id ?? null;
+      const targetParent = editor.getParentBlock(targetBlock)?.id ?? null;
+      if (draggedParent !== targetParent) return null;
+
+      const edge = Math.max(72, Math.min(240, target.rect.width * 0.28));
+      const side = event.clientX <= target.rect.left + edge ? "left" : event.clientX >= target.rect.right - edge ? "right" : null;
+      if (!side) return null;
+      return { targetId: target.id, side, top: target.rect.top, left: target.rect.left, width: target.rect.width, height: target.rect.height } satisfies ColumnDropPreview;
+    }
+
+    const onDragStart = (event: DragEvent) => {
+      draggedBlockIdRef.current = blockIdFromDrag(event);
+    };
+    const onDragOver = (event: DragEvent) => {
+      const draggedId = draggedBlockIdRef.current;
+      const mainEditor = root.querySelector<HTMLElement>(".bn-editor");
+      if (!draggedId || !mainEditor || !(event.target instanceof Node) || !root.contains(event.target)) return;
+      const preview = findDropTarget(event, draggedId, mainEditor);
+      if (!preview) {
+        if (columnDropPreviewRef.current) {
+          columnDropPreviewRef.current = null;
+          setColumnDropPreview(null);
+        }
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      const current = columnDropPreviewRef.current;
+      if (!current || current.targetId !== preview.targetId || current.side !== preview.side || current.top !== preview.top || current.left !== preview.left || current.width !== preview.width || current.height !== preview.height) {
+        columnDropPreviewRef.current = preview;
+        setColumnDropPreview(preview);
+      }
+    };
+    const onDrop = (event: DragEvent) => {
+      const preview = columnDropPreviewRef.current;
+      const draggedId = draggedBlockIdRef.current;
+      if (!preview || !draggedId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const dragged = editor.getBlock(draggedId);
+      const target = editor.getBlock(preview.targetId);
+      clearColumnDrop();
+      if (!dragged || !target) return;
+      if (target.type === "columns") {
+        const props = target.props as Record<string, unknown>;
+        const count = Math.max(2, Math.min(4, Number(props.columns) || 2));
+        if (count >= 4) return;
+        const nextProps: Record<string, unknown> = { columns: count + 1 };
+        const currentWidths = String(props.widths || "1,1,1,1").split(",").slice(0, count);
+        if (preview.side === "left") {
+          for (let index = count; index >= 1; index -= 1) nextProps[`column${index + 1}`] = props[`column${index}`];
+          nextProps.column1 = JSON.stringify([dragged]);
+          nextProps.widths = ["1", ...currentWidths].join(",");
+        } else {
+          nextProps[`column${count + 1}`] = JSON.stringify([dragged]);
+          nextProps.widths = [...currentWidths, "1"].join(",");
+        }
+        editor.updateBlock(target, { props: nextProps });
+        editor.removeBlocks([dragged]);
+        return;
+      }
+      const left = preview.side === "left" ? dragged : target;
+      const right = preview.side === "left" ? target : dragged;
+      editor.replaceBlocks([target, dragged], [{
+        type: "columns",
+        props: {
+          columns: 2,
+          column1: JSON.stringify([left]),
+          column2: JSON.stringify([right]),
+          widths: "1,1,1,1",
+        },
+      } as any]);
+    };
+    const onDragLeave = (event: DragEvent) => {
+      if (event.relatedTarget instanceof Node && root.contains(event.relatedTarget)) return;
+      columnDropPreviewRef.current = null;
+      setColumnDropPreview(null);
+    };
+
+    document.addEventListener("dragstart", onDragStart);
+    document.addEventListener("dragend", clearColumnDrop);
+    root.addEventListener("dragover", onDragOver, true);
+    root.addEventListener("drop", onDrop, true);
+    root.addEventListener("dragleave", onDragLeave);
+    return () => {
+      document.removeEventListener("dragstart", onDragStart);
+      document.removeEventListener("dragend", clearColumnDrop);
+      root.removeEventListener("dragover", onDragOver, true);
+      root.removeEventListener("drop", onDrop, true);
+      root.removeEventListener("dragleave", onDragLeave);
+    };
+  }, [editable, editor]);
 
   useEffect(() => {
     if (!revealBlockId) return;
@@ -494,6 +640,10 @@ export function BlockNoteEditor({ value, onChange, fullPage = false, embedded = 
         </MantineProvider>
       </NoteEditorFeaturesContext.Provider>
       <CodeLanguageSelects editorRootRef={editorRootRef} />
+      {columnDropPreview && <div
+        className={`entropi-column-drop-preview entropi-column-drop-preview-${columnDropPreview.side}`}
+        style={{ top: columnDropPreview.top, left: columnDropPreview.left, width: columnDropPreview.width, height: columnDropPreview.height }}
+      ><span>{t("notes.columns.dropToCreate")}</span></div>}
       {spellcheckMenu && (
         <SpellcheckMenu
           word={spellcheckMenu.word}

@@ -610,7 +610,8 @@
       "slashGroup": "Diseño",
       "count": "Columnas",
       "useCount": "Usar {{count}} columnas",
-      "resize": "Arrastra para ajustar el ancho de las columnas"
+      "resize": "Arrastra para ajustar el ancho de las columnas",
+      "dropToCreate": "Crear columna"
     },
     "drawing": {
       "add": "Añadir lienzo",

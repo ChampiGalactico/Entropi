@@ -132,6 +132,10 @@ function EntropiDragHandleMenu({ onBookmarkBlock }: { onBookmarkBlock?: (draft: 
 }
 
 export function EntropiBlockSideMenu({ onBookmarkBlock, ...props }: SideMenuProps & { onBookmarkBlock?: (draft: BlockBookmarkDraft) => void }) {
+  const editor = useBlockNoteEditor<any, any, any>();
+  const block = useExtensionState(SideMenuExtension, { editor, selector: (state) => state?.block });
   const dragHandleMenu = () => <EntropiDragHandleMenu onBookmarkBlock={onBookmarkBlock} />;
-  return <SideMenu {...props} dragHandleMenu={dragHandleMenu} />;
+  return <div className="entropi-side-menu-event-bridge" onDragStartCapture={(event) => {
+    if (block) event.dataTransfer.setData("application/x-entropi-block-id", block.id);
+  }}><SideMenu {...props} dragHandleMenu={dragHandleMenu} /></div>;
 }
