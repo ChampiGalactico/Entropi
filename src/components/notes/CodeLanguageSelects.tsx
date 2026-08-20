@@ -20,10 +20,16 @@ function CodeLanguageCombobox({ select, layoutVersion }: { select: HTMLSelectEle
 
   useLayoutEffect(() => {
     function place() {
-      const host = select.parentElement;
+      const host = select.closest<HTMLElement>('.bn-block-content[data-content-type="codeBlock"]');
       if (!host?.isConnected) { setPosition((current) => ({ ...current, visible: false })); return; }
       const rect = host.getBoundingClientRect();
-      setPosition({ left: rect.left + 12, top: rect.top + 10, visible: rect.width > 0 && rect.height > 0 });
+      const visible = rect.width > 0
+        && rect.height > 0
+        && rect.bottom > 0
+        && rect.right > 0
+        && rect.top < window.innerHeight
+        && rect.left < window.innerWidth;
+      setPosition({ left: rect.left + 12, top: rect.top + 10, visible });
     }
     place();
     window.addEventListener("resize", place);
@@ -63,7 +69,7 @@ export function CodeLanguageSelects({ editorRootRef }: CodeLanguageSelectsProps)
 
     function scan() {
       const next = Array.from(root.querySelectorAll<HTMLSelectElement>(
-        '.bn-block-content[data-content-type="codeBlock"] > div > select',
+        '.bn-block-content[data-content-type="codeBlock"] select',
       ));
       setSelects((current) => (
         current.length === next.length && current.every((select, index) => select === next[index])
